@@ -254,7 +254,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 功能选择
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     st.markdown("""
@@ -290,6 +290,17 @@ with col3:
         st.session_state.current_page = "batch"
 
 with col4:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">自动化</div>
+        <div class="feature-desc">智能工作流</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("进入", key="btn_workflow", use_container_width=True):
+        st.session_state.current_page = "workflow"
+
+with col5:
     st.markdown("""
     <div class="feature-card">
         <div class="feature-icon">📊</div>
@@ -611,6 +622,208 @@ elif st.session_state.current_page == "batch":
                                                 st.success(f"✅ {r['name']} ({r['email']})")
                                             else:
                                                 st.error(f"❌ {r['name']} ({r['email']}): {r.get('error', '未知错误')}")
+
+    except Exception as e:
+        st.error(f"错误: {e}")
+
+elif st.session_state.current_page == "workflow":
+    st.markdown("## ⚡ 自动化工作流")
+
+    try:
+        from database import init_supabase
+        from auth import get_current_user
+        from workflow_engine import WorkflowEngine, WORKFLOW_TEMPLATES
+
+        if not init_supabase():
+            st.error("数据库连接失败")
+        else:
+            user = get_current_user()
+            if not user:
+                st.warning("请先登录")
+            else:
+                from database import supabase
+                engine = WorkflowEngine(supabase)
+
+                # 标签页
+                tab1, tab2, tab3 = st.tabs(["📋 我的工作流", "➕ 创建工作流", "▶️ 执行工作流"])
+
+                with tab1:
+                    st.markdown("### 我的工作流")
+
+                    workflows = engine.get_workflows(user['id'])
+
+                    if workflows:
+                        for wf in workflows:
+                            with st.expander(f"{'✅' if wf['enabled'] else '❌'} {wf['name']}", expanded=False):
+                                st.markdown(f"**触发器**: {wf['trigger_type']}")
+                                st.markdown(f"**条件**: {wf['trigger_conditions']}")
+                                st.markdown(f"**动作数量**: {len(wf['actions'])}")
+                                st.markdown(f"**状态**: {'启用' if wf['enabled'] else '禁用'}")
+
+                                col1, col2, col3 = st.columns(3)
+
+                                with col1:
+                                    if wf['enabled']:
+                                        if st.button("❌ 禁用", key=f"disable_{wf['id']}", use_container_width=True):
+                                            engine.update_workflow(wf['id'], {'enabled': False})
+                                            st.success("已禁用")
+                                            st.rerun()
+                                    else:
+                                        if st.button("✅ 启用", key=f"enable_{wf['id']}", use_container_width=True):
+                                            engine.update_workflow(wf['id'], {'enabled': True})
+                                            st.success("已启用")
+                                            st.rerun()
+
+                                with col2:
+                                    if st.button("🗑️ 删除", key=f"delete_{wf['id']}", use_container_width=True):
+                                        engine.delete_workflow(wf['id'])
+                                        st.success("已删除")
+                                        st.rerun()
+
+                                with col3:
+                                    if st.button("▶️ 立即执行", key=f"run_{wf['id']}", use_container_width=True):
+                                        with st.spinner("执行中..."):
+                                            # 临时创建只包含这个工作流的列表
+                                            result = engine.check_and_execute_workflows(user['id'])
+                                            st.success(f"执行完成! 触发: {result['triggered']}, 成功: {result['executed']}, 失败: {result['failed']}")
+                    else:
+                        st.info("暂无工作流,请创建一个")
+
+                with tab2:
+                    st.markdown("### 快速创建工作流")
+
+                    st.markdown("#### 从模板创建")
+
+                    for template_name, template_data in WORKFLOW_TEMPLATES.items():
+                        with st.expander(f"📋 {template_name}"):
+                            st.markdown(f"**触发条件**: {template_data['trigger_type']}")
+                            st.json(template_data['trigger_conditions'])
+                            st.markdown(f"**动作数量**: {len(template_data['actions'])}")
+
+                            if st.button(f"使用此模板", key=f"use_template_{template_name}", use_container_width=True):
+                                template_data['user_id'] = user['id']
+                                workflow_id = engine.create_workflow(template_data)
+                                st.success(f"✅ 工作流已创建: {template_name}")
+                                st.rerun()
+
+                    st.markdown("---")
+                    st.markdown("#### 自定义工作流")
+
+                    with st.form("create_workflow_form"):
+                        name = st.text_input("工作流名称", placeholder="例如: 3天未回复自动跟进")
+
+                        trigger_type = st.selectbox("触发器类型", [
+                            "email_not_opened",
+                            "email_opened_not_clicked",
+                            "email_clicked_no_reply",
+                            "new_lead",
+                            "engagement_score"
+                        ])
+
+                        st.markdown("**触发条件**")
+                        if trigger_type in ['email_not_opened', 'email_opened_not_clicked', 'email_clicked_no_reply']:
+                            days = st.number_input("天数", min_value=1, max_value=30, value=3)
+                            trigger_conditions = {'days': days}
+                        elif trigger_type == 'new_lead':
+                            hours = st.number_input("小时数", min_value=1, max_value=24, value=1)
+                            trigger_conditions = {'hours': hours}
+                        elif trigger_type == 'engagement_score':
+                            threshold = st.number_input("分数阈值", min_value=0, max_value=100, value=70)
+                            operator = st.selectbox("比较方式", ["gte (>=)", "lte (<=)", "eq (=)"])
+                            trigger_conditions = {'threshold': threshold, 'operator': operator.split()[0]}
+
+                        st.markdown("**动作配置**")
+                        action_type = st.selectbox("动作类型", [
+                            "send_email",
+                            "update_lead_status",
+                            "add_tag",
+                            "send_notification"
+                        ])
+
+                        if action_type == "send_email":
+                            email_subject = st.text_input("邮件主题", value="跟进邮件")
+                            email_body = st.text_area("邮件内容", value="您好,这是一封自动跟进邮件。")
+                            actions = [{
+                                'type': 'send_email',
+                                'subject': email_subject,
+                                'body': email_body,
+                                'from_name': 'XX留学',
+                                'institution_name': 'XX留学'
+                            }]
+                        elif action_type == "update_lead_status":
+                            new_status = st.text_input("新状态", value="follow_up")
+                            actions = [{'type': 'update_lead_status', 'status': new_status}]
+                        elif action_type == "add_tag":
+                            tag = st.text_input("标签", value="已跟进")
+                            actions = [{'type': 'add_tag', 'tag': tag}]
+                        elif action_type == "send_notification":
+                            message = st.text_input("通知消息", value="工作流触发")
+                            actions = [{'type': 'send_notification', 'message': message}]
+
+                        submitted = st.form_submit_button("创建工作流", use_container_width=True, type="primary")
+
+                        if submitted and name:
+                            workflow_data = {
+                                'user_id': user['id'],
+                                'name': name,
+                                'trigger_type': trigger_type,
+                                'trigger_conditions': trigger_conditions,
+                                'actions': actions,
+                                'enabled': True
+                            }
+
+                            workflow_id = engine.create_workflow(workflow_data)
+                            st.success(f"✅ 工作流已创建: {name}")
+                            st.rerun()
+
+                with tab3:
+                    st.markdown("### 执行所有工作流")
+
+                    st.info("💡 点击下方按钮,系统会检查所有启用的工作流并自动执行")
+
+                    if st.button("▶️ 立即执行所有工作流", use_container_width=True, type="primary"):
+                        with st.spinner("正在执行工作流..."):
+                            result = engine.check_and_execute_workflows(user['id'])
+
+                            st.success(f"""
+                            ✅ 执行完成!
+
+                            - 检查工作流: {result['checked']} 个
+                            - 触发项目: {result['triggered']} 个
+                            - 成功执行: {result['executed']} 个
+                            - 执行失败: {result['failed']} 个
+                            """)
+
+                            if result['results']:
+                                with st.expander("查看详细结果"):
+                                    for r in result['results']:
+                                        if r['success']:
+                                            st.success(f"✅ {r['workflow_name']}")
+                                        else:
+                                            st.error(f"❌ {r['workflow_name']}")
+
+                    st.markdown("---")
+                    st.markdown("### 自动执行设置")
+                    st.info("💡 建议使用外部定时任务(如GitHub Actions、Cron)每小时调用一次工作流执行")
+
+                    st.code("""
+# 使用GitHub Actions自动执行工作流
+# .github/workflows/run-workflows.yml
+
+name: Run Workflows
+on:
+  schedule:
+    - cron: '0 * * * *'  # 每小时执行一次
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute Workflows
+        run: |
+          curl -X POST https://your-app.streamlit.app/api/workflows/execute \\
+            -H "Authorization: Bearer ${{ secrets.API_TOKEN }}"
+                    """, language="yaml")
 
     except Exception as e:
         st.error(f"错误: {e}")
