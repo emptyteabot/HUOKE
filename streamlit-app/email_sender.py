@@ -16,7 +16,8 @@ def send_email(
     body: str,
     from_name: str = "GuestSeek",
     track_opens: bool = True,
-    track_clicks: bool = True
+    track_clicks: bool = True,
+    email_id: Optional[str] = None
 ) -> Dict:
     """
     发送单封邮件
@@ -29,6 +30,7 @@ def send_email(
         from_name: 发件人名称
         track_opens: 是否追踪打开
         track_clicks: 是否追踪点击
+        email_id: 邮件ID(用于追踪)
 
     Returns:
         Dict: {
@@ -43,6 +45,11 @@ def send_email(
                 'success': False,
                 'error': '未配置SendGrid API Key'
             }
+
+        # 如果提供了email_id,添加追踪代码
+        if email_id and track_opens:
+            from email_tracking import add_tracking_to_email
+            body = add_tracking_to_email(body, email_id)
 
         # 创建邮件
         message = Mail(
@@ -62,6 +69,10 @@ def send_email(
             tracking_settings.click_tracking = ClickTracking(enable=True, enable_text=True)
 
         message.tracking_settings = tracking_settings
+
+        # 添加自定义参数用于webhook追踪
+        if email_id:
+            message.custom_args = {'email_id': email_id}
 
         # 发送邮件
         sg = SendGridAPIClient(SENDGRID_API_KEY)

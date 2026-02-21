@@ -619,8 +619,9 @@ elif st.session_state.current_page == "analytics":
     st.markdown("## 📊 数据分析")
 
     try:
-        from database import init_supabase, get_stats
+        from database import init_supabase, get_stats, get_emails
         from auth import get_current_user
+        from email_tracking import analyze_email_performance, get_email_engagement_score
 
         if not init_supabase():
             st.error("数据库连接失败")
@@ -645,23 +646,54 @@ elif st.session_state.current_page == "analytics":
 
                 st.markdown("---")
 
+                # 获取所有邮件进行分析
+                emails = get_emails(user_id=user['id'])
+
+                if emails:
+                    # 邮件表现分析
+                    performance = analyze_email_performance(emails)
+
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        st.markdown("### 📈 互动率")
+                        st.metric("邮件互动率", f"{performance['engagement_rate']:.1f}%")
+                        st.caption("点击数 / 打开数")
+
+                    with col2:
+                        st.markdown("### ⏰ 最佳发送时间")
+                        if performance['best_time']:
+                            st.metric("最佳时间", performance['best_time'])
+                            st.caption("打开率最高的时段")
+                        else:
+                            st.info("数据不足")
+
+                    with col3:
+                        st.markdown("### 📊 平均互动")
+                        st.metric("平均打开次数", f"{performance['avg_opens']:.1f}")
+                        st.metric("平均点击次数", f"{performance['avg_clicks']:.1f}")
+
+                    st.markdown("---")
+
                 # 最近邮件列表
                 st.markdown("### 📧 最近发送的邮件")
 
-                from database import get_emails
                 import pandas as pd
 
-                emails = get_emails(user_id=user['id'])
                 if emails:
                     # 转换为DataFrame
                     email_list = []
                     for email in emails[:20]:  # 只显示最近20封
+                        # 计算互动分数
+                        engagement = get_email_engagement_score(email)
+
                         email_list.append({
                             '收件人': email.get('leads', {}).get('name', '未知'),
                             '主题': email['subject'][:50] + '...' if len(email['subject']) > 50 else email['subject'],
                             '状态': '✅ 已发送' if email['status'] == 'sent' else '📝 草稿',
-                            '打开': '✅' if email.get('opened_at') else '❌',
-                            '点击': '✅' if email.get('clicked_at') else '❌',
+                            '打开': f"✅ {email.get('opens', 0)}次" if email.get('opened_at') else '❌',
+                            '点击': f"✅ {email.get('clicks', 0)}次" if email.get('clicked_at') else '❌',
+                            '互动分数': f"{engagement['score']}分 ({engagement['level']})",
                             '发送时间': email.get('sent_at', email['created_at'])[:10] if email.get('sent_at') else email['created_at'][:10]
                         })
 
