@@ -57,5 +57,6 @@ linkedin_session.json
 # Scraped data
 *.json
 !package.json
+!package-lock.json
 !tsconfig.json
 !railway.json
