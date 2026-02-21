@@ -832,9 +832,20 @@ elif st.session_state.current_page == "analytics":
     st.markdown("## 📊 数据分析")
 
     try:
-        from database import init_supabase, get_stats, get_emails
+        from database import init_supabase, get_stats, get_emails, get_leads
         from auth import get_current_user
         from email_tracking import analyze_email_performance, get_email_engagement_score
+        from analytics import (
+            calculate_conversion_funnel,
+            calculate_roi,
+            analyze_time_trends,
+            segment_leads,
+            compare_email_templates,
+            generate_insights,
+            export_report
+        )
+        import plotly.graph_objects as go
+        import plotly.express as px
 
         if not init_supabase():
             st.error("数据库连接失败")
@@ -843,80 +854,272 @@ elif st.session_state.current_page == "analytics":
             if not user:
                 st.warning("请先登录")
             else:
-                # 获取统计数据
+                # 获取数据
                 stats = get_stats(user['id'])
-
-                col1, col2, col3, col4 = st.columns(4)
-
-                with col1:
-                    st.metric("学生线索", stats['total_leads'], f"+{stats['total_leads']}")
-                with col2:
-                    st.metric("发送邮件", stats['total_emails'], f"+{stats['total_emails']}")
-                with col3:
-                    st.metric("打开率", f"{stats['open_rate']:.1f}%", f"+{stats['opened_emails']}")
-                with col4:
-                    st.metric("点击率", f"{stats['click_rate']:.1f}%", f"+{stats['clicked_emails']}")
-
-                st.markdown("---")
-
-                # 获取所有邮件进行分析
                 emails = get_emails(user_id=user['id'])
+                leads = get_leads(user_id=user['id'])
 
-                if emails:
-                    # 邮件表现分析
-                    performance = analyze_email_performance(emails)
+                # 标签页
+                tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 总览", "🔄 转化漏斗", "💰 ROI分析", "📈 趋势分析", "👥 客户分群"])
 
-                    col1, col2, col3 = st.columns(3)
+                with tab1:
+                    st.markdown("### 核心指标")
+
+                    col1, col2, col3, col4 = st.columns(4)
 
                     with col1:
-                        st.markdown("### 📈 互动率")
-                        st.metric("邮件互动率", f"{performance['engagement_rate']:.1f}%")
-                        st.caption("点击数 / 打开数")
-
+                        st.metric("学生线索", stats['total_leads'], f"+{stats['total_leads']}")
                     with col2:
-                        st.markdown("### ⏰ 最佳发送时间")
-                        if performance['best_time']:
-                            st.metric("最佳时间", performance['best_time'])
-                            st.caption("打开率最高的时段")
-                        else:
-                            st.info("数据不足")
-
+                        st.metric("发送邮件", stats['total_emails'], f"+{stats['total_emails']}")
                     with col3:
-                        st.markdown("### 📊 平均互动")
-                        st.metric("平均打开次数", f"{performance['avg_opens']:.1f}")
-                        st.metric("平均点击次数", f"{performance['avg_clicks']:.1f}")
+                        st.metric("打开率", f"{stats['open_rate']:.1f}%", f"+{stats['opened_emails']}")
+                    with col4:
+                        st.metric("点击率", f"{stats['click_rate']:.1f}%", f"+{stats['clicked_emails']}")
 
                     st.markdown("---")
 
-                # 最近邮件列表
-                st.markdown("### 📧 最近发送的邮件")
+                    if emails:
+                        # 邮件表现分析
+                        performance = analyze_email_performance(emails)
 
-                import pandas as pd
+                        col1, col2, col3 = st.columns(3)
 
-                if emails:
-                    # 转换为DataFrame
-                    email_list = []
-                    for email in emails[:20]:  # 只显示最近20封
-                        # 计算互动分数
-                        engagement = get_email_engagement_score(email)
+                        with col1:
+                            st.markdown("### 📈 互动率")
+                            st.metric("邮件互动率", f"{performance['engagement_rate']:.1f}%")
+                            st.caption("点击数 / 打开数")
 
-                        email_list.append({
-                            '收件人': email.get('leads', {}).get('name', '未知'),
-                            '主题': email['subject'][:50] + '...' if len(email['subject']) > 50 else email['subject'],
-                            '状态': '✅ 已发送' if email['status'] == 'sent' else '📝 草稿',
-                            '打开': f"✅ {email.get('opens', 0)}次" if email.get('opened_at') else '❌',
-                            '点击': f"✅ {email.get('clicks', 0)}次" if email.get('clicked_at') else '❌',
-                            '互动分数': f"{engagement['score']}分 ({engagement['level']})",
-                            '发送时间': email.get('sent_at', email['created_at'])[:10] if email.get('sent_at') else email['created_at'][:10]
-                        })
+                        with col2:
+                            st.markdown("### ⏰ 最佳发送时间")
+                            if performance['best_time']:
+                                st.metric("最佳时间", performance['best_time'])
+                                st.caption("打开率最高的时段")
+                            else:
+                                st.info("数据不足")
 
-                    df = pd.DataFrame(email_list)
-                    st.dataframe(df, use_container_width=True, hide_index=True)
-                else:
-                    st.info("暂无邮件数据")
+                        with col3:
+                            st.markdown("### 📊 平均互动")
+                            st.metric("平均打开次数", f"{performance['avg_opens']:.1f}")
+                            st.metric("平均点击次数", f"{performance['avg_clicks']:.1f}")
+
+                        st.markdown("---")
+
+                        # 数据洞察
+                        st.markdown("### 💡 数据洞察")
+                        insights = generate_insights(leads, emails)
+                        for insight in insights:
+                            st.info(insight)
+
+                        st.markdown("---")
+
+                        # 邮件模板对比
+                        st.markdown("### 📧 邮件模板效果对比")
+                        template_comparison = compare_email_templates(emails)
+
+                        if template_comparison['templates']:
+                            import pandas as pd
+                            df_templates = pd.DataFrame(template_comparison['templates'])
+                            st.dataframe(df_templates, use_container_width=True, hide_index=True)
+
+                            # 可视化
+                            fig = go.Figure(data=[
+                                go.Bar(name='打开率', x=[t['template'] for t in template_comparison['templates']],
+                                       y=[t['open_rate'] for t in template_comparison['templates']]),
+                                go.Bar(name='点击率', x=[t['template'] for t in template_comparison['templates']],
+                                       y=[t['click_rate'] for t in template_comparison['templates']])
+                            ])
+                            fig.update_layout(barmode='group', title='各类邮件效果对比')
+                            st.plotly_chart(fig, use_container_width=True)
+
+                with tab2:
+                    st.markdown("### 🔄 转化漏斗")
+
+                    if leads and emails:
+                        funnel = calculate_conversion_funnel(leads, emails)
+
+                        # 显示漏斗图
+                        fig = go.Figure(go.Funnel(
+                            y=[stage['name'] for stage in funnel['stages']],
+                            x=[stage['count'] for stage in funnel['stages']],
+                            textinfo="value+percent initial"
+                        ))
+                        fig.update_layout(title='客户转化漏斗')
+                        st.plotly_chart(fig, use_container_width=True)
+
+                        # 显示详细数据
+                        st.markdown("### 各阶段详情")
+                        for stage in funnel['stages']:
+                            col1, col2 = st.columns([3, 1])
+                            with col1:
+                                st.markdown(f"**{stage['name']}**")
+                            with col2:
+                                st.metric("", f"{stage['count']} ({stage['rate']:.1f}%)")
+
+                        st.markdown(f"**总体转化率**: {funnel['overall_conversion_rate']:.2f}%")
+                    else:
+                        st.info("数据不足,请先添加线索和发送邮件")
+
+                with tab3:
+                    st.markdown("### 💰 ROI分析")
+
+                    if leads and emails:
+                        # ROI配置
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            cost_per_lead = st.number_input("每个线索成本(元)", min_value=0, value=50, step=10)
+                        with col2:
+                            revenue_per_conversion = st.number_input("每个转化收入(元)", min_value=0, value=10000, step=1000)
+
+                        roi = calculate_roi(leads, emails, cost_per_lead, revenue_per_conversion)
+
+                        # 显示ROI指标
+                        col1, col2, col3, col4 = st.columns(4)
+
+                        with col1:
+                            st.metric("总成本", f"¥{roi['total_cost']:,.0f}")
+                        with col2:
+                            st.metric("总收入", f"¥{roi['total_revenue']:,.0f}")
+                        with col3:
+                            st.metric("净利润", f"¥{roi['net_profit']:,.0f}")
+                        with col4:
+                            st.metric("ROI", f"{roi['roi']:.1f}%")
+
+                        st.markdown("---")
+
+                        col1, col2 = st.columns(2)
+
+                        with col1:
+                            st.metric("转化数", roi['conversions'])
+                        with col2:
+                            st.metric("单个转化成本", f"¥{roi['cost_per_conversion']:,.0f}")
+
+                        # 成本构成饼图
+                        fig = go.Figure(data=[go.Pie(
+                            labels=['线索获取成本', '邮件发送成本'],
+                            values=[roi['lead_acquisition_cost'], roi['email_cost']]
+                        )])
+                        fig.update_layout(title='成本构成')
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info("数据不足,请先添加线索和发送邮件")
+
+                with tab4:
+                    st.markdown("### 📈 时间趋势分析")
+
+                    if emails:
+                        days = st.selectbox("分析周期", [7, 14, 30, 60, 90], index=2)
+                        trends = analyze_time_trends(emails, days)
+
+                        if trends['trends']:
+                            import pandas as pd
+                            df_trends = pd.DataFrame(trends['trends'])
+
+                            # 发送量趋势
+                            fig1 = go.Figure()
+                            fig1.add_trace(go.Scatter(x=df_trends['date'], y=df_trends['sent'],
+                                                     mode='lines+markers', name='发送'))
+                            fig1.add_trace(go.Scatter(x=df_trends['date'], y=df_trends['opened'],
+                                                     mode='lines+markers', name='打开'))
+                            fig1.add_trace(go.Scatter(x=df_trends['date'], y=df_trends['clicked'],
+                                                     mode='lines+markers', name='点击'))
+                            fig1.update_layout(title='邮件发送趋势', xaxis_title='日期', yaxis_title='数量')
+                            st.plotly_chart(fig1, use_container_width=True)
+
+                            # 转化率趋势
+                            fig2 = go.Figure()
+                            fig2.add_trace(go.Scatter(x=df_trends['date'], y=df_trends['open_rate'],
+                                                     mode='lines+markers', name='打开率'))
+                            fig2.add_trace(go.Scatter(x=df_trends['date'], y=df_trends['click_rate'],
+                                                     mode='lines+markers', name='点击率'))
+                            fig2.update_layout(title='转化率趋势', xaxis_title='日期', yaxis_title='百分比(%)')
+                            st.plotly_chart(fig2, use_container_width=True)
+
+                            # 显示数据表
+                            st.dataframe(df_trends, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("该时间段内没有数据")
+                    else:
+                        st.info("暂无邮件数据")
+
+                with tab5:
+                    st.markdown("### 👥 客户分群分析")
+
+                    if leads and emails:
+                        segments = segment_leads(leads, emails)
+
+                        # 按互动分群
+                        st.markdown("#### 按互动程度分群")
+
+                        col1, col2, col3, col4 = st.columns(4)
+
+                        with col1:
+                            st.metric("🔥 高互动", segments['by_engagement']['high']['count'])
+                            st.caption("分数 >= 70")
+                        with col2:
+                            st.metric("📊 中互动", segments['by_engagement']['medium']['count'])
+                            st.caption("40 <= 分数 < 70")
+                        with col3:
+                            st.metric("📉 低互动", segments['by_engagement']['low']['count'])
+                            st.caption("分数 < 40")
+                        with col4:
+                            st.metric("❌ 无互动", segments['by_engagement']['none']['count'])
+                            st.caption("未发送邮件")
+
+                        # 饼图
+                        fig = go.Figure(data=[go.Pie(
+                            labels=['高互动', '中互动', '低互动', '无互动'],
+                            values=[
+                                segments['by_engagement']['high']['count'],
+                                segments['by_engagement']['medium']['count'],
+                                segments['by_engagement']['low']['count'],
+                                segments['by_engagement']['none']['count']
+                            ]
+                        )])
+                        fig.update_layout(title='客户互动分布')
+                        st.plotly_chart(fig, use_container_width=True)
+
+                        st.markdown("---")
+
+                        # 按国家分群
+                        st.markdown("#### 按目标国家分群")
+                        if segments['by_country']:
+                            fig = go.Figure(data=[go.Bar(
+                                x=list(segments['by_country'].keys()),
+                                y=list(segments['by_country'].values())
+                            )])
+                            fig.update_layout(title='目标国家分布', xaxis_title='国家', yaxis_title='数量')
+                            st.plotly_chart(fig, use_container_width=True)
+
+                        # 按学历分群
+                        st.markdown("#### 按目标学历分群")
+                        if segments['by_degree']:
+                            fig = go.Figure(data=[go.Bar(
+                                x=list(segments['by_degree'].keys()),
+                                y=list(segments['by_degree'].values())
+                            )])
+                            fig.update_layout(title='目标学历分布', xaxis_title='学历', yaxis_title='数量')
+                            st.plotly_chart(fig, use_container_width=True)
+
+                        st.markdown("---")
+
+                        # 导出报表
+                        st.markdown("### 📥 导出数据报表")
+                        if st.button("导出Excel报表", use_container_width=True):
+                            df_report = export_report(leads, emails)
+                            csv = df_report.to_csv(index=False, encoding='utf-8-sig')
+                            st.download_button(
+                                label="下载CSV文件",
+                                data=csv,
+                                file_name=f"guestseek_report_{datetime.now().strftime('%Y%m%d')}.csv",
+                                mime="text/csv"
+                            )
+                    else:
+                        st.info("数据不足,请先添加线索和发送邮件")
 
     except Exception as e:
         st.error(f"错误: {e}")
+        import traceback
+        st.code(traceback.format_exc())
         st.info("💡 添加学生和生成邮件后,这里会显示详细数据")
 
 st.markdown('</div>', unsafe_allow_html=True)
