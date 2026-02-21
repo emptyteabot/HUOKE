@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # 页面配置
 st.set_page_config(
-    page_title="LeadPulse - AI留学获客助手",
+    page_title="GuestSeek - AI留学获客助手",
     page_icon="✨",
     layout="wide",
     initial_sidebar_state="collapsed"  # 隐藏侧边栏
@@ -233,7 +233,7 @@ st.markdown("""
 # 顶部导航栏
 st.markdown("""
 <div class="top-nav">
-    <div class="logo">✨ LeadPulse</div>
+    <div class="logo">✨ GuestSeek</div>
     <div class="nav-links">
         <a class="nav-link active" href="#home">首页</a>
         <a class="nav-link" href="#features">功能</a>
