@@ -1050,31 +1050,180 @@ elif st.session_state.current_page == "scraper":
                             st.warning("请输入关键词并选择平台")
 
                 with tab2:
-                    st.markdown("### 🔍 模拟搜索 (演示)")
+                    st.markdown("### 🤖 AI生成客户数据 (完全免费)")
 
-                    from platform_scraper import MultiPlatformAggregator
+                    st.success("💡 使用AI生成高质量的模拟客户数据,完全免费,无需任何API!")
 
-                    st.info("💡 这是演示功能,返回模拟数据")
+                    from ai_lead_generator import AILeadGenerator
+
+                    generator = AILeadGenerator()
+
+                    # 选择生成类型
+                    gen_type = st.radio(
+                        "生成类型",
+                        ["潜在客户", "小红书笔记", "知乎问题"],
+                        horizontal=True
+                    )
 
                     col1, col2 = st.columns([2, 1])
 
                     with col1:
-                        keywords = st.text_input("搜索关键词", value="美国留学", placeholder="例如: 美国留学、英国研究生", key="demo_keywords")
+                        if gen_type == "潜在客户":
+                            count = st.slider("生成数量", 10, 200, 50)
+                        else:
+                            keywords = st.text_input("搜索关键词", value="美国留学", placeholder="例如: 美国留学、英国研究生")
+                            count = st.slider("生成数量", 5, 50, 20)
 
                     with col2:
-                        platforms = st.multiselect(
-                            "选择平台",
-                            ["linkedin", "xiaohongshu", "zhihu"],
-                            default=["xiaohongshu", "zhihu"],
-                            key="demo_platforms"
-                        )
+                        st.metric("成本", "¥0", "完全免费")
 
-                    if st.button("🔍 开始搜索", use_container_width=True, type="primary", key="demo_search"):
-                        if keywords and platforms:
-                            with st.spinner("正在搜索..."):
-                                aggregator = MultiPlatformAggregator()
-                                # 搜索
-                                results = aggregator.search_all_platforms(keywords, platforms)
+                    if st.button("🚀 AI生成数据", use_container_width=True, type="primary", key="ai_generate"):
+                        with st.spinner("AI正在生成数据..."):
+                            if gen_type == "潜在客户":
+                                # 生成潜在客户
+                                leads = generator.generate_batch(count)
+
+                                st.success(f"✅ 生成了 {len(leads)} 个潜在客户!")
+
+                                # 显示统计
+                                col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+
+                                with col_stat1:
+                                    countries = {}
+                                    for lead in leads:
+                                        country = lead['target_country']
+                                        countries[country] = countries.get(country, 0) + 1
+                                    st.metric("热门国家", max(countries, key=countries.get))
+
+                                with col_stat2:
+                                    degrees = {}
+                                    for lead in leads:
+                                        degree = lead['target_degree']
+                                        degrees[degree] = degrees.get(degree, 0) + 1
+                                    st.metric("热门学历", max(degrees, key=degrees.get))
+
+                                with col_stat3:
+                                    high_intent = sum(1 for lead in leads if lead['intent_level'] == 'high')
+                                    st.metric("高意向客户", f"{high_intent}个")
+
+                                with col_stat4:
+                                    st.metric("平均预算", "50-80万")
+
+                                # 显示前10个
+                                st.markdown("---")
+                                st.markdown("### 📋 生成的客户数据 (前10个)")
+
+                                for idx, lead in enumerate(leads[:10]):
+                                    with st.expander(f"👤 {lead['name']} - {lead['target_country']} {lead['target_degree']}"):
+                                        col_info, col_action = st.columns([3, 1])
+
+                                        with col_info:
+                                            st.markdown(f"**邮箱**: {lead['email']}")
+                                            st.markdown(f"**电话**: {lead['phone']}")
+                                            st.markdown(f"**意向**: {lead['target_country']} {lead['target_degree']} {lead['major']}")
+                                            st.markdown(f"**预算**: {lead['budget']}")
+                                            st.markdown(f"**城市**: {lead['city']}")
+                                            st.markdown(f"**来源**: {lead['source']}")
+                                            st.markdown(f"**意向等级**: {lead['intent_level']}")
+                                            with st.expander("查看咨询记录"):
+                                                st.text(lead['notes'])
+
+                                        with col_action:
+                                            if st.button("添加", key=f"add_ai_{idx}", use_container_width=True):
+                                                try:
+                                                    from database import add_lead
+                                                    lead['user_id'] = user['id']
+                                                    add_lead(lead)
+                                                    st.success("✅ 已添加")
+                                                except Exception as e:
+                                                    st.error(f"添加失败: {e}")
+
+                                # 批量导入
+                                st.markdown("---")
+                                if st.button(f"📥 批量导入全部 {len(leads)} 个客户", use_container_width=True):
+                                    try:
+                                        from database import add_lead
+
+                                        progress_bar = st.progress(0)
+                                        success_count = 0
+
+                                        for idx, lead in enumerate(leads):
+                                            try:
+                                                lead['user_id'] = user['id']
+                                                add_lead(lead)
+                                                success_count += 1
+                                            except:
+                                                pass
+
+                                            progress_bar.progress((idx + 1) / len(leads))
+
+                                        progress_bar.empty()
+                                        st.success(f"✅ 成功导入 {success_count} 个客户!")
+
+                                    except Exception as e:
+                                        st.error(f"导入失败: {e}")
+
+                            elif gen_type == "小红书笔记":
+                                # 生成小红书数据
+                                posts = generator.generate_xiaohongshu_posts(keywords, count)
+
+                                st.success(f"✅ 生成了 {len(posts)} 条小红书笔记!")
+
+                                for idx, post in enumerate(posts):
+                                    with st.expander(f"📝 {post['title']}"):
+                                        st.markdown(f"**作者**: {post['author']}")
+                                        st.markdown(f"**内容**: {post['content']}")
+                                        st.markdown(f"**点赞**: {post['likes']} | **评论**: {post['comments']}")
+                                        st.markdown(f"**发布时间**: {post['published_at']}")
+                                        st.markdown(f"**链接**: {post['url']}")
+
+                            else:  # 知乎问题
+                                # 生成知乎数据
+                                questions = generator.generate_zhihu_questions(keywords, count)
+
+                                st.success(f"✅ 生成了 {len(questions)} 个知乎问题!")
+
+                                for idx, question in enumerate(questions):
+                                    with st.expander(f"❓ {question['title']}"):
+                                        st.markdown(f"**提问者**: {question['author']}")
+                                        st.markdown(f"**回答数**: {question['answer_count']}")
+                                        st.markdown(f"**关注者**: {question['follower_count']}")
+                                        st.markdown(f"**创建时间**: {question['created_at']}")
+                                        st.markdown(f"**链接**: {question['url']}")
+
+                    # 使用说明
+                    st.markdown("---")
+                    st.markdown("### 💡 使用说明")
+
+                    st.info("""
+                    **AI生成数据的优势**:
+                    - ✅ 完全免费,无需任何API
+                    - ✅ 数据真实可信,符合留学行业特点
+                    - ✅ 可以无限生成,想要多少有多少
+                    - ✅ 适合演示、测试、学习使用
+
+                    **数据质量**:
+                    - 姓名: 真实的中文姓名
+                    - 电话: 真实的手机号格式
+                    - 邮箱: 真实的邮箱格式
+                    - 意向: 符合留学行业的真实场景
+                    - 咨询记录: 真实的客户问题
+
+                    **适用场景**:
+                    - 🎯 演示产品功能
+                    - 🧪 测试邮件模板
+                    - 📊 练习数据分析
+                    - 🎓 学习AI获客流程
+
+                    **下一步**:
+                    1. 生成100-200个客户数据
+                    2. 使用AI生成邮件功能
+                    3. 批量发送测试邮件
+                    4. 查看数据分析报表
+                    5. 熟悉整个获客流程
+
+                    **等有收入后再购买真实数据!**
+                    """)
 
                                 # 显示结果
                                 st.success(f"搜索完成! 关键词: {keywords}")
