@@ -11,15 +11,17 @@ interface SendEmailParams {
 }
 
 export class EmailService {
-  private static transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER || 'apikey',
-      pass: process.env.SENDGRID_API_KEY || ''
-    }
-  });
+  private static transporter = process.env.SENDGRID_API_KEY
+    ? nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER || 'apikey',
+          pass: process.env.SENDGRID_API_KEY
+        }
+      })
+    : null;
 
   /**
    * 发送邮件
@@ -39,6 +41,19 @@ export class EmailService {
           status: 'scheduled'
         }
       });
+
+      // 如果没有配置邮件服务,直接标记为已发送(演示模式)
+      if (!this.transporter) {
+        console.log('📧 演示模式: 邮件未实际发送');
+        await prisma.email.update({
+          where: { id: email.id },
+          data: {
+            status: 'sent',
+            sentAt: new Date()
+          }
+        });
+        return email.id;
+      }
 
       // 添加追踪像素
       const trackingPixel = `<img src="${process.env.BACKEND_URL}/api/emails/track/${email.id}/open" width="1" height="1" style="display:none" />`;
