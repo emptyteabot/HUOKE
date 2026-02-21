@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  company       String?
+  role          String   @default("user") // user, admin
+  plan          String   @default("free") // free, starter, growth, pro
+  stripeCustomerId String?
+
+  credits       Int      @default(3) // 免费额度
+  totalLeads    Int      @default(0)
+  totalEmails   Int      @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastLoginAt   DateTime?
+
+  leads         Lead[]
+  emails        Email[]
+  campaigns     Campaign[]
+  apiKeys       ApiKey[]
+
+  @@map("users")
+}
+
+// API密钥
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  key       String   @unique
+  name      String
+  lastUsed  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@map("api_keys")
+}
+
+// 潜在客户
+model Lead {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 基本信息
+  name          String
+  email         String
+  company       String
+  jobTitle      String?
+  linkedinUrl   String?
+  website       String?
+
+  // 公司信息
+  industry      String?
+  companySize   String?
+  location      String?
+  fundingStage  String?
+
+  // 评分
+  relevanceScore Int     @default(0) // 0-100
+  status        String   @default("new") // new, contacted, replied, qualified, converted, lost
+
+  // 元数据
+  source        String?  // linkedin, twitter, manual
+  tags          String[] @default([])
+  notes         String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  emails        Email[]
+
+  @@map("leads")
+  @@index([userId, status])
+  @@index([email])
+}
+
+// 邮件
+model Email {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leadId        String
+  lead          Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaignId    String?
+  campaign      Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  // 邮件内容
+  subject       String
+  body          String   @db.Text
+
+  // 状态
+  status        String   @default("draft") // draft, scheduled, sent, opened, clicked, replied, bounced
+  sentAt        DateTime?
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  repliedAt     DateTime?
+
+  // 追踪
+  opens         Int      @default(0)
+  clicks        Int      @default(0)
+
+  // AI生成信息
+  aiGenerated   Boolean  @default(false)
+  aiModel       String?
+  aiPrompt      String?  @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("emails")
+  @@index([userId, status])
+  @@index([leadId])
+}
+
+// 营销活动
+model Campaign {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name          String
+  description   String?
+
+  // 配置
+  emailTemplate String   @db.Text
+  followUpDays  Int[]    @default([3, 7, 14])
+
+  // 统计
+  totalLeads    Int      @default(0)
+  emailsSent    Int      @default(0)
+  emailsOpened  Int      @default(0)
+  emailsClicked Int      @default(0)
+  emailsReplied Int      @default(0)
+
+  status        String   @default("draft") // draft, active, paused, completed
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  startedAt     DateTime?
+  completedAt   DateTime?
+
+  emails        Email[]
+
+  @@map("campaigns")
+  @@index([userId, status])
+}
+
+// 订阅计划
+model Subscription {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+
+  plan          String   // starter, growth, pro
+  status        String   // active, canceled, past_due
+
+  stripeSubscriptionId String? @unique
+  stripePriceId        String?
+
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+// 使用统计
+model Usage {
+  id            String   @id @default(cuid())
+  userId        String
+
+  date          DateTime @default(now())
+
+  leadsGenerated Int     @default(0)
+  emailsSent     Int     @default(0)
+  aiCalls        Int     @default(0)
+
+  @@map("usage")
+  @@index([userId, date])
+}
+
+// Webhook事件
+model WebhookEvent {
+  id            String   @id @default(cuid())
+
+  type          String
+  payload       Json
+  processed     Boolean  @default(false)
+
+  createdAt     DateTime @default(now())
+  processedAt   DateTime?
+
+  @@map("webhook_events")
+  @@index([type, processed])
+}
