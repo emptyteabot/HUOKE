@@ -4,9 +4,14 @@ import os
 from datetime import datetime
 from openai import OpenAI
 
-# 配置
-OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", "")
-OPENAI_BASE_URL = st.secrets.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+# 导入配置
+try:
+    from config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL
+except ImportError:
+    # 如果没有config.py,使用streamlit secrets或环境变量
+    OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+    OPENAI_BASE_URL = st.secrets.get("OPENAI_BASE_URL", os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"))
+    OPENAI_MODEL = "gpt-4"
 
 # 数据存储路径
 DATA_DIR = "data"

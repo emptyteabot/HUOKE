@@ -5,10 +5,19 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict
 import os
 
+# 导入配置
+try:
+    from config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_MINUTES
+except ImportError:
+    # 如果没有config.py,使用环境变量
+    JWT_SECRET = os.getenv("JWT_SECRET", "guestseek-super-secret-key-2024")
+    JWT_ALGORITHM = "HS256"
+    JWT_EXPIRE_MINUTES = 60 * 24 * 7  # 7天
+
 # JWT配置
-SECRET_KEY = os.getenv("JWT_SECRET", "guestseek-super-secret-key-2024")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7天
+SECRET_KEY = JWT_SECRET
+ALGORITHM = JWT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = JWT_EXPIRE_MINUTES
 
 # 密码加密
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

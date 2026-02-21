@@ -3,9 +3,13 @@ from supabase import create_client, Client
 from datetime import datetime
 from typing import List, Dict, Optional
 
-# Supabase配置
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+# 导入配置
+try:
+    from config import SUPABASE_URL, SUPABASE_KEY
+except ImportError:
+    # 如果没有config.py,使用环境变量
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
 # 初始化Supabase客户端
 supabase: Client = None

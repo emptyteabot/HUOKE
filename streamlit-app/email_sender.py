@@ -5,9 +5,14 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import uuid
 
-# SendGrid配置
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@guestseek.com")
+# 导入配置
+try:
+    from config import SENDGRID_API_KEY, FROM_EMAIL, FROM_NAME
+except ImportError:
+    # 如果没有config.py,使用环境变量
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
+    FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@guestseek.com")
+    FROM_NAME = "GuestSeek"
 
 def send_email(
     to_email: str,
