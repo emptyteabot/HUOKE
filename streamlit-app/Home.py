@@ -857,9 +857,16 @@ elif st.session_state.current_page == "scraper":
                 tab1, tab2, tab3, tab4 = st.tabs(["🚀 真实抓取", "🔍 模拟搜索", "📧 邮箱查找", "⚠️ 使用说明"])
 
                 with tab1:
-                    st.markdown("### 🚀 真实数据抓取")
+                    st.markdown("### 🚀 后台抓取任务")
 
-                    st.warning("⚠️ 真实抓取需要安装Chrome浏览器和相关依赖,首次使用请先运行: `pip install selenium undetected-chromedriver`")
+                    st.info("💡 提交任务后可以关闭页面,任务会在后台自动运行")
+
+                    # 选择抓取方式
+                    scrape_mode = st.radio(
+                        "抓取方式",
+                        ["后台任务 (推荐)", "实时抓取"],
+                        help="后台任务: 提交后在后台运行,不阻塞界面\n实时抓取: 立即执行,需要等待完成"
+                    )
 
                     col1, col2 = st.columns([2, 1])
 
@@ -875,38 +882,137 @@ elif st.session_state.current_page == "scraper":
                             help="LinkedIn需要登录账号"
                         )
 
-                    # LinkedIn登录配置
-                    if "linkedin" in platforms:
-                        with st.expander("🔐 LinkedIn登录配置 (可选)"):
-                            linkedin_email = st.text_input("LinkedIn邮箱", type="default", key="linkedin_email")
-                            linkedin_password = st.text_input("LinkedIn密码", type="password", key="linkedin_password")
-                            st.info("💡 不提供账号将使用公开搜索,数据有限")
+                    if scrape_mode == "后台任务 (推荐)":
+                        # 后台任务模式
+                        if st.button("📤 提交后台任务", use_container_width=True, type="primary", key="submit_task"):
+                            if keywords and platforms:
+                                try:
+                                    from background_scraper import get_background_scraper
 
-                    col_scrape, col_headless = st.columns([3, 1])
+                                    scraper = get_background_scraper()
+                                    task_id = scraper.submit_task(keywords, platforms, user['id'])
 
-                    with col_scrape:
-                        scrape_btn = st.button("🚀 开始真实抓取", use_container_width=True, type="primary", key="real_scrape")
+                                    st.success(f"✅ 任务已提交! 任务ID: {task_id}")
+                                    st.info("💡 任务将在后台运行,预计3-5分钟完成。请在下方查看任务状态。")
 
-                    with col_headless:
+                                except Exception as e:
+                                    st.error(f"提交失败: {e}")
+                            else:
+                                st.warning("请输入关键词并选择平台")
+
+                        # 显示用户的任务列表
+                        st.markdown("---")
+                        st.markdown("### 📋 我的任务")
+
+                        try:
+                            from background_scraper import get_background_scraper
+
+                            scraper = get_background_scraper()
+                            tasks = scraper.get_user_tasks(user['id'])
+
+                            if tasks:
+                                # 按创建时间倒序
+                                tasks.sort(key=lambda x: x['created_at'], reverse=True)
+
+                                for task in tasks[:10]:  # 只显示最近10个
+                                    status_emoji = {
+                                        'pending': '⏳',
+                                        'running': '🔄',
+                                        'completed': '✅',
+                                        'failed': '❌'
+                                    }.get(task['status'], '❓')
+
+                                    with st.expander(f"{status_emoji} {task['keywords']} - {task['status']}"):
+                                        col_info, col_action = st.columns([3, 1])
+
+                                        with col_info:
+                                            st.markdown(f"**任务ID**: `{task['task_id']}`")
+                                            st.markdown(f"**关键词**: {task['keywords']}")
+                                            st.markdown(f"**平台**: {', '.join(task['platforms'])}")
+                                            st.markdown(f"**状态**: {task['status']}")
+                                            st.markdown(f"**进度**: {task['progress']}%")
+                                            st.markdown(f"**创建时间**: {task['created_at']}")
+
+                                            if task['status'] == 'completed':
+                                                st.markdown(f"**完成时间**: {task['completed_at']}")
+
+                                                # 显示结果统计
+                                                total_results = sum(
+                                                    len(v) if isinstance(v, list) else 0
+                                                    for v in task['results'].get('platforms', {}).values()
+                                                )
+                                                st.success(f"✅ 共抓取 {total_results} 条数据")
+
+                                            elif task['status'] == 'failed':
+                                                st.error(f"错误: {task['error']}")
+
+                                        with col_action:
+                                            if task['status'] == 'completed':
+                                                if st.button("查看结果", key=f"view_{task['task_id']}", use_container_width=True):
+                                                    st.session_state.viewing_task = task['task_id']
+                                                    st.rerun()
+
+                                                if st.button("导入线索", key=f"import_{task['task_id']}", use_container_width=True):
+                                                    try:
+                                                        from real_scraper import MultiPlatformScraper
+                                                        from database import add_lead
+
+                                                        scraper_converter = MultiPlatformScraper()
+                                                        leads = scraper_converter.convert_to_leads(task['results'])
+
+                                                        success_count = 0
+                                                        for lead in leads:
+                                                            try:
+                                                                lead['user_id'] = user['id']
+                                                                add_lead(lead)
+                                                                success_count += 1
+                                                            except:
+                                                                pass
+
+                                                        st.success(f"✅ 已导入 {success_count} 条线索")
+                                                    except Exception as e:
+                                                        st.error(f"导入失败: {e}")
+
+                                # 查看任务详情
+                                if 'viewing_task' in st.session_state:
+                                    task_id = st.session_state.viewing_task
+                                    task = scraper.get_task(task_id)
+
+                                    if task and task['status'] == 'completed':
+                                        st.markdown("---")
+                                        st.markdown(f"### 📊 任务结果: {task['keywords']}")
+
+                                        for platform, data in task['results'].get('platforms', {}).items():
+                                            if isinstance(data, list) and len(data) > 0:
+                                                st.markdown(f"#### {platform.upper()} ({len(data)} 条)")
+
+                                                for idx, item in enumerate(data[:5]):  # 只显示前5条
+                                                    with st.expander(f"[{idx+1}] {item.get('title', item.get('name', '未知'))}"):
+                                                        st.json(item)
+
+                                        if st.button("关闭", key="close_view"):
+                                            del st.session_state.viewing_task
+                                            st.rerun()
+
+                            else:
+                                st.info("暂无任务")
+
+                        except Exception as e:
+                            st.error(f"获取任务列表失败: {e}")
+
+                    else:
+                        # 实时抓取模式
+                        st.warning("⚠️ 实时抓取需要安装Chrome浏览器: `pip install selenium undetected-chromedriver`")
+
                         headless = st.checkbox("后台运行", value=True, help="不显示浏览器窗口")
 
-                    if scrape_btn:
-                        if keywords and platforms:
-                            try:
-                                from real_scraper import MultiPlatformScraper
+                        if st.button("🚀 开始实时抓取", use_container_width=True, type="primary", key="real_scrape"):
+                            if keywords and platforms:
+                                try:
+                                    from real_scraper import MultiPlatformScraper
 
-                                with st.spinner("🔍 正在抓取数据,请稍候..."):
-                                    # 初始化抓取器
-                                    linkedin_email_val = st.session_state.get('linkedin_email', '')
-                                    linkedin_password_val = st.session_state.get('linkedin_password', '')
-
-                                    scraper = MultiPlatformScraper(
-                                        linkedin_email=linkedin_email_val,
-                                        linkedin_password=linkedin_password_val,
-                                        headless=headless
-                                    )
-
-                                    # 抓取数据
+                                    with st.spinner("🔍 正在抓取数据,请稍候..."):
+                                        scraper = MultiPlatformScraper(headless=headless)
                                     results = scraper.scrape_all(keywords, platforms, limit=10)
 
                                     # 转换为线索
