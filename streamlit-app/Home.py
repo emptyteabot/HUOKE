@@ -1,279 +1,426 @@
 import streamlit as st
+import sys
+import os
 
-# 页面配置 - 必须是第一个Streamlit命令
+# 添加父目录到路径
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# 页面配置
 st.set_page_config(
-    page_title="LeadPulse - AI驱动的B2B获客平台",
-    page_icon="🚀",
+    page_title="LeadPulse - AI留学获客助手",
+    page_icon="✨",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"  # 隐藏侧边栏
 )
 
-# 初始化session state
-if 'token' not in st.session_state:
-    st.session_state.token = None
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 自定义CSS - 参考高星项目的设计
+# 自定义CSS - OpenAI + Google风格
 st.markdown("""
 <style>
-    /* 主题色 */
-    :root {
-        --primary-color: #0ea5e9;
-        --secondary-color: #6366f1;
-        --success-color: #10b981;
-        --danger-color: #ef4444;
-    }
-
     /* 隐藏Streamlit默认元素 */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    header {visibility: hidden;}
 
-    /* 渐变标题 */
-    .gradient-text {
-        background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    /* 隐藏侧边栏 */
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+
+    /* 全局字体 */
+    * {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    /* 主容器 */
+    .main {
+        background: #ffffff;
+        padding: 0;
+    }
+
+    /* 顶部导航栏 */
+    .top-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        padding: 0 2rem;
+        z-index: 1000;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-size: 3rem;
-        font-weight: 800;
+        margin-right: 3rem;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 2rem;
+        flex: 1;
+    }
+
+    .nav-link {
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        color: #111827;
+    }
+
+    .nav-link.active {
+        color: #111827;
+        font-weight: 500;
+    }
+
+    /* 主内容区 */
+    .content-wrapper {
+        margin-top: 80px;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 2rem;
+    }
+
+    /* Hero区域 */
+    .hero {
         text-align: center;
-        margin: 2rem 0;
+        padding: 4rem 0;
     }
 
-    /* 卡片样式 */
-    .metric-card {
-        background: white;
-        padding: 1.5rem;
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: #6b7280;
+        margin-bottom: 2rem;
+    }
+
+    /* 卡片 */
+    .card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
         border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border-left: 4px solid var(--primary-color);
-        transition: transform 0.2s;
-    }
-
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    /* 按钮样式 */
-    .stButton>button {
-        width: 100%;
-        border-radius: 8px;
-        font-weight: 600;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
         transition: all 0.3s;
     }
 
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: #d1d5db;
+    }
+
+    /* 按钮 */
+    .stButton>button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
     .stButton>button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
-    /* 侧边栏样式 */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-    }
-
-    /* 输入框样式 */
-    .stTextInput>div>div>input {
+    /* 输入框 */
+    .stTextInput>div>div>input,
+    .stTextArea>div>div>textarea,
+    .stSelectbox>div>div>select {
+        border: 1px solid #e5e7eb;
         border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 0.95rem;
+        transition: all 0.2s;
     }
 
-    /* 成功/错误消息 */
-    .success-message {
-        padding: 1rem;
-        border-radius: 8px;
-        background: #d1fae5;
-        color: #065f46;
-        border-left: 4px solid var(--success-color);
+    .stTextInput>div>div>input:focus,
+    .stTextArea>div>div>textarea:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
-    .error-message {
-        padding: 1rem;
-        border-radius: 8px;
-        background: #fee2e2;
-        color: #991b1b;
-        border-left: 4px solid var(--danger-color);
+    /* 标签页 */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        padding: 1rem 0;
+        color: #6b7280;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+    }
+
+    .stTabs [aria-selected="true"] {
+        color: #111827;
+        border-bottom-color: #667eea;
+    }
+
+    /* 功能卡片 */
+    .feature-card {
+        background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        border-color: #667eea;
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-desc {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+
+    /* 打字机效果 */
+    .typing-effect {
+        border-left: 2px solid #667eea;
+        padding-left: 1rem;
+        animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+        0%, 50% { border-color: #667eea; }
+        51%, 100% { border-color: transparent; }
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 欢迎页面
-def show_welcome():
-    st.markdown('<h1 class="gradient-text">🚀 LeadPulse</h1>', unsafe_allow_html=True)
+# 顶部导航栏
+st.markdown("""
+<div class="top-nav">
+    <div class="logo">✨ LeadPulse</div>
+    <div class="nav-links">
+        <a class="nav-link active" href="#home">首页</a>
+        <a class="nav-link" href="#features">功能</a>
+        <a class="nav-link" href="#pricing">定价</a>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown("""
-        <div style="text-align: center; padding: 2rem;">
-            <h3 style="color: #64748b; font-weight: 400;">AI驱动的留学机构获客平台</h3>
-            <p style="color: #94a3b8; font-size: 1.1rem; margin-top: 1rem;">
-                专为留学机构打造,自动化学生线索获取,10倍提升咨询转化率
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+# 主内容
+st.markdown('<div class="content-wrapper">', unsafe_allow_html=True)
 
-        # 功能亮点
-        st.markdown("---")
+# Hero区域
+st.markdown("""
+<div class="hero">
+    <h1 class="hero-title">AI驱动的留学获客助手</h1>
+    <p class="hero-subtitle">3秒生成个性化咨询邮件,10倍提升转化率</p>
+</div>
+""", unsafe_allow_html=True)
 
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            st.markdown("""
-            <div style="text-align: center; padding: 1rem;">
-                <div style="font-size: 3rem;">🎓</div>
-                <h4>学生线索管理</h4>
-                <p style="color: #64748b;">目标国家、专业、预算全记录</p>
-            </div>
-            """, unsafe_allow_html=True)
+# 功能选择
+col1, col2, col3 = st.columns(3)
 
-        with col_b:
-            st.markdown("""
-            <div style="text-align: center; padding: 1rem;">
-                <div style="font-size: 3rem;">🤖</div>
-                <h4>AI咨询邮件</h4>
-                <p style="color: #64748b;">自动生成个性化留学规划邮件</p>
-            </div>
-            """, unsafe_allow_html=True)
+with col1:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <div class="feature-title">学生管理</div>
+        <div class="feature-desc">记录学生信息和意向</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("进入", key="btn_leads", use_container_width=True):
+        st.session_state.current_page = "leads"
 
-        with col_c:
-            st.markdown("""
-            <div style="text-align: center; padding: 1rem;">
-                <div style="font-size: 3rem;">📊</div>
-                <h4>效果追踪</h4>
-                <p style="color: #64748b;">实时查看家长打开/点击率</p>
-            </div>
-            """, unsafe_allow_html=True)
+with col2:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">AI生成邮件</div>
+        <div class="feature-desc">GPT-5.2自动生成</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("进入", key="btn_ai", use_container_width=True):
+        st.session_state.current_page = "ai"
 
-        st.markdown("---")
+with col3:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">数据分析</div>
+        <div class="feature-desc">查看转化率和ROI</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("进入", key="btn_analytics", use_container_width=True):
+        st.session_state.current_page = "analytics"
 
-        # 登录/注册选项
-        tab1, tab2 = st.tabs(["🔐 登录", "✨ 注册"])
+st.markdown("---")
 
-        with tab1:
-            with st.form("login_form"):
-                email = st.text_input("邮箱", placeholder="your@email.com")
-                password = st.text_input("密码", type="password", placeholder="••••••••")
+# 根据选择显示不同页面
+if 'current_page' not in st.session_state:
+    st.session_state.current_page = "home"
 
-                col_login, col_demo = st.columns(2)
-                with col_login:
-                    submit = st.form_submit_button("登录", type="primary", use_container_width=True)
-                with col_demo:
-                    demo = st.form_submit_button("演示模式", use_container_width=True)
+if st.session_state.current_page == "leads":
+    st.markdown("## 👥 学生线索管理")
 
-                if submit:
-                    # 这里添加登录逻辑
-                    st.success("登录成功!")
-                    st.session_state.token = "demo_token"
-                    st.session_state.user = {"name": "Demo User", "email": email}
-                    st.rerun()
+    # 添加学生表单
+    with st.form("add_lead_form", clear_on_submit=True):
+        st.markdown("### 添加新学生")
 
-                if demo:
-                    st.session_state.token = "demo_token"
-                    st.session_state.user = {"name": "演示用户", "email": "demo@leadpulse.ai"}
-                    st.rerun()
-
-        with tab2:
-            with st.form("register_form"):
-                name = st.text_input("姓名", placeholder="张三")
-                email = st.text_input("邮箱", placeholder="your@email.com", key="reg_email")
-                company = st.text_input("公司名称", placeholder="您的公司")
-                password = st.text_input("密码", type="password", placeholder="••••••••", key="reg_password")
-
-                submit = st.form_submit_button("创建账号", type="primary", use_container_width=True)
-
-                if submit:
-                    st.success("注册成功!请登录")
-
-# 主应用逻辑
-if not st.session_state.token:
-    show_welcome()
-else:
-    # 已登录 - 显示侧边栏导航
-    with st.sidebar:
-        st.markdown("### 🚀 LeadPulse")
-        st.markdown(f"欢迎, **{st.session_state.user.get('name', 'User')}**")
-        st.markdown("---")
-
-        # 导航提示
-        st.info("👈 使用左侧导航栏切换页面")
-
-        st.markdown("---")
-
-        # 快速统计
-        st.markdown("### 📊 快速统计")
         col1, col2 = st.columns(2)
+
         with col1:
-            st.metric("学生线索", "0")
+            name = st.text_input("学生姓名", placeholder="张三")
+            email = st.text_input("邮箱", placeholder="zhang@email.com")
+            phone = st.text_input("家长电话", placeholder="+86 138 0000 0000")
+
         with col2:
-            st.metric("咨询邮件", "0")
+            target_country = st.selectbox("目标国家", ["美国", "英国", "加拿大", "澳大利亚", "新加坡"])
+            target_degree = st.selectbox("目标学历", ["本科", "硕士", "博士"])
+            major = st.text_input("意向专业", placeholder="计算机科学")
 
-        st.markdown("---")
+        budget = st.selectbox("预算范围", ["20-30万", "30-50万", "50-80万", "80万以上"])
+        notes = st.text_area("备注", placeholder="学生背景、特殊需求...")
 
-        if st.button("🚪 退出登录", use_container_width=True):
-            st.session_state.token = None
-            st.session_state.user = None
-            st.rerun()
+        submitted = st.form_submit_button("✅ 添加学生", use_container_width=True)
 
-    # 主页内容
-    st.title("📊 仪表盘")
+        if submitted and name and email:
+            try:
+                from utils import add_lead
+                lead_id = add_lead({
+                    'name': name,
+                    'email': email,
+                    'phone': phone,
+                    'target_country': target_country,
+                    'target_degree': target_degree,
+                    'major': major,
+                    'budget': budget,
+                    'notes': notes
+                })
+                st.success(f"✅ 成功添加学生: {name}")
+            except Exception as e:
+                st.error(f"添加失败: {e}")
 
-    st.info("💡 **提示**: 使用左侧导航栏访问不同功能页面")
+    # 显示学生列表
+    st.markdown("### 学生列表")
+    try:
+        from utils import get_leads
+        import pandas as pd
 
-    # 统计卡片
+        leads = get_leads()
+        if leads:
+            df = pd.DataFrame(leads)
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        else:
+            st.info("暂无学生数据,请先添加")
+    except Exception as e:
+        st.info("暂无学生数据")
+
+elif st.session_state.current_page == "ai":
+    st.markdown("## 🤖 AI邮件生成")
+
+    # 选择学生
+    try:
+        from utils import get_leads, generate_email_with_ai
+
+        leads = get_leads()
+        if not leads:
+            st.warning("请先添加学生")
+        else:
+            lead_options = {f"{lead['name']} - {lead.get('target_country', '')} {lead.get('target_degree', '')}": lead for lead in leads}
+            selected_lead_name = st.selectbox("选择学生", list(lead_options.keys()))
+            selected_lead = lead_options[selected_lead_name]
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                template_type = st.selectbox("邮件类型", [
+                    "首次咨询邮件",
+                    "留学规划建议",
+                    "院校推荐邮件",
+                    "申请时间线提醒",
+                    "成功案例分享"
+                ])
+
+                institution_name = st.text_input("机构名称", value="XX留学")
+                consultant_name = st.text_input("顾问姓名", value="李老师")
+
+            with col2:
+                key_points = st.text_area("核心卖点", value="• 300+成功案例\n• TOP30录取率85%\n• 一对一规划", height=150)
+
+            if st.button("✨ 生成邮件", use_container_width=True, type="primary"):
+                with st.spinner("🤖 AI正在生成..."):
+                    result = generate_email_with_ai(
+                        selected_lead,
+                        template_type,
+                        institution_name,
+                        consultant_name,
+                        key_points
+                    )
+
+                    st.markdown("### 📧 生成结果")
+                    st.markdown(f"**主题**: {result['subject']}")
+                    st.markdown("**正文**:")
+                    st.markdown(f'<div class="typing-effect">{result["body"]}</div>', unsafe_allow_html=True)
+
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        st.button("📋 复制", use_container_width=True)
+                    with col_b:
+                        st.button("📧 发送", use_container_width=True)
+
+    except Exception as e:
+        st.error(f"错误: {e}")
+
+elif st.session_state.current_page == "analytics":
+    st.markdown("## 📊 数据分析")
+
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #0ea5e9; margin: 0;">0</h3>
-            <p style="color: #64748b; margin: 0.5rem 0 0 0;">学生线索</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.metric("学生线索", "0", "+0")
     with col2:
-        st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #10b981; margin: 0;">0</h3>
-            <p style="color: #64748b; margin: 0.5rem 0 0 0;">咨询邮件</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.metric("生成邮件", "0", "+0")
     with col3:
-        st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #f59e0b; margin: 0;">0%</h3>
-            <p style="color: #64748b; margin: 0.5rem 0 0 0;">打开率</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.metric("打开率", "0%", "+0%")
     with col4:
-        st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #8b5cf6; margin: 0;">0%</h3>
-            <p style="color: #64748b; margin: 0.5rem 0 0 0;">点击率</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("转化率", "0%", "+0%")
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.info("💡 添加学生和生成邮件后,这里会显示详细数据")
 
-    # 快速操作
-    st.subheader("🚀 快速操作")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        if st.button("➕ 添加学生线索", use_container_width=True, type="primary"):
-            st.switch_page("pages/1_👥_潜在客户.py")
-
-    with col2:
-        if st.button("🤖 AI生成咨询邮件", use_container_width=True, type="primary"):
-            st.switch_page("pages/2_🤖_AI生成.py")
-
-    with col3:
-        if st.button("📧 查看邮件", use_container_width=True, type="primary"):
-            st.switch_page("pages/3_✉️_邮件历史.py")
-
-    st.markdown("---")
-
-    # 最近活动
-    st.subheader("📈 最近活动")
-    st.info("暂无活动记录")
+st.markdown('</div>', unsafe_allow_html=True)
