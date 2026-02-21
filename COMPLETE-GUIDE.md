@@ -3,18 +3,19 @@
 ## 📋 已完成功能
 
 ### ✅ 第1阶段 (已完成)
-1. **Supabase数据库集成** - 数据持久化
-2. **用户认证系统** - 注册/登录/JWT
-3. **学生线索管理** - CRUD操作
-4. **AI邮件生成** - GPT-5.2集成
-5. **数据统计** - 基础Dashboard
+1. **Supabase数据库集成** - 数据持久化 ✅
+2. **用户认证系统** - 注册/登录/JWT ✅
+3. **学生线索管理** - CRUD操作 ✅
+4. **AI邮件生成** - GPT-5.2集成 ✅
+5. **数据统计** - 基础Dashboard ✅
+6. **真实邮件发送** - SendGrid集成 ✅
+7. **批量邮件发送** - 一键群发 ✅
 
 ### 🔄 第2阶段 (进行中)
-6. **真实邮件发送** - SendGrid集成
-7. **邮件追踪** - 打开率/点击率
-8. **自动化工作流** - 自动跟进
-9. **多平台获客** - LinkedIn/小红书/知乎
-10. **桌面应用打包** - Electron
+8. **邮件追踪** - 打开率/点击率
+9. **自动化工作流** - 自动跟进
+10. **多平台获客** - LinkedIn/小红书/知乎
+11. **桌面应用打包** - Electron
 
 ---
 
@@ -55,10 +56,16 @@ OPENAI_BASE_URL = "https://oneapi.gemiaude.com/v1"
 # JWT配置
 JWT_SECRET = "guestseek-super-secret-key-2024-change-this"
 
-# SendGrid配置 (可选)
-SENDGRID_API_KEY = ""
-FROM_EMAIL = "noreply@guestseek.com"
+# SendGrid配置 (必填 - 用于发送邮件)
+SENDGRID_API_KEY = "SG.xxxx"
+FROM_EMAIL = "noreply@yourdomain.com"
 ```
+
+**重要**:
+1. 访问 https://sendgrid.com/ 注册账号
+2. 创建API Key: Settings → API Keys → Create API Key
+3. 验证发件人邮箱: Settings → Sender Authentication
+4. 免费版每天可发送100封邮件
 
 ---
 
@@ -110,9 +117,25 @@ FROM_EMAIL = "noreply@guestseek.com"
 4. 填写机构信息
 5. 点击"生成邮件"
 6. AI会自动生成个性化邮件
-7. 复制邮件发送给家长
+7. 可以选择:
+   - **📋 复制**: 复制邮件内容
+   - **💾 保存草稿**: 保存到数据库
+   - **📧 立即发送**: 直接发送给家长
 
-### 5. 查看数据
+### 5. 批量发送邮件
+
+1. 点击"批量发送"卡片
+2. 勾选要发送的学生(可多选)
+3. 填写邮件模板:
+   - 支持变量: {name}, {institution}, {consultant}, {target_country}, {target_degree}
+4. 点击"批量发送"
+5. 系统会自动:
+   - 为每个学生生成个性化邮件
+   - 发送邮件
+   - 保存发送记录
+   - 显示发送结果
+
+### 6. 查看数据
 
 1. 点击"数据分析"卡片
 2. 查看:
@@ -126,10 +149,10 @@ FROM_EMAIL = "noreply@guestseek.com"
 
 ### 本周完成 (2-3天)
 
-1. **真实邮件发送**
-   - 集成SendGrid
-   - 一键发送邮件
-   - 批量发送
+1. ✅ **真实邮件发送**
+   - ✅ 集成SendGrid
+   - ✅ 一键发送邮件
+   - ✅ 批量发送
 
 2. **邮件追踪**
    - 追踪打开率

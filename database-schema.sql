@@ -43,6 +43,7 @@ CREATE TABLE emails (
     subject VARCHAR(500) NOT NULL,
     body TEXT NOT NULL,
     status VARCHAR(50) DEFAULT 'draft',
+    message_id VARCHAR(255),
     sent_at TIMESTAMP,
     opened_at TIMESTAMP,
     clicked_at TIMESTAMP,

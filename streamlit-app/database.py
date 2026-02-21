@@ -88,6 +88,20 @@ def save_email(email_data: Dict) -> str:
         print(f"保存邮件失败: {e}")
         raise
 
+def save_sent_email(email_data: Dict, message_id: str) -> str:
+    """保存已发送的邮件"""
+    try:
+        email_data['created_at'] = datetime.now().isoformat()
+        email_data['sent_at'] = datetime.now().isoformat()
+        email_data['status'] = 'sent'
+        email_data['message_id'] = message_id
+
+        result = supabase.table('emails').insert(email_data).execute()
+        return result.data[0]['id']
+    except Exception as e:
+        print(f"保存邮件失败: {e}")
+        raise
+
 def get_emails(user_id: Optional[str] = None, lead_id: Optional[str] = None) -> List[Dict]:
     """获取邮件列表"""
     try:
