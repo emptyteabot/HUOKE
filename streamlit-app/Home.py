@@ -843,7 +843,6 @@ elif st.session_state.current_page == "scraper":
     st.markdown("## 🌐 多平台获客")
 
     try:
-        from platform_scraper import MultiPlatformAggregator, THIRD_PARTY_SERVICES, COMPLIANCE_NOTES
         from database import init_supabase, add_lead
         from auth import get_current_user
 
@@ -854,31 +853,120 @@ elif st.session_state.current_page == "scraper":
             if not user:
                 st.warning("请先登录")
             else:
-                aggregator = MultiPlatformAggregator()
-
                 # 标签页
-                tab1, tab2, tab3 = st.tabs(["🔍 搜索线索", "📋 第三方工具", "⚠️ 合规说明"])
+                tab1, tab2, tab3, tab4 = st.tabs(["🚀 真实抓取", "🔍 模拟搜索", "📧 邮箱查找", "⚠️ 使用说明"])
 
                 with tab1:
-                    st.markdown("### 搜索潜在客户")
+                    st.markdown("### 🚀 真实数据抓取")
 
-                    st.info("💡 这是演示功能,返回模拟数据。实际使用需要配置API或使用第三方服务。")
+                    st.warning("⚠️ 真实抓取需要安装Chrome浏览器和相关依赖,首次使用请先运行: `pip install selenium undetected-chromedriver`")
 
                     col1, col2 = st.columns([2, 1])
 
                     with col1:
-                        keywords = st.text_input("搜索关键词", value="美国留学", placeholder="例如: 美国留学、英国研究生")
+                        keywords = st.text_input("搜索关键词", value="美国留学", placeholder="例如: 美国留学、英国研究生", key="real_keywords")
+
+                    with col2:
+                        platforms = st.multiselect(
+                            "选择平台",
+                            ["xiaohongshu", "zhihu", "linkedin"],
+                            default=["xiaohongshu"],
+                            key="real_platforms",
+                            help="LinkedIn需要登录账号"
+                        )
+
+                    # LinkedIn登录配置
+                    if "linkedin" in platforms:
+                        with st.expander("🔐 LinkedIn登录配置 (可选)"):
+                            linkedin_email = st.text_input("LinkedIn邮箱", type="default", key="linkedin_email")
+                            linkedin_password = st.text_input("LinkedIn密码", type="password", key="linkedin_password")
+                            st.info("💡 不提供账号将使用公开搜索,数据有限")
+
+                    col_scrape, col_headless = st.columns([3, 1])
+
+                    with col_scrape:
+                        scrape_btn = st.button("🚀 开始真实抓取", use_container_width=True, type="primary", key="real_scrape")
+
+                    with col_headless:
+                        headless = st.checkbox("后台运行", value=True, help="不显示浏览器窗口")
+
+                    if scrape_btn:
+                        if keywords and platforms:
+                            try:
+                                from real_scraper import MultiPlatformScraper
+
+                                with st.spinner("🔍 正在抓取数据,请稍候..."):
+                                    # 初始化抓取器
+                                    linkedin_email_val = st.session_state.get('linkedin_email', '')
+                                    linkedin_password_val = st.session_state.get('linkedin_password', '')
+
+                                    scraper = MultiPlatformScraper(
+                                        linkedin_email=linkedin_email_val,
+                                        linkedin_password=linkedin_password_val,
+                                        headless=headless
+                                    )
+
+                                    # 抓取数据
+                                    results = scraper.scrape_all(keywords, platforms, limit=10)
+
+                                    # 转换为线索
+                                    leads = scraper.convert_to_leads(results)
+
+                                    st.success(f"✅ 抓取完成! 共获取 {len(leads)} 条数据")
+
+                                    # 显示结果
+                                    for platform, data in results['platforms'].items():
+                                        if not isinstance(data, list) or len(data) == 0:
+                                            continue
+
+                                        st.markdown(f"### {platform.upper()} ({len(data)} 条)")
+
+                                        for idx, item in enumerate(data):
+                                            with st.expander(f"[{idx+1}] {item.get('title', item.get('name', '未知'))}"):
+                                                st.json(item)
+
+                                                if st.button(f"添加为线索", key=f"add_real_{platform}_{idx}", use_container_width=True):
+                                                    try:
+                                                        lead_data = leads[idx] if idx < len(leads) else {}
+                                                        lead_data['user_id'] = user['id']
+
+                                                        lead_id = add_lead(lead_data)
+                                                        st.success(f"✅ 已添加到线索库")
+                                                    except Exception as e:
+                                                        st.error(f"添加失败: {e}")
+
+                            except ImportError:
+                                st.error("❌ 缺少依赖,请运行: pip install selenium undetected-chromedriver")
+                            except Exception as e:
+                                st.error(f"❌ 抓取失败: {e}")
+                                st.exception(e)
+                        else:
+                            st.warning("请输入关键词并选择平台")
+
+                with tab2:
+                    st.markdown("### 🔍 模拟搜索 (演示)")
+
+                    from platform_scraper import MultiPlatformAggregator
+
+                    st.info("💡 这是演示功能,返回模拟数据")
+
+                    col1, col2 = st.columns([2, 1])
+
+                    with col1:
+                        keywords = st.text_input("搜索关键词", value="美国留学", placeholder="例如: 美国留学、英国研究生", key="demo_keywords")
 
                     with col2:
                         platforms = st.multiselect(
                             "选择平台",
                             ["linkedin", "xiaohongshu", "zhihu"],
-                            default=["xiaohongshu", "zhihu"]
+                            default=["xiaohongshu", "zhihu"],
+                            key="demo_platforms"
                         )
 
-                    if st.button("🔍 开始搜索", use_container_width=True, type="primary"):
+                    if st.button("🔍 开始搜索", use_container_width=True, type="primary", key="demo_search"):
                         if keywords and platforms:
                             with st.spinner("正在搜索..."):
+                                aggregator = MultiPlatformAggregator()
                                 # 搜索
                                 results = aggregator.search_all_platforms(keywords, platforms)
 
@@ -979,73 +1067,246 @@ elif st.session_state.current_page == "scraper":
                         else:
                             st.warning("请输入关键词并选择平台")
 
-                with tab2:
-                    st.markdown("### 推荐第三方工具")
-
-                    st.info("💡 由于各平台的反爬虫机制,建议使用以下第三方服务获取数据")
-
-                    for service_key, service in THIRD_PARTY_SERVICES.items():
-                        with st.expander(f"🔧 {service['name']} - {service['price']}"):
-                            st.markdown(f"**描述**: {service['description']}")
-                            st.markdown(f"**价格**: {service['price']}")
-                            st.markdown(f"**网址**: [{service['url']}]({service['url']})")
-
-                    st.markdown("---")
-                    st.markdown("### 使用步骤")
-
-                    st.markdown("""
-                    1. **选择工具**: 根据需求选择合适的第三方服务
-                    2. **注册账号**: 在服务网站注册并购买套餐
-                    3. **配置任务**: 设置搜索关键词和抓取规则
-                    4. **导出数据**: 将抓取的数据导出为CSV/Excel
-                    5. **导入GuestSeek**: 在"学生管理"页面批量导入
-                    """)
-
-                    st.markdown("---")
-                    st.markdown("### 手动获客技巧")
-
-                    st.markdown("""
-                    **LinkedIn**:
-                    - 优化个人资料,展示专业形象
-                    - 发布留学相关内容吸引关注
-                    - 加入留学相关群组
-                    - 主动联系潜在客户
-
-                    **小红书**:
-                    - 发布留学经验分享
-                    - 回答用户留学问题
-                    - 在评论区提供价值
-                    - 引导私信咨询
-
-                    **知乎**:
-                    - 回答留学相关问题
-                    - 发布专业文章
-                    - 建立个人品牌
-                    - 在回答中留下联系方式
-                    """)
-
                 with tab3:
-                    st.markdown("### ⚠️ 合规说明")
+                    st.markdown("### 📧 邮箱查找")
 
-                    st.warning(COMPLIANCE_NOTES)
+                    st.info("💡 根据姓名和公司自动查找邮箱地址")
 
+                    from email_finder import EmailFinder
+
+                    # Hunter.io API配置
+                    with st.expander("🔑 Hunter.io API配置 (可选)"):
+                        hunter_api_key = st.text_input(
+                            "Hunter.io API Key",
+                            type="password",
+                            help="注册地址: https://hunter.io/ (免费版25次/月)"
+                        )
+                        st.markdown("[获取API Key](https://hunter.io/)")
+
+                    # 单个查找
+                    st.markdown("#### 单个查找")
+
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        first_name = st.text_input("名", placeholder="John", key="email_first")
+
+                    with col2:
+                        last_name = st.text_input("姓", placeholder="Doe", key="email_last")
+
+                    with col3:
+                        company = st.text_input("公司", placeholder="Google", key="email_company")
+
+                    domain = st.text_input("公司域名 (可选)", placeholder="google.com", key="email_domain")
+
+                    if st.button("🔍 查找邮箱", use_container_width=True, type="primary", key="find_single_email"):
+                        if first_name and last_name and company:
+                            with st.spinner("正在查找..."):
+                                try:
+                                    finder = EmailFinder(hunter_api_key if hunter_api_key else None)
+                                    result = finder.find_email(first_name, last_name, company, domain if domain else None)
+
+                                    if result['email']:
+                                        st.success(f"✅ 找到邮箱: {result['email']}")
+                                        st.info(f"置信度: {result['confidence']} | 方法: {result['method']}")
+
+                                        if result['alternatives']:
+                                            with st.expander("查看备选邮箱"):
+                                                for alt in result['alternatives'][:5]:
+                                                    st.text(alt)
+                                    else:
+                                        st.warning("❌ 未找到邮箱")
+                                        if result['alternatives']:
+                                            st.info("可能的邮箱格式:")
+                                            for alt in result['alternatives'][:5]:
+                                                st.text(alt)
+
+                                except Exception as e:
+                                    st.error(f"查找失败: {e}")
+                        else:
+                            st.warning("请填写姓名和公司")
+
+                    # 批量查找
                     st.markdown("---")
-                    st.markdown("### 推荐方案")
+                    st.markdown("#### 批量查找")
 
-                    st.success("""
-                    **最佳实践**:
+                    st.info("💡 从线索库中选择需要查找邮箱的线索")
 
-                    1. **内容营销**: 在各平台发布优质内容,吸引客户主动咨询
-                    2. **社群运营**: 建立微信群、QQ群,维护客户关系
-                    3. **付费广告**: 使用平台官方广告系统
-                    4. **合作推广**: 与KOL、机构合作
-                    5. **口碑传播**: 提供优质服务,让客户推荐
+                    from database import get_leads
 
-                    这些方法合规、可持续,且效果更好!
+                    leads = get_leads(user['id'])
+                    leads_without_email = [l for l in leads if not l.get('email')]
+
+                    if leads_without_email:
+                        st.markdown(f"找到 {len(leads_without_email)} 个没有邮箱的线索")
+
+                        if st.button(f"🚀 批量查找邮箱 ({len(leads_without_email)}个)", use_container_width=True, type="primary", key="batch_find_email"):
+                            with st.spinner("正在批量查找..."):
+                                try:
+                                    finder = EmailFinder(hunter_api_key if hunter_api_key else None)
+
+                                    progress_bar = st.progress(0)
+                                    status_text = st.empty()
+
+                                    success_count = 0
+                                    failed_count = 0
+
+                                    for idx, lead in enumerate(leads_without_email):
+                                        status_text.text(f"正在处理: {lead.get('name', '未知')} ({idx+1}/{len(leads_without_email)})")
+
+                                        # 解析姓名
+                                        name = lead.get('name', '')
+                                        name_parts = name.split()
+
+                                        if len(name_parts) >= 2:
+                                            first = name_parts[0]
+                                            last = name_parts[-1]
+                                        else:
+                                            first = name
+                                            last = ''
+
+                                        # 查找邮箱
+                                        result = finder.find_email(
+                                            first_name=first,
+                                            last_name=last,
+                                            company=lead.get('company', lead.get('notes', '')),
+                                            domain=None
+                                        )
+
+                                        if result['email']:
+                                            # 更新线索
+                                            from database import update_lead
+                                            update_lead(lead['id'], {
+                                                'email': result['email'],
+                                                'notes': lead.get('notes', '') + f"\n\n邮箱查找: {result['method']} (置信度: {result['confidence']})"
+                                            })
+                                            success_count += 1
+                                        else:
+                                            failed_count += 1
+
+                                        progress_bar.progress((idx + 1) / len(leads_without_email))
+
+                                    status_text.empty()
+                                    progress_bar.empty()
+
+                                    st.success(f"✅ 完成! 成功: {success_count}, 失败: {failed_count}")
+
+                                except Exception as e:
+                                    st.error(f"批量查找失败: {e}")
+                    else:
+                        st.info("所有线索都已有邮箱")
+
+                with tab4:
+                    st.markdown("### ⚠️ 使用说明")
+
+                    st.markdown("""
+                    ## 🚀 真实抓取 vs 模拟搜索
+
+                    ### 真实抓取
+                    - ✅ 使用Selenium自动化浏览器
+                    - ✅ 抓取真实的小红书/知乎/LinkedIn数据
+                    - ✅ 数据准确,可直接使用
+                    - ⚠️ 需要安装Chrome浏览器
+                    - ⚠️ 速度较慢(每个平台1-2分钟)
+                    - ⚠️ 可能被平台检测(建议适度使用)
+
+                    ### 模拟搜索
+                    - ✅ 快速返回结果
+                    - ✅ 无需安装依赖
+                    - ❌ 返回模拟数据,仅供演示
+
+                    ---
+
+                    ## 📧 邮箱查找
+
+                    ### 方法1: Hunter.io API (推荐)
+                    - 注册地址: https://hunter.io/
+                    - 免费版: 25次/月
+                    - 付费版: $49/月起 (1000次)
+                    - 准确率: 95%+
+
+                    ### 方法2: 邮箱格式推测
+                    - 根据姓名+公司域名生成可能的邮箱
+                    - 常见格式: john.doe@company.com, jdoe@company.com等
+                    - 准确率: 30-50%
+
+                    ---
+
+                    ## 🔧 推荐第三方工具
+
+                    ### LinkedIn抓取
+                    - **PhantomBuster**: $59/月起, 专业LinkedIn自动化
+                    - **Waalaxy**: $49/月起, LinkedIn + 邮件自动化
+                    - **LinkedIn Sales Navigator**: $79.99/月, 官方工具
+
+                    ### 小红书抓取
+                    - **八爪鱼**: 免费版可用, 可视化爬虫
+                    - **后羿采集器**: ¥99/月起, 简单易用
+                    - **Apify**: $49/月起, 云端爬虫平台
+
+                    ### 知乎抓取
+                    - **八爪鱼**: 同上
+                    - **火车采集器**: ¥199/月起, 功能强大
+
+                    ---
+
+                    ## ⚠️ 合规说明
+
+                    ### 法律风险
+                    1. **遵守平台服务条款**: 大部分平台禁止自动化抓取
+                    2. **尊重用户隐私**: 不要滥用获取的数据
+                    3. **适度使用**: 避免过度频繁请求被封号
+
+                    ### 推荐方案
+                    1. **内容营销**: 发布优质内容吸引客户
+                    2. **付费广告**: 使用平台官方广告系统
+                    3. **手动获客**: 主动联系+建立关系
+                    4. **第三方服务**: 使用合规的数据服务商
+
+                    ---
+
+                    ## 💡 最佳实践
+
+                    ### LinkedIn
+                    1. 优化个人资料,展示专业形象
+                    2. 发布留学相关内容
+                    3. 加入留学群组,参与讨论
+                    4. 主动发送连接请求(每天<20个)
+                    5. 发送个性化消息,不要群发
+
+                    ### 小红书
+                    1. 发布留学经验分享(图文+视频)
+                    2. 回答用户留学问题
+                    3. 在评论区提供价值
+                    4. 引导私信咨询(不要直接留联系方式)
+
+                    ### 知乎
+                    1. 回答留学相关问题(长文+干货)
+                    2. 发布专业文章建立个人品牌
+                    3. 在回答末尾留下引导语
+                    4. 定期更新,保持活跃
+
+                    ---
+
+                    ## 🎯 效果对比
+
+                    | 方法 | 成本 | 效果 | 合规性 | 推荐度 |
+                    |------|------|------|--------|--------|
+                    | 内容营销 | 低 | ⭐⭐⭐⭐⭐ | ✅ | ⭐⭐⭐⭐⭐ |
+                    | 付费广告 | 高 | ⭐⭐⭐⭐ | ✅ | ⭐⭐⭐⭐ |
+                    | 第三方工具 | 中 | ⭐⭐⭐⭐ | ⚠️ | ⭐⭐⭐ |
+                    | 自动化抓取 | 低 | ⭐⭐⭐ | ❌ | ⭐⭐ |
+                    | 手动获客 | 低 | ⭐⭐⭐⭐ | ✅ | ⭐⭐⭐⭐ |
+
+                    **结论**: 内容营销 + 手动获客 + 付费广告 = 最佳组合
                     """)
+
+                    from platform_scraper import COMPLIANCE_NOTES
+                    st.warning(COMPLIANCE_NOTES)
 
     except Exception as e:
         st.error(f"错误: {e}")
+        st.exception(e)
 
 elif st.session_state.current_page == "analytics":
     st.markdown("## 📊 数据分析")
