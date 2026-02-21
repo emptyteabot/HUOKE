@@ -254,7 +254,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 功能选择
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
     st.markdown("""
@@ -301,6 +301,17 @@ with col4:
         st.session_state.current_page = "workflow"
 
 with col5:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-title">多平台获客</div>
+        <div class="feature-desc">LinkedIn/小红书/知乎</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("进入", key="btn_scraper", use_container_width=True):
+        st.session_state.current_page = "scraper"
+
+with col6:
     st.markdown("""
     <div class="feature-card">
         <div class="feature-icon">📊</div>
@@ -824,6 +835,214 @@ jobs:
           curl -X POST https://your-app.streamlit.app/api/workflows/execute \\
             -H "Authorization: Bearer ${{ secrets.API_TOKEN }}"
                     """, language="yaml")
+
+    except Exception as e:
+        st.error(f"错误: {e}")
+
+elif st.session_state.current_page == "scraper":
+    st.markdown("## 🌐 多平台获客")
+
+    try:
+        from platform_scraper import MultiPlatformAggregator, THIRD_PARTY_SERVICES, COMPLIANCE_NOTES
+        from database import init_supabase, add_lead
+        from auth import get_current_user
+
+        if not init_supabase():
+            st.error("数据库连接失败")
+        else:
+            user = get_current_user()
+            if not user:
+                st.warning("请先登录")
+            else:
+                aggregator = MultiPlatformAggregator()
+
+                # 标签页
+                tab1, tab2, tab3 = st.tabs(["🔍 搜索线索", "📋 第三方工具", "⚠️ 合规说明"])
+
+                with tab1:
+                    st.markdown("### 搜索潜在客户")
+
+                    st.info("💡 这是演示功能,返回模拟数据。实际使用需要配置API或使用第三方服务。")
+
+                    col1, col2 = st.columns([2, 1])
+
+                    with col1:
+                        keywords = st.text_input("搜索关键词", value="美国留学", placeholder="例如: 美国留学、英国研究生")
+
+                    with col2:
+                        platforms = st.multiselect(
+                            "选择平台",
+                            ["linkedin", "xiaohongshu", "zhihu"],
+                            default=["xiaohongshu", "zhihu"]
+                        )
+
+                    if st.button("🔍 开始搜索", use_container_width=True, type="primary"):
+                        if keywords and platforms:
+                            with st.spinner("正在搜索..."):
+                                # 搜索
+                                results = aggregator.search_all_platforms(keywords, platforms)
+
+                                # 显示结果
+                                st.success(f"搜索完成! 关键词: {keywords}")
+
+                                for platform, data in results['platforms'].items():
+                                    if isinstance(data, dict) and 'error' in data:
+                                        st.error(f"{platform}: {data['error']}")
+                                        continue
+
+                                    st.markdown(f"### {platform.upper()} ({len(data)} 条结果)")
+
+                                    if platform == 'linkedin':
+                                        for item in data:
+                                            with st.expander(f"👤 {item['name']} - {item['title']}"):
+                                                st.markdown(f"**公司**: {item['company']}")
+                                                st.markdown(f"**地区**: {item['location']}")
+                                                st.markdown(f"**邮箱**: {item.get('email', '未知')}")
+                                                st.markdown(f"**链接**: {item['profile_url']}")
+
+                                                if st.button(f"添加为线索", key=f"add_{platform}_{item['name']}", use_container_width=True):
+                                                    try:
+                                                        lead_id = add_lead({
+                                                            'user_id': user['id'],
+                                                            'name': item['name'],
+                                                            'email': item.get('email', ''),
+                                                            'phone': item.get('phone', ''),
+                                                            'notes': item.get('notes', ''),
+                                                            'status': 'new'
+                                                        })
+                                                        st.success(f"✅ 已添加: {item['name']}")
+                                                    except Exception as e:
+                                                        st.error(f"添加失败: {e}")
+
+                                    elif platform == 'xiaohongshu':
+                                        for item in data:
+                                            with st.expander(f"📝 {item['title']} - {item['author']}"):
+                                                st.markdown(f"**内容**: {item['content']}")
+                                                st.markdown(f"**点赞**: {item['likes']} | **评论**: {item['comments']}")
+                                                st.markdown(f"**链接**: {item['url']}")
+
+                                                if st.button(f"添加为线索", key=f"add_{platform}_{item['author']}", use_container_width=True):
+                                                    try:
+                                                        lead_id = add_lead({
+                                                            'user_id': user['id'],
+                                                            'name': item['author'],
+                                                            'email': '',
+                                                            'phone': '',
+                                                            'notes': f"来源: 小红书\n标题: {item['title']}\n内容: {item['content'][:100]}",
+                                                            'status': 'new'
+                                                        })
+                                                        st.success(f"✅ 已添加: {item['author']}")
+                                                    except Exception as e:
+                                                        st.error(f"添加失败: {e}")
+
+                                    elif platform == 'zhihu':
+                                        for item in data:
+                                            with st.expander(f"❓ {item['title']} - {item['author']}"):
+                                                st.markdown(f"**回答数**: {item['answer_count']} | **关注者**: {item['follower_count']}")
+                                                st.markdown(f"**链接**: {item['url']}")
+
+                                                if st.button(f"添加为线索", key=f"add_{platform}_{item['author']}", use_container_width=True):
+                                                    try:
+                                                        lead_id = add_lead({
+                                                            'user_id': user['id'],
+                                                            'name': item['author'],
+                                                            'email': '',
+                                                            'phone': '',
+                                                            'notes': f"来源: 知乎\n问题: {item['title']}",
+                                                            'status': 'new'
+                                                        })
+                                                        st.success(f"✅ 已添加: {item['author']}")
+                                                    except Exception as e:
+                                                        st.error(f"添加失败: {e}")
+
+                                # 批量导入
+                                st.markdown("---")
+                                st.markdown("### 批量导入")
+
+                                if st.button("📥 批量导入所有结果", use_container_width=True):
+                                    leads = aggregator.convert_to_leads(results)
+
+                                    success_count = 0
+                                    failed_count = 0
+
+                                    for lead in leads:
+                                        try:
+                                            lead['user_id'] = user['id']
+                                            add_lead(lead)
+                                            success_count += 1
+                                        except:
+                                            failed_count += 1
+
+                                    st.success(f"✅ 成功导入 {success_count} 个线索")
+                                    if failed_count > 0:
+                                        st.warning(f"⚠️ {failed_count} 个线索导入失败")
+                        else:
+                            st.warning("请输入关键词并选择平台")
+
+                with tab2:
+                    st.markdown("### 推荐第三方工具")
+
+                    st.info("💡 由于各平台的反爬虫机制,建议使用以下第三方服务获取数据")
+
+                    for service_key, service in THIRD_PARTY_SERVICES.items():
+                        with st.expander(f"🔧 {service['name']} - {service['price']}"):
+                            st.markdown(f"**描述**: {service['description']}")
+                            st.markdown(f"**价格**: {service['price']}")
+                            st.markdown(f"**网址**: [{service['url']}]({service['url']})")
+
+                    st.markdown("---")
+                    st.markdown("### 使用步骤")
+
+                    st.markdown("""
+                    1. **选择工具**: 根据需求选择合适的第三方服务
+                    2. **注册账号**: 在服务网站注册并购买套餐
+                    3. **配置任务**: 设置搜索关键词和抓取规则
+                    4. **导出数据**: 将抓取的数据导出为CSV/Excel
+                    5. **导入GuestSeek**: 在"学生管理"页面批量导入
+                    """)
+
+                    st.markdown("---")
+                    st.markdown("### 手动获客技巧")
+
+                    st.markdown("""
+                    **LinkedIn**:
+                    - 优化个人资料,展示专业形象
+                    - 发布留学相关内容吸引关注
+                    - 加入留学相关群组
+                    - 主动联系潜在客户
+
+                    **小红书**:
+                    - 发布留学经验分享
+                    - 回答用户留学问题
+                    - 在评论区提供价值
+                    - 引导私信咨询
+
+                    **知乎**:
+                    - 回答留学相关问题
+                    - 发布专业文章
+                    - 建立个人品牌
+                    - 在回答中留下联系方式
+                    """)
+
+                with tab3:
+                    st.markdown("### ⚠️ 合规说明")
+
+                    st.warning(COMPLIANCE_NOTES)
+
+                    st.markdown("---")
+                    st.markdown("### 推荐方案")
+
+                    st.success("""
+                    **最佳实践**:
+
+                    1. **内容营销**: 在各平台发布优质内容,吸引客户主动咨询
+                    2. **社群运营**: 建立微信群、QQ群,维护客户关系
+                    3. **付费广告**: 使用平台官方广告系统
+                    4. **合作推广**: 与KOL、机构合作
+                    5. **口碑传播**: 提供优质服务,让客户推荐
+
+                    这些方法合规、可持续,且效果更好!
+                    """)
 
     except Exception as e:
         st.error(f"错误: {e}")
