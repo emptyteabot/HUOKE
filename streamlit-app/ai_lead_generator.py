@@ -1,21 +1,106 @@
 """
-AI生成潜在客户数据
+AI生成潜在客户数据 - 信号驱动版
 
-使用Claude/Gemini生成高质量的模拟客户数据
-完全免费,无需任何API
+使用DeepSeek API生成高质量的留学客户数据
+包含行为信号、意向等级、触达时机等关键信息
 """
 
 import json
 import random
+import requests
 from datetime import datetime, timedelta
 from typing import List, Dict
 import re
 
 
-class AILeadGenerator:
-    """AI生成潜在客户"""
+class DeepSeekLeadEnricher:
+    """DeepSeek AI客户数据增强器"""
 
-    def __init__(self):
+    def __init__(self, api_key: str = "sk-d86589fb80f248cea3f4a843eaebce5a"):
+        self.api_key = api_key
+        self.api_url = "https://api.deepseek.com/v1/chat/completions"
+
+    def enrich_lead_with_signals(self, lead: Dict) -> Dict:
+        """
+        使用AI增强客户数据，添加行为信号
+
+        Args:
+            lead: 基础客户数据
+
+        Returns:
+            增强后的客户数据
+        """
+        prompt = f"""
+请为以下留学潜在客户生成真实的行为信号和意向分析:
+
+客户信息:
+- 姓名: {lead['name']}
+- 意向: {lead['target_country']} {lead['target_degree']} - {lead['major']}
+- 来源: {lead['source']}
+- 预算: {lead['budget']}
+
+请生成:
+1. 3-5个具体的行为信号 (例: "在小红书搜索'UCL计算机科学申请要求'")
+2. 意向等级评分 (1-10分) 及理由
+3. 最佳触达时机 (例: "工作日晚上8-9点")
+4. 痛点分析 (2-3个具体痛点)
+5. 推荐话术角度
+
+以JSON格式输出:
+{{
+  "signals": ["信号1", "信号2", "信号3"],
+  "intent_score": 8,
+  "intent_reason": "理由",
+  "best_contact_time": "时间",
+  "pain_points": ["痛点1", "痛点2"],
+  "recommended_angle": "话术角度"
+}}
+"""
+
+        try:
+            response = requests.post(
+                self.api_url,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": "你是一位专业的留学行业数据分析师。"},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 500
+                },
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                content = result['choices'][0]['message']['content']
+
+                # 提取JSON
+                json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                if json_match:
+                    enriched_data = json.loads(json_match.group())
+                    lead.update(enriched_data)
+                    return lead
+
+        except Exception as e:
+            print(f"AI增强失败: {e}")
+
+        # 返回原始数据
+        return lead
+
+
+class AILeadGenerator:
+    """AI生成潜在客户 - 信号驱动版"""
+
+    def __init__(self, use_ai_enrichment: bool = False):
+        self.use_ai_enrichment = use_ai_enrichment
+        if use_ai_enrichment:
+            self.enricher = DeepSeekLeadEnricher()
         # 真实的留学相关数据
         self.countries = ["美国", "英国", "加拿大", "澳大利亚", "新加坡", "日本", "德国", "法国"]
         self.degrees = ["本科", "硕士", "博士", "高中", "语言课程"]
@@ -39,11 +124,16 @@ class AILeadGenerator:
             "婷", "雪", "梅", "霞", "玲", "燕", "红", "莉", "萍", "颖"
         ]
 
-        # 真实的留学意向关键词
-        self.intent_keywords = [
-            "想咨询一下", "打算申请", "准备出国", "了解一下",
-            "孩子想去", "有什么要求", "需要准备什么", "费用大概多少",
-            "什么时候开始准备", "录取率怎么样", "推荐哪些学校", "专业选择"
+        # 行为信号模板
+        self.signal_templates = [
+            "在{platform}搜索'{keyword}'",
+            "浏览了{school}官网的{major}专业页面",
+            "下载了'{document}'PDF文档",
+            "在{platform}提问'{question}'",
+            "收藏了{count}篇关于{topic}的文章",
+            "加入了'{group}'微信群",
+            "参加了{event}线上讲座",
+            "咨询了{topic}相关问题"
         ]
 
         # 真实的来源渠道
@@ -51,6 +141,18 @@ class AILeadGenerator:
             "小红书搜索", "知乎问答", "微信公众号", "朋友推荐",
             "教育展会", "学校讲座", "百度搜索", "抖音视频",
             "留学论坛", "家长群", "线下咨询", "电话咨询"
+        ]
+
+        # 痛点库
+        self.pain_points = [
+            "不知道如何选择合适的学校和专业",
+            "担心申请时间规划不合理",
+            "文书写作没有思路",
+            "语言成绩不够理想",
+            "预算有限，担心费用问题",
+            "不了解申请流程和材料准备",
+            "担心竞争太激烈，录取率低",
+            "不确定是否需要中介服务"
         ]
 
     def generate_name(self) -> str:
@@ -88,36 +190,92 @@ class AILeadGenerator:
 
         return f"{surname_pinyin}{number}@{domain}"
 
-    def generate_notes(self, country: str, degree: str, major: str) -> str:
-        """生成真实的咨询记录"""
-        intent = random.choice(self.intent_keywords)
-        source = random.choice(self.sources)
+    def generate_behavior_signals(self, country: str, degree: str, major: str, source: str) -> List[str]:
+        """生成行为信号"""
+        signals = []
 
-        notes = f"来源: {source}\n"
-        notes += f"咨询内容: {intent}{country}{degree}{major}项目\n"
+        # 根据来源生成对应的信号
+        if "小红书" in source:
+            signals.append(f"在小红书搜索'{country}{degree}申请'")
+            signals.append(f"收藏了5篇关于{major}专业的笔记")
+        elif "知乎" in source:
+            signals.append(f"在知乎提问'{country}{major}申请难度大吗?'")
+            signals.append(f"关注了3个{country}留学相关话题")
+        elif "微信" in source:
+            signals.append(f"在公众号阅读了'{country}留学指南'文章")
+            signals.append(f"加入了'{country}留学交流群'")
+        else:
+            signals.append(f"搜索了'{country}{degree}{major}'相关信息")
 
-        # 添加一些真实的问题
-        questions = [
-            f"- 询问{country}的申请要求和时间线",
-            f"- 关心{major}专业的就业前景",
-            "- 想了解奖学金和助学金政策",
-            "- 询问语言成绩要求(托福/雅思)",
-            "- 关心学费和生活费预算",
-            "- 想知道申请成功率",
-            "- 询问是否需要中介服务",
-            "- 关心毕业后的工作签证政策"
-        ]
+        # 添加通用信号
+        schools = {
+            "美国": ["MIT", "Stanford", "Harvard", "CMU"],
+            "英国": ["UCL", "Imperial", "LSE", "KCL"],
+            "加拿大": ["多伦多大学", "UBC", "麦吉尔"],
+            "澳大利亚": ["墨尔本大学", "悉尼大学", "ANU"]
+        }
 
-        notes += "\n".join(random.sample(questions, random.randint(2, 4)))
+        if country in schools:
+            school = random.choice(schools[country])
+            signals.append(f"浏览了{school}的{major}专业页面")
 
-        return notes
+        signals.append(f"下载了'{country}留学申请时间规划表'")
+
+        return random.sample(signals, min(3, len(signals)))
+
+    def calculate_intent_score(self, lead: Dict) -> int:
+        """计算意向评分 (1-10)"""
+        score = 5  # 基础分
+
+        # 根据来源调整
+        high_intent_sources = ["线下咨询", "电话咨询", "朋友推荐"]
+        if lead['source'] in high_intent_sources:
+            score += 2
+
+        # 根据预算调整
+        if "100万以上" in lead['budget'] or "80-100万" in lead['budget']:
+            score += 1
+
+        # 根据时间调整 (最近创建的意向更高)
+        days_ago = (datetime.now() - datetime.fromisoformat(lead['created_at'])).days
+        if days_ago < 7:
+            score += 2
+        elif days_ago < 30:
+            score += 1
+
+        return min(10, score)
+
+    def get_best_contact_time(self, source: str) -> str:
+        """获取最佳触达时机"""
+        time_map = {
+            "小红书搜索": "工作日晚上8-10点",
+            "知乎问答": "工作日晚上7-9点",
+            "微信公众号": "周末上午10-12点",
+            "朋友推荐": "工作日下午3-5点",
+            "线下咨询": "工作日上午10-12点",
+            "电话咨询": "工作日下午2-4点"
+        }
+        return time_map.get(source, "工作日晚上8-9点")
+
+    def select_pain_points(self, lead: Dict) -> List[str]:
+        """选择痛点"""
+        selected = random.sample(self.pain_points, 2)
+
+        # 根据预算添加特定痛点
+        if "20-30万" in lead['budget']:
+            selected.append("预算有限，担心费用问题")
+
+        return selected[:3]
 
     def generate_lead(self) -> Dict:
-        """生成一个潜在客户"""
+        """生成一个潜在客户 - 信号驱动版"""
         name = self.generate_name()
         country = random.choice(self.countries)
         degree = random.choice(self.degrees)
         major = random.choice(self.majors)
+        source = random.choice(self.sources)
+        budget = random.choice(self.budgets)
+        created_at = datetime.now() - timedelta(days=random.randint(0, 30))
 
         lead = {
             'name': name,
@@ -126,25 +284,90 @@ class AILeadGenerator:
             'target_country': country,
             'target_degree': degree,
             'major': major,
-            'budget': random.choice(self.budgets),
+            'budget': budget,
             'city': random.choice(self.cities),
-            'source': random.choice(self.sources),
+            'source': source,
+            'created_at': created_at.isoformat(),
+
+            # 信号驱动字段
+            'behavior_signals': self.generate_behavior_signals(country, degree, major, source),
+            'best_contact_time': self.get_best_contact_time(source),
+            'pain_points': self.select_pain_points({'budget': budget}),
+
+            # 状态字段
             'status': random.choice(['new', 'contacted', 'interested', 'qualified']),
-            'notes': self.generate_notes(country, degree, major),
-            'created_at': (datetime.now() - timedelta(days=random.randint(0, 30))).isoformat(),
-            'intent_level': random.choice(['high', 'medium', 'low'])
+            'email_sequence_day': 0,  # 当前邮件序列天数
+            'last_contact_at': None,
+            'next_contact_at': created_at.isoformat()  # 建议下次联系时间
         }
+
+        # 计算意向评分
+        lead['intent_score'] = self.calculate_intent_score(lead)
+        lead['intent_level'] = 'high' if lead['intent_score'] >= 7 else ('medium' if lead['intent_score'] >= 4 else 'low')
+
+        # 如果启用AI增强
+        if self.use_ai_enrichment:
+            lead = self.enricher.enrich_lead_with_signals(lead)
 
         return lead
 
-    def generate_batch(self, count: int = 100) -> List[Dict]:
-        """批量生成潜在客户"""
+    def generate_batch(self, count: int = 100, use_ai: bool = False) -> List[Dict]:
+        """
+        批量生成潜在客户
+
+        Args:
+            count: 生成数量
+            use_ai: 是否使用AI增强
+
+        Returns:
+            客户列表
+        """
+        if use_ai:
+            self.use_ai_enrichment = True
+
         leads = []
         for i in range(count):
             lead = self.generate_lead()
             leads.append(lead)
 
+            if (i + 1) % 10 == 0:
+                print(f"已生成 {i + 1}/{count} 个客户...")
+
         return leads
+
+    def export_for_email_campaign(self, leads: List[Dict], output_file: str = "email_campaign_leads.json"):
+        """
+        导出用于邮件营销的客户数据
+
+        Args:
+            leads: 客户列表
+            output_file: 输出文件名
+        """
+        # 按意向等级排序
+        sorted_leads = sorted(leads, key=lambda x: x['intent_score'], reverse=True)
+
+        # 添加营销建议
+        for lead in sorted_leads:
+            if lead['intent_score'] >= 7:
+                lead['campaign_priority'] = 'high'
+                lead['recommended_sequence'] = [1, 3, 7]  # 高意向客户用短序列
+            elif lead['intent_score'] >= 4:
+                lead['campaign_priority'] = 'medium'
+                lead['recommended_sequence'] = [1, 3, 7, 14]  # 中意向用完整序列
+            else:
+                lead['campaign_priority'] = 'low'
+                lead['recommended_sequence'] = [1, 7]  # 低意向只发2次
+
+        # 保存
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(sorted_leads, f, ensure_ascii=False, indent=2)
+
+        print(f"✅ 已导出 {len(sorted_leads)} 个客户到 {output_file}")
+        print(f"   - 高意向: {sum(1 for l in sorted_leads if l['campaign_priority'] == 'high')}")
+        print(f"   - 中意向: {sum(1 for l in sorted_leads if l['campaign_priority'] == 'medium')}")
+        print(f"   - 低意向: {sum(1 for l in sorted_leads if l['campaign_priority'] == 'low')}")
+
+        return output_file
 
     def generate_xiaohongshu_posts(self, keywords: str, count: int = 20) -> List[Dict]:
         """生成小红书笔记数据"""
@@ -212,34 +435,57 @@ class AILeadGenerator:
 
 # 使用示例
 if __name__ == "__main__":
-    generator = AILeadGenerator()
+    generator = AILeadGenerator(use_ai_enrichment=False)  # 设为True启用AI增强
 
-    # 生成100个潜在客户
+    # 示例1: 生成100个潜在客户
     print("🚀 生成潜在客户数据...")
     leads = generator.generate_batch(100)
 
-    print(f"✅ 生成了 {len(leads)} 个潜在客户")
-    print("\n示例数据:")
+    print(f"\n✅ 生成了 {len(leads)} 个潜在客户")
+    print("\n示例数据 (前3个):")
     for lead in leads[:3]:
-        print(f"\n姓名: {lead['name']}")
+        print(f"\n{'='*60}")
+        print(f"姓名: {lead['name']}")
         print(f"邮箱: {lead['email']}")
         print(f"电话: {lead['phone']}")
         print(f"意向: {lead['target_country']} {lead['target_degree']} {lead['major']}")
         print(f"预算: {lead['budget']}")
         print(f"来源: {lead['source']}")
+        print(f"意向评分: {lead['intent_score']}/10 ({lead['intent_level']})")
+        print(f"最佳触达时间: {lead['best_contact_time']}")
+        print(f"\n行为信号:")
+        for signal in lead['behavior_signals']:
+            print(f"  • {signal}")
+        print(f"\n痛点:")
+        for pain in lead['pain_points']:
+            print(f"  • {pain}")
 
-    # 保存到文件
-    with open('generated_leads.json', 'w', encoding='utf-8') as f:
-        json.dump(leads, f, ensure_ascii=False, indent=2)
+    # 示例2: 导出用于邮件营销
+    print(f"\n{'='*60}")
+    print("📧 导出邮件营销数据...")
+    output_file = generator.export_for_email_campaign(leads)
 
-    print("\n💾 数据已保存到 generated_leads.json")
-
-    # 生成小红书数据
-    print("\n🚀 生成小红书数据...")
+    # 示例3: 生成小红书数据
+    print(f"\n{'='*60}")
+    print("🚀 生成小红书数据...")
     posts = generator.generate_xiaohongshu_posts("美国留学", 20)
     print(f"✅ 生成了 {len(posts)} 条小红书笔记")
 
-    # 生成知乎数据
-    print("\n🚀 生成知乎数据...")
+    # 示例4: 生成知乎数据
+    print(f"\n{'='*60}")
+    print("🚀 生成知乎数据...")
     questions = generator.generate_zhihu_questions("英国研究生", 20)
     print(f"✅ 生成了 {len(questions)} 个知乎问题")
+
+    # 保存所有数据
+    print(f"\n{'='*60}")
+    print("�� 保存数据...")
+    with open('generated_leads_full.json', 'w', encoding='utf-8') as f:
+        json.dump({
+            'leads': leads,
+            'xiaohongshu_posts': posts,
+            'zhihu_questions': questions
+        }, f, ensure_ascii=False, indent=2)
+
+    print("✅ 所有数据已保存到 generated_leads_full.json")
+
