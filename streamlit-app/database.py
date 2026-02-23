@@ -264,3 +264,70 @@ def track_email_click(email_id: str, url: str, device_info: Optional[Dict] = Non
     except Exception as e:
         print(f"追踪邮件点击失败: {e}")
         return False
+
+# ==================== Subscription Management ====================
+
+def get_user_by_id(user_id: str) -> Optional[Dict]:
+    """Get user by id."""
+    try:
+        result = supabase.table('users').select('*').eq('id', user_id).execute()
+        return result.data[0] if result.data else None
+    except Exception as e:
+        print(f"Get user failed: {e}")
+        return None
+
+def get_user_subscription(user_id: str) -> Dict:
+    """Return normalized subscription fields from users table."""
+    fallback = {
+        'plan': 'free',
+        'subscription_status': 'inactive',
+        'stripe_customer_id': '',
+        'stripe_subscription_id': '',
+        'checkout_session_id': '',
+        'current_period_end': None,
+    }
+    try:
+        user = get_user_by_id(user_id)
+        if not user:
+            return fallback
+        return {
+            'plan': user.get('plan', 'free') or 'free',
+            'subscription_status': user.get('subscription_status', 'inactive') or 'inactive',
+            'stripe_customer_id': user.get('stripe_customer_id', '') or '',
+            'stripe_subscription_id': user.get('stripe_subscription_id', '') or '',
+            'checkout_session_id': user.get('checkout_session_id', '') or '',
+            'current_period_end': user.get('current_period_end'),
+        }
+    except Exception:
+        return fallback
+
+def update_user_subscription(
+    user_id: str,
+    plan: str,
+    subscription_status: str,
+    stripe_customer_id: Optional[str] = None,
+    stripe_subscription_id: Optional[str] = None,
+    checkout_session_id: Optional[str] = None,
+    current_period_end: Optional[str] = None,
+) -> bool:
+    """Update subscription fields on users table."""
+    try:
+        updates = {
+            'plan': plan,
+            'subscription_status': subscription_status,
+            'updated_at': datetime.now().isoformat(),
+        }
+        if stripe_customer_id is not None:
+            updates['stripe_customer_id'] = stripe_customer_id
+        if stripe_subscription_id is not None:
+            updates['stripe_subscription_id'] = stripe_subscription_id
+        if checkout_session_id is not None:
+            updates['checkout_session_id'] = checkout_session_id
+        if current_period_end is not None:
+            updates['current_period_end'] = current_period_end
+
+        supabase.table('users').update(updates).eq('id', user_id).execute()
+        return True
+    except Exception as e:
+        print(f"Update subscription failed: {e}")
+        return False

@@ -172,3 +172,38 @@ MIT License
 - [Streamlit官方文档](https://docs.streamlit.io/)
 - [Streamlit Gallery](https://streamlit.io/gallery)
 - [GitHub高星Streamlit项目](https://github.com/topics/streamlit)
+
+---
+
+## Billing Setup (Stripe Subscription)
+
+1. Run SQL migration in Supabase:
+
+```sql
+-- file: streamlit-app/sql/subscription_schema.sql
+```
+
+2. Add Streamlit secrets/env vars:
+
+```toml
+APP_BASE_URL = "https://ai-huoke.streamlit.app"
+SUPABASE_URL = "https://<your-project>.supabase.co"
+SUPABASE_KEY = "<your-anon-or-service-key>"
+JWT_SECRET = "<strong-random-string>"
+
+STRIPE_SECRET_KEY = "sk_live_..."
+STRIPE_PRICE_PRO = "price_..."
+STRIPE_PRICE_ENTERPRISE = "price_..."
+PRICE_LABEL_PRO = "¥1999 / month"
+PRICE_LABEL_ENTERPRISE = "¥5999 / month"
+```
+
+3. Deploy/restart Streamlit app.
+
+4. In app Home page, open **Billing/Subscription** card:
+- Click `Subscribe Pro` or `Subscribe Enterprise`
+- Complete Stripe checkout
+- Return to app success URL; plan is auto-activated and persisted to `users` table.
+
+5. Access control:
+- Core pages (`leads`, `ai`, `batch`, `workflow`, `scraper`, `analytics`) are gated behind paid plan (`pro`+).

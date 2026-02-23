@@ -127,7 +127,12 @@ def show_login_page():
                                 'id': user['id'],
                                 'email': user['email'],
                                 'name': user['name'],
-                                'company': user['company']
+                                'company': user['company'],
+                                'plan': user.get('plan', 'free'),
+                                'subscription_status': user.get('subscription_status', 'inactive'),
+                                'stripe_customer_id': user.get('stripe_customer_id', ''),
+                                'stripe_subscription_id': user.get('stripe_subscription_id', ''),
+                                'current_period_end': user.get('current_period_end')
                             }, token)
 
                             st.success("✅ 登录成功!")
