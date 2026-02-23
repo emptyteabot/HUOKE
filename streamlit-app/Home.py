@@ -79,6 +79,48 @@ COMPETITOR_KEYWORDS = [
     "代办",
 ]
 
+HIGH_INTENT_KEYWORDS = [
+    "求推荐",
+    "求助",
+    "请问",
+    "怎么办",
+    "怎么选",
+    "选校",
+    "申请",
+    "文书",
+    "中介",
+    "offer",
+    "雅思",
+    "托福",
+    "预算",
+    "费用",
+    "签证",
+    "gpa",
+    "deadline",
+    "ddl",
+    "跨专业",
+]
+
+TARGET_LEAD_HINTS = [
+    "求推荐",
+    "求助",
+    "请问",
+    "急",
+    "纠结",
+    "预算",
+    "选校",
+    "申请",
+    "文书",
+    "中介",
+    "offer",
+    "雅思",
+    "托福",
+    "gpa",
+    "签证",
+]
+
+MOJIBAKE_TOKENS = ["�", "?"]
+
 
 def _db_ready() -> bool:
     try:
@@ -132,6 +174,129 @@ def _safe_int(value, default: int = 0) -> int:
 def _is_competitor(author: str, content: str) -> bool:
     text = f"{author} {content}".lower()
     return any(kw.lower() in text for kw in COMPETITOR_KEYWORDS)
+
+
+def _text_quality_score(text: str) -> int:
+    if not text:
+        return -10**9
+    cjk_count = len(re.findall(r"[\u4e00-\u9fff]", text))
+    bad_count = sum(text.count(t) for t in MOJIBAKE_TOKENS)
+    return cjk_count * 4 - bad_count * 6 + min(len(text), 500) // 20
+
+
+def _repair_mojibake(text: str) -> str:
+    raw = (text or "").strip()
+    if not raw:
+        return ""
+
+    best = raw
+    best_score = _text_quality_score(raw)
+
+    for enc in ("gb18030", "gbk"):
+        try:
+            candidate = raw.encode(enc, errors="ignore").decode("utf-8", errors="ignore").strip()
+        except Exception:
+            continue
+        score = _text_quality_score(candidate)
+        if candidate and score > best_score + 2:
+            best = candidate
+            best_score = score
+
+    return best
+
+
+def _normalize_platform(platform: str, post_url: str, source_url: str) -> str:
+    p = _repair_mojibake(platform).lower()
+    merged = f"{p} {post_url.lower()} {source_url.lower()}"
+    if "xiaohongshu" in merged or "xhs" in merged or "\u5c0f\u7ea2\u4e66" in merged:
+        return "xhs"
+    if "weibo" in merged or "\u5fae\u535a" in merged:
+        return "weibo"
+    if "douyin" in merged or "\u6296\u97f3" in merged:
+        return "douyin"
+    if "zhihu" in merged or "\u77e5\u4e4e" in merged:
+        return "zhihu"
+    if "bilibili" in merged or "b\u7ad9" in merged:
+        return "bilibili"
+    if "tieba" in merged or "\u8d34\u5427" in merged:
+        return "tieba"
+    if "douban" in merged or "\u8c46\u74e3" in merged:
+        return "douban"
+    return p or "unknown"
+
+
+def _intent_signal(content: str, keyword: str) -> Tuple[int, str]:
+    text = f"{keyword} {content}".lower()
+    hit = 0
+    for kw in HIGH_INTENT_KEYWORDS:
+        if kw.lower() in text:
+            hit += 1
+
+    if hit >= 3:
+        return 18, "high"
+    if hit >= 1:
+        return 8, "medium"
+    return 0, "low"
+
+
+def _is_target_lead(author: str, content: str, intent_level: str, competitor: bool) -> bool:
+    if competitor:
+        return False
+    if intent_level in {"high", "medium"}:
+        return True
+    text = f"{author} {content}".lower()
+    return sum(1 for k in TARGET_LEAD_HINTS if k in text) >= 2
+
+
+def _parse_uploaded_lead_files(uploaded_files) -> Tuple[pd.DataFrame, List[str]]:
+    if not uploaded_files:
+        return pd.DataFrame(), []
+
+    frames: List[pd.DataFrame] = []
+    names: List[str] = []
+
+    for up in uploaded_files:
+        name = getattr(up, "name", "uploaded")
+        raw = up.getvalue()
+        suffix = Path(name).suffix.lower()
+
+        df = pd.DataFrame()
+        if suffix == ".csv":
+            for enc in ["utf-8", "utf-8-sig", "gbk", "gb18030"]:
+                try:
+                    df = pd.read_csv(io.BytesIO(raw), encoding=enc)
+                    break
+                except Exception:
+                    continue
+        elif suffix == ".json":
+            try:
+                obj = json.loads(raw.decode("utf-8", errors="ignore"))
+                if isinstance(obj, dict):
+                    obj = obj.get("data", [])
+                df = pd.DataFrame(obj if isinstance(obj, list) else [])
+            except Exception:
+                df = pd.DataFrame()
+        elif suffix in {".txt", ".md"}:
+            txt = raw.decode("utf-8", errors="ignore").strip()
+            if txt:
+                lines = [x.strip() for x in txt.splitlines() if x.strip()]
+                rows = []
+                for ln in lines[:1200]:
+                    rows.append({"content": ln, "platform": "xhs", "author": "unknown"})
+                df = pd.DataFrame(rows)
+
+        if df.empty:
+            continue
+
+        df = df.fillna("")
+        df["__source_file"] = name
+        frames.append(df)
+        names.append(name)
+
+    if not frames:
+        return pd.DataFrame(), []
+
+    return pd.concat(frames, ignore_index=True), names
 
 
 def _read_csv_any(path: Path) -> pd.DataFrame:
@@ -207,20 +372,41 @@ def _normalize_external_df(df: pd.DataFrame) -> pd.DataFrame:
 
     rows: List[Dict] = []
     for row in df.to_dict(orient="records"):
-        platform = _safe_str(row, ["platform", "source"]) or "xhs"
-        keyword = _safe_str(row, ["keyword", "query"])
-        author = _safe_str(row, ["author", "name", "nickname", "user"]) or "Unknown"
-        author_url = _safe_str(row, ["author_url", "profile_url", "user_url"])
-        content = _safe_str(row, ["content", "text", "comment", "evidence_text", "title"])
         post_url = _safe_str(row, ["note_url", "post_url", "link", "url"])
         source_url = _safe_str(row, ["source_url", "search_url", "origin_url"])
-        contact = _safe_str(row, ["phone", "wechat", "contact", "email"])
-        score = _safe_int(row.get("score"), default=_safe_int(row.get("confidence"), default=70))
-        grade = _safe_str(row, ["grade"])
+
+        platform_raw = _safe_str(row, ["platform", "source"]) or "xhs"
+        platform = _normalize_platform(platform_raw, post_url, source_url)
+        keyword = _repair_mojibake(_safe_str(row, ["keyword", "query"]))
+        author = _repair_mojibake(_safe_str(row, ["author", "name", "nickname", "user"])) or "Unknown"
+        author_url = _safe_str(row, ["author_url", "profile_url", "user_url"])
+
+        evidence_text = _repair_mojibake(_safe_str(row, ["evidence_text"]))
+        content = _repair_mojibake(_safe_str(row, ["content", "text", "comment", "title"]))
+        if not content:
+            content = evidence_text
+
+        contact = _repair_mojibake(_safe_str(row, ["phone", "wechat", "contact", "email"]))
+        access_hint = _repair_mojibake(_safe_str(row, ["access_hint", "dm_hint", "profile_state"]))
+        base_score = _safe_int(row.get("score"), default=_safe_int(row.get("confidence"), default=70))
+        grade = _repair_mojibake(_safe_str(row, ["grade"]))
         collected_at = _safe_str(row, ["collected_at", "created_at", "timestamp"])
         source_file = _safe_str(row, ["__source_file"])
 
-        body = f"{platform}|{author}|{post_url}|{content[:60]}"
+        dm_ready = False
+        author_url_l = author_url.lower()
+        access_hint_l = access_hint.lower()
+        if "personal_profile_ready" in access_hint_l:
+            dm_ready = True
+        if "/user/profile/" in author_url_l:
+            dm_ready = True
+
+        intent_bonus, intent_level = _intent_signal(f"{content} {evidence_text}", keyword)
+        competitor = _is_competitor(author, f"{content} {keyword}")
+        score = min(100, max(0, base_score + intent_bonus + (10 if dm_ready else 0)))
+        target = _is_target_lead(author, f"{content} {keyword}", intent_level, competitor)
+
+        body = f"{platform}|{author}|{post_url}|{content[:80]}"
         external_id = hashlib.md5(body.encode("utf-8", errors="ignore")).hexdigest()[:16]
 
         rows.append(
@@ -230,29 +416,50 @@ def _normalize_external_df(df: pd.DataFrame) -> pd.DataFrame:
                 "author": author,
                 "author_url": author_url,
                 "content": content,
+                "evidence_text": evidence_text,
                 "post_url": post_url,
                 "source_url": source_url,
                 "contact": contact,
                 "score": score,
+                "base_score": base_score,
+                "intent_level": intent_level,
+                "is_target": target,
+                "dm_ready": dm_ready,
+                "access_hint": access_hint,
                 "grade": grade,
                 "collected_at": collected_at,
                 "source_file": source_file,
-                "is_competitor": _is_competitor(author, content),
+                "is_competitor": competitor,
                 "external_id": external_id,
             }
         )
 
     out = pd.DataFrame(rows)
     out = out.drop_duplicates(subset=["external_id"])
-    out = out.sort_values(by=["score"], ascending=False)
+    if "collected_at" in out.columns:
+        out = out.sort_values(by=["score", "collected_at"], ascending=[False, False])
+    else:
+        out = out.sort_values(by=["score"], ascending=False)
     return out
 
+def _sync_openclaw_leads(
+    user_id: str,
+    min_score: int,
+    exclude_competitors: bool,
+    limit: int = 300,
+    normalized: Optional[pd.DataFrame] = None,
+    files: Optional[List[str]] = None,
+    only_target: bool = False,
+    selected_platforms: Optional[List[str]] = None,
+) -> Dict:
+    if normalized is None:
+        raw, files = _load_external_sources()
+        normalized = _normalize_external_df(raw)
 
-def _sync_openclaw_leads(user_id: str, min_score: int, exclude_competitors: bool, limit: int = 300) -> Dict:
-    raw, files = _load_external_sources()
-    normalized = _normalize_external_df(raw)
+    files = files or []
+    selected_platforms = [x.strip().lower() for x in (selected_platforms or []) if str(x).strip()]
 
-    if normalized.empty:
+    if normalized is None or normalized.empty:
         return {
             "files": files,
             "total": 0,
@@ -260,6 +467,8 @@ def _sync_openclaw_leads(user_id: str, min_score: int, exclude_competitors: bool
             "skipped_competitor": 0,
             "skipped_score": 0,
             "skipped_duplicate": 0,
+            "skipped_non_target": 0,
+            "skipped_platform": 0,
         }
 
     existing = get_leads(user_id)
@@ -274,39 +483,53 @@ def _sync_openclaw_leads(user_id: str, min_score: int, exclude_competitors: bool
     skipped_competitor = 0
     skipped_score = 0
     skipped_duplicate = 0
+    skipped_non_target = 0
+    skipped_platform = 0
 
     for row in normalized.head(limit).to_dict(orient="records"):
-        if row["score"] < min_score:
+        row_platform = str(row.get("platform", "")).strip().lower()
+        if selected_platforms and row_platform not in selected_platforms:
+            skipped_platform += 1
+            continue
+        if int(row.get("score", 0)) < min_score:
             skipped_score += 1
             continue
-        if exclude_competitors and bool(row["is_competitor"]):
+        if exclude_competitors and bool(row.get("is_competitor")):
             skipped_competitor += 1
             continue
-        if row["external_id"] in existing_ids:
+        if only_target and not bool(row.get("is_target", False)):
+            skipped_non_target += 1
+            continue
+        if row.get("external_id") in existing_ids:
             skipped_duplicate += 1
             continue
 
+        content = str(row.get("content", "") or "").strip()
+        if len(content) > 1200:
+            content = content[:1200] + "..."
+
         notes = (
-            f"source={row['platform']} | score={row['score']} | keyword={row['keyword']}\n"
-            f"post_url={row['post_url']}\n"
-            f"author_url={row['author_url']}\n"
-            f"source_url={row['source_url']}\n"
-            f"collected_at={row['collected_at']}\n"
-            f"external_id={row['external_id']}\n"
-            f"{row['content']}"
+            f"source={row.get('platform', '')} | score={row.get('score', 0)} | intent={row.get('intent_level', 'low')} | keyword={row.get('keyword', '')}\n"
+            f"dm_ready={row.get('dm_ready', False)} | access_hint={row.get('access_hint', '')}\n"
+            f"post_url={row.get('post_url', '')}\n"
+            f"author_url={row.get('author_url', '')}\n"
+            f"source_url={row.get('source_url', '')}\n"
+            f"collected_at={row.get('collected_at', '')}\n"
+            f"external_id={row.get('external_id', '')}\n"
+            f"{content}"
         )
 
         add_lead(
             {
                 "user_id": user_id,
-                "name": row["author"],
+                "name": row.get("author", "Unknown"),
                 "email": "",
-                "phone": row["contact"],
+                "phone": row.get("contact", ""),
                 "status": "new",
                 "notes": notes,
             }
         )
-        existing_ids.add(row["external_id"])
+        existing_ids.add(row.get("external_id"))
         imported += 1
 
     return {
@@ -316,8 +539,9 @@ def _sync_openclaw_leads(user_id: str, min_score: int, exclude_competitors: bool
         "skipped_competitor": skipped_competitor,
         "skipped_score": skipped_score,
         "skipped_duplicate": skipped_duplicate,
+        "skipped_non_target": skipped_non_target,
+        "skipped_platform": skipped_platform,
     }
-
 
 def render_login_register() -> None:
     st.title("Study-Abroad AI Lead Gen SaaS")
@@ -479,54 +703,141 @@ def render_leads(user: Dict) -> None:
 
 def render_acquisition(user: Dict) -> None:
     st.markdown("## OpenClaw Prospecting (Step 1)")
-    st.caption("Use OpenClaw to read social posts/comments. This page ingests and filters those leads.")
+    st.caption("OpenClaw reads social posts/comments. This page filters high-intent non-competitor leads and syncs them into your Lead Pool.")
+
+    uploaded_files = st.file_uploader(
+        "Upload OpenClaw/partner lead files (csv/json/txt/md)",
+        type=["csv", "json", "txt", "md"],
+        accept_multiple_files=True,
+        key="oc_uploads",
+    )
 
     raw_df, source_files = _load_external_sources()
-    norm_df = _normalize_external_df(raw_df)
+    upload_df, upload_files = _parse_uploaded_lead_files(uploaded_files)
+
+    frames: List[pd.DataFrame] = []
+    if not raw_df.empty:
+        frames.append(raw_df)
+    if not upload_df.empty:
+        frames.append(upload_df)
+
+    if frames:
+        combined_raw = pd.concat(frames, ignore_index=True)
+        norm_df = _normalize_external_df(combined_raw)
+    else:
+        norm_df = pd.DataFrame()
+
+    source_files = list(dict.fromkeys(source_files + upload_files))
+
+    if norm_df.empty:
+        st.warning("No lead data detected. Run OpenClaw first or upload lead files above.")
+        with st.expander("Expected artifact paths"):
+            st.code(
+                "data/openclaw/openclaw_leads_latest.csv\n"
+                "data/openclaw/openclaw_leads_latest.json\n"
+                "data/exports/high_value_leads_latest.csv\n"
+                "data/exports/high_value_leads_latest.json"
+            )
+        return
+
+    platform_options = sorted([p for p in norm_df["platform"].dropna().astype(str).unique().tolist() if p])
+    default_platforms = platform_options[:]
 
     with st.container(border=True):
-        c1, c2, c3 = st.columns(3)
-        exclude_comp = c1.checkbox("Exclude competitor institutions", value=True, key="oc_exclude_comp")
-        min_score = c2.slider("Min intent score", 0, 100, 60, key="oc_min_score")
-        import_limit = c3.slider("Max rows per sync", 20, 1000, 300, step=20, key="oc_import_limit")
+        c1, c2, c3, c4, c5 = st.columns([1.5, 1, 1, 1, 1.2])
+        selected_platforms = c1.multiselect("Platforms", platform_options, default=default_platforms, key="oc_platforms")
+        min_score = c2.slider("Min intent score", 0, 100, 65, key="oc_min_score")
+        only_target = c3.checkbox("Only target leads", value=True, key="oc_only_target")
+        exclude_comp = c4.checkbox("Exclude competitors", value=True, key="oc_exclude_comp")
+        import_limit = c5.slider("Max rows per sync", 20, 2000, 400, step=20, key="oc_import_limit")
+        text_filter = st.text_input("Keyword filter (author/content/keyword)", key="oc_text_filter").strip().lower()
 
-        if st.button("Sync latest OpenClaw leads into Lead Pool", type="primary", use_container_width=True, key="sync_openclaw"):
-            result = _sync_openclaw_leads(
-                user_id=user["id"],
-                min_score=min_score,
-                exclude_competitors=exclude_comp,
-                limit=import_limit,
-            )
-            st.success(f"Imported: {result['imported']} / {result['total']}")
-            st.info(
-                f"Skipped -> competitor: {result['skipped_competitor']}, low-score: {result['skipped_score']}, duplicate: {result['skipped_duplicate']}"
-            )
-            if result["files"]:
-                st.caption("Data sources: " + ", ".join(result["files"]))
+    view_df = norm_df.copy()
+    if selected_platforms:
+        view_df = view_df[view_df["platform"].isin(selected_platforms)]
+    if exclude_comp:
+        view_df = view_df[~view_df["is_competitor"]]
+    if only_target:
+        view_df = view_df[view_df["is_target"]]
+    view_df = view_df[view_df["score"] >= min_score]
+
+    if text_filter:
+        mask = (
+            view_df["author"].astype(str).str.lower().str.contains(text_filter, na=False)
+            | view_df["content"].astype(str).str.lower().str.contains(text_filter, na=False)
+            | view_df["keyword"].astype(str).str.lower().str.contains(text_filter, na=False)
+        )
+        view_df = view_df[mask]
+
+    raw_total = int(len(norm_df))
+    filtered_total = int(len(view_df))
+    target_count = int(view_df["is_target"].sum()) if not view_df.empty and "is_target" in view_df else 0
+    dm_ready_count = int(view_df["dm_ready"].sum()) if not view_df.empty and "dm_ready" in view_df else 0
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Raw leads", raw_total)
+    m2.metric("After filters", filtered_total)
+    m3.metric("Target leads", target_count)
+    m4.metric("DM-ready", dm_ready_count)
+
+    if source_files:
+        st.caption("Data sources: " + ", ".join(source_files))
 
     st.markdown("---")
-    if norm_df.empty:
-        st.warning("No local OpenClaw/export lead files detected. Run OpenClaw acquisition first or upload CSV below.")
+    if st.button("Sync filtered leads into Lead Pool", type="primary", use_container_width=True, key="sync_openclaw"):
+        result = _sync_openclaw_leads(
+            user_id=user["id"],
+            min_score=min_score,
+            exclude_competitors=exclude_comp,
+            limit=import_limit,
+            normalized=view_df,
+            files=source_files,
+            only_target=only_target,
+            selected_platforms=selected_platforms,
+        )
+        st.success(f"Imported: {result['imported']} / {result['total']}")
+        st.info(
+            "Skipped -> "
+            f"platform: {result['skipped_platform']}, "
+            f"competitor: {result['skipped_competitor']}, "
+            f"low-score: {result['skipped_score']}, "
+            f"non-target: {result['skipped_non_target']}, "
+            f"duplicate: {result['skipped_duplicate']}"
+        )
+
+    if view_df.empty:
+        st.warning("No leads pass current filters. Try lowering score threshold or disabling filters.")
     else:
-        st.markdown(f"### External leads detected: {len(norm_df)}")
-        if source_files:
-            st.caption("Detected files: " + ", ".join(source_files))
-        view_cols = [
+        st.markdown(f"### Filtered leads: {len(view_df)}")
+        table_cols = [
             "platform",
             "keyword",
             "author",
             "score",
+            "intent_level",
+            "dm_ready",
+            "is_target",
             "is_competitor",
-            "post_url",
+            "access_hint",
             "author_url",
+            "post_url",
             "content",
             "source_file",
         ]
-        st.dataframe(norm_df[view_cols].head(120), use_container_width=True, hide_index=True)
+        table_cols = [c for c in table_cols if c in view_df.columns]
+        st.dataframe(view_df[table_cols].head(import_limit), use_container_width=True, hide_index=True)
+
+        with st.expander("Top text evidence for outreach", expanded=False):
+            for row in view_df.head(30).to_dict(orient="records"):
+                url = row.get("author_url") or row.get("post_url") or row.get("source_url") or ""
+                snippet = str(row.get("content", "") or "").replace("\n", " ").strip()
+                if len(snippet) > 220:
+                    snippet = snippet[:220] + "..."
+                st.markdown(f"- [{row.get('platform', '')}] {row.get('author', 'Unknown')} | score {row.get('score', 0)} | {url}")
+                if snippet:
+                    st.caption(snippet)
 
     st.markdown("---")
-    st.markdown("### Manual / CSV fallback import")
-
     with st.expander("Single lead capture", expanded=False):
         with st.form("single_capture", clear_on_submit=True):
             content = st.text_area("Comment or post text", key="single_content")
@@ -553,51 +864,6 @@ def render_acquisition(user: Dict) -> None:
                     st.rerun()
                 except Exception as exc:
                     st.error(f"Save failed: {exc}")
-
-    uploaded = st.file_uploader("Upload CSV", type=["csv"], key="bulk_csv")
-    if uploaded is not None:
-        raw_bytes = uploaded.getvalue()
-        df = None
-        for enc in ["utf-8", "utf-8-sig", "gbk", "gb18030"]:
-            try:
-                df = pd.read_csv(io.BytesIO(raw_bytes), encoding=enc)
-                break
-            except Exception:
-                continue
-
-        if df is None:
-            st.error("Could not parse CSV. Try utf-8/gbk file.")
-            return
-
-        st.write("Detected columns:", ", ".join(df.columns.astype(str).tolist()))
-        st.dataframe(df.head(20), use_container_width=True, hide_index=True)
-
-        if st.button("Import CSV into lead pool", key="import_csv", type="primary", use_container_width=True):
-            ok_count = 0
-            fail_count = 0
-            for row in df.fillna("").to_dict(orient="records"):
-                name = _safe_str(row, ["name", "author", "user", "nickname"]) or "Unknown social user"
-                content = _safe_str(row, ["content", "comment", "text", "post", "title"])
-                source = _safe_str(row, ["platform", "source"]) or "import"
-                score = _safe_int(row.get("score"), default=_safe_int(row.get("intent_score"), 70))
-                lead = {
-                    "user_id": user["id"],
-                    "name": name,
-                    "email": _safe_str(row, ["email", "mail"]),
-                    "phone": _safe_str(row, ["phone", "wechat", "contact"]),
-                    "status": "new",
-                    "notes": f"source={source} | score={score}\n{content}",
-                }
-                try:
-                    add_lead(lead)
-                    ok_count += 1
-                except Exception:
-                    fail_count += 1
-
-            st.success(f"Imported leads: {ok_count}")
-            if fail_count:
-                st.warning(f"Failed rows: {fail_count}")
-
 
 def main() -> None:
     init_session_state()
