@@ -248,6 +248,19 @@ def _is_target_lead(author: str, content: str, intent_level: str, competitor: bo
     return sum(1 for k in TARGET_LEAD_HINTS if k in text) >= 2
 
 
+def _extract_json_rows(obj) -> List[Dict]:
+    if isinstance(obj, list):
+        return obj
+    if isinstance(obj, dict):
+        for key in ["data", "leads", "items", "records", "rows"]:
+            val = obj.get(key)
+            if isinstance(val, list):
+                return val
+        if obj:
+            return [obj]
+    return []
+
+
 def _parse_uploaded_lead_files(uploaded_files) -> Tuple[pd.DataFrame, List[str]]:
     if not uploaded_files:
         return pd.DataFrame(), []
@@ -271,9 +284,7 @@ def _parse_uploaded_lead_files(uploaded_files) -> Tuple[pd.DataFrame, List[str]]
         elif suffix == ".json":
             try:
                 obj = json.loads(raw.decode("utf-8", errors="ignore"))
-                if isinstance(obj, dict):
-                    obj = obj.get("data", [])
-                df = pd.DataFrame(obj if isinstance(obj, list) else [])
+                df = pd.DataFrame(_extract_json_rows(obj))
             except Exception:
                 df = pd.DataFrame()
         elif suffix in {".txt", ".md"}:
@@ -297,7 +308,6 @@ def _parse_uploaded_lead_files(uploaded_files) -> Tuple[pd.DataFrame, List[str]]
         return pd.DataFrame(), []
 
     return pd.concat(frames, ignore_index=True), names
-
 
 def _read_csv_any(path: Path) -> pd.DataFrame:
     raw = path.read_bytes()
@@ -344,13 +354,15 @@ def _load_external_sources() -> Tuple[pd.DataFrame, List[str]]:
         if fp.suffix.lower() == ".csv":
             df = _read_csv_any(fp)
         else:
-            try:
-                obj = json.loads(fp.read_text(encoding="utf-8"))
-                if isinstance(obj, dict):
-                    obj = obj.get("data", [])
-                df = pd.DataFrame(obj if isinstance(obj, list) else [])
-            except Exception:
-                df = pd.DataFrame()
+            obj = None
+            raw_json = fp.read_bytes()
+            for enc in ["utf-8", "utf-8-sig", "gbk", "gb18030"]:
+                try:
+                    obj = json.loads(raw_json.decode(enc, errors="ignore"))
+                    break
+                except Exception:
+                    continue
+            df = pd.DataFrame(_extract_json_rows(obj))
 
         if df.empty:
             continue
