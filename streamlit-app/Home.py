@@ -1,5 +1,9 @@
-﻿import io
-from typing import Dict, List
+﻿import hashlib
+import io
+import json
+import re
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
@@ -18,7 +22,6 @@ from billing import (
     process_checkout_query,
     refresh_subscription_in_session,
     render_billing_page,
-    render_paywall,
 )
 from database import (
     add_lead,
@@ -32,10 +35,49 @@ from database import (
 
 
 st.set_page_config(
-    page_title="GuestSeek - Study Abroad Lead Engine",
+    page_title="GuestSeek - AI Study Abroad Lead SaaS",
     page_icon="*",
     layout="wide",
 )
+
+st.markdown(
+    """
+<style>
+div.block-container {max-width: 1180px; padding-top: 1rem;}
+.gs-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+.gs-hero {
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    padding: 16px;
+    background: radial-gradient(circle at 0% 0%, #eff6ff 0%, #ffffff 50%);
+}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+OPENCLAW_DIR = PROJECT_ROOT / "data" / "openclaw"
+EXPORTS_DIR = PROJECT_ROOT / "data" / "exports"
+
+COMPETITOR_KEYWORDS = [
+    "留学机构",
+    "留学中介",
+    "留学顾问",
+    "工作室",
+    "欢迎咨询",
+    "私信我",
+    "加v",
+    "微信咨询",
+    "服务报价",
+    "申请服务",
+    "代办",
+]
 
 
 def _db_ready() -> bool:
@@ -59,9 +101,227 @@ def _user_payload(user: Dict) -> Dict:
     }
 
 
+def _safe_str(row: Dict, keys: List[str]) -> str:
+    for key in keys:
+        val = row.get(key)
+        if val is None:
+            continue
+        text = str(val).strip()
+        if text and text.lower() != "nan":
+            return text
+    return ""
+
+
+def _safe_int(value, default: int = 0) -> int:
+    if value is None:
+        return default
+    text = str(value).strip()
+    if not text:
+        return default
+    if text.upper() in {"S", "A", "B", "C"}:
+        return {"S": 92, "A": 78, "B": 64, "C": 48}[text.upper()]
+    m = re.findall(r"\d+", text)
+    if not m:
+        return default
+    try:
+        return int(m[0])
+    except Exception:
+        return default
+
+
+def _is_competitor(author: str, content: str) -> bool:
+    text = f"{author} {content}".lower()
+    return any(kw.lower() in text for kw in COMPETITOR_KEYWORDS)
+
+
+def _read_csv_any(path: Path) -> pd.DataFrame:
+    raw = path.read_bytes()
+    for enc in ["utf-8", "utf-8-sig", "gbk", "gb18030"]:
+        try:
+            return pd.read_csv(io.BytesIO(raw), encoding=enc)
+        except Exception:
+            continue
+    return pd.DataFrame()
+
+
+def _latest_file(base: Path, pattern: str) -> Optional[Path]:
+    files = sorted(base.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
+    return files[0] if files else None
+
+
+def _load_external_sources() -> Tuple[pd.DataFrame, List[str]]:
+    frames: List[pd.DataFrame] = []
+    used_files: List[str] = []
+
+    candidates: List[Path] = [
+        OPENCLAW_DIR / "openclaw_leads_latest.csv",
+        OPENCLAW_DIR / "openclaw_leads_latest.json",
+        EXPORTS_DIR / "high_value_leads_latest.csv",
+        EXPORTS_DIR / "high_value_leads_latest.json",
+    ]
+
+    latest_csv = _latest_file(EXPORTS_DIR, "high_value_leads_*.csv")
+    latest_json = _latest_file(EXPORTS_DIR, "high_value_leads_*.json")
+    if latest_csv:
+        candidates.append(latest_csv)
+    if latest_json:
+        candidates.append(latest_json)
+
+    seen = set()
+    for fp in candidates:
+        if not fp.exists():
+            continue
+        fpr = str(fp.resolve())
+        if fpr in seen:
+            continue
+        seen.add(fpr)
+
+        if fp.suffix.lower() == ".csv":
+            df = _read_csv_any(fp)
+        else:
+            try:
+                obj = json.loads(fp.read_text(encoding="utf-8"))
+                if isinstance(obj, dict):
+                    obj = obj.get("data", [])
+                df = pd.DataFrame(obj if isinstance(obj, list) else [])
+            except Exception:
+                df = pd.DataFrame()
+
+        if df.empty:
+            continue
+
+        df = df.fillna("")
+        df["__source_file"] = fp.name
+        frames.append(df)
+        used_files.append(fp.name)
+
+    if not frames:
+        return pd.DataFrame(), []
+
+    return pd.concat(frames, ignore_index=True), used_files
+
+
+def _normalize_external_df(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame()
+
+    rows: List[Dict] = []
+    for row in df.to_dict(orient="records"):
+        platform = _safe_str(row, ["platform", "source"]) or "xhs"
+        keyword = _safe_str(row, ["keyword", "query"])
+        author = _safe_str(row, ["author", "name", "nickname", "user"]) or "Unknown"
+        author_url = _safe_str(row, ["author_url", "profile_url", "user_url"])
+        content = _safe_str(row, ["content", "text", "comment", "evidence_text", "title"])
+        post_url = _safe_str(row, ["note_url", "post_url", "link", "url"])
+        source_url = _safe_str(row, ["source_url", "search_url", "origin_url"])
+        contact = _safe_str(row, ["phone", "wechat", "contact", "email"])
+        score = _safe_int(row.get("score"), default=_safe_int(row.get("confidence"), default=70))
+        grade = _safe_str(row, ["grade"])
+        collected_at = _safe_str(row, ["collected_at", "created_at", "timestamp"])
+        source_file = _safe_str(row, ["__source_file"])
+
+        body = f"{platform}|{author}|{post_url}|{content[:60]}"
+        external_id = hashlib.md5(body.encode("utf-8", errors="ignore")).hexdigest()[:16]
+
+        rows.append(
+            {
+                "platform": platform,
+                "keyword": keyword,
+                "author": author,
+                "author_url": author_url,
+                "content": content,
+                "post_url": post_url,
+                "source_url": source_url,
+                "contact": contact,
+                "score": score,
+                "grade": grade,
+                "collected_at": collected_at,
+                "source_file": source_file,
+                "is_competitor": _is_competitor(author, content),
+                "external_id": external_id,
+            }
+        )
+
+    out = pd.DataFrame(rows)
+    out = out.drop_duplicates(subset=["external_id"])
+    out = out.sort_values(by=["score"], ascending=False)
+    return out
+
+
+def _sync_openclaw_leads(user_id: str, min_score: int, exclude_competitors: bool, limit: int = 300) -> Dict:
+    raw, files = _load_external_sources()
+    normalized = _normalize_external_df(raw)
+
+    if normalized.empty:
+        return {
+            "files": files,
+            "total": 0,
+            "imported": 0,
+            "skipped_competitor": 0,
+            "skipped_score": 0,
+            "skipped_duplicate": 0,
+        }
+
+    existing = get_leads(user_id)
+    existing_ids = set()
+    for ld in existing:
+        notes = str(ld.get("notes", ""))
+        m = re.search(r"external_id=([a-f0-9]{16})", notes)
+        if m:
+            existing_ids.add(m.group(1))
+
+    imported = 0
+    skipped_competitor = 0
+    skipped_score = 0
+    skipped_duplicate = 0
+
+    for row in normalized.head(limit).to_dict(orient="records"):
+        if row["score"] < min_score:
+            skipped_score += 1
+            continue
+        if exclude_competitors and bool(row["is_competitor"]):
+            skipped_competitor += 1
+            continue
+        if row["external_id"] in existing_ids:
+            skipped_duplicate += 1
+            continue
+
+        notes = (
+            f"source={row['platform']} | score={row['score']} | keyword={row['keyword']}\n"
+            f"post_url={row['post_url']}\n"
+            f"author_url={row['author_url']}\n"
+            f"source_url={row['source_url']}\n"
+            f"collected_at={row['collected_at']}\n"
+            f"external_id={row['external_id']}\n"
+            f"{row['content']}"
+        )
+
+        add_lead(
+            {
+                "user_id": user_id,
+                "name": row["author"],
+                "email": "",
+                "phone": row["contact"],
+                "status": "new",
+                "notes": notes,
+            }
+        )
+        existing_ids.add(row["external_id"])
+        imported += 1
+
+    return {
+        "files": files,
+        "total": int(len(normalized)),
+        "imported": imported,
+        "skipped_competitor": skipped_competitor,
+        "skipped_score": skipped_score,
+        "skipped_duplicate": skipped_duplicate,
+    }
+
+
 def render_login_register() -> None:
     st.title("Study-Abroad AI Lead Gen SaaS")
-    st.caption("Acquire qualified student leads and charge B2B subscriptions")
+    st.caption("OpenClaw for prospecting + SaaS for conversion and subscription")
 
     login_tab, register_tab = st.tabs(["Login", "Register"])
 
@@ -75,6 +335,7 @@ def render_login_register() -> None:
             if not email or not password:
                 st.error("Email and password are required.")
                 return
+
             user = get_user_by_email(email.strip().lower())
             if not user:
                 st.error("Account not found.")
@@ -127,35 +388,31 @@ def render_login_register() -> None:
 
 
 def render_overview(user: Dict) -> None:
-    st.markdown("## Overview")
-
     user = refresh_subscription_in_session(user)
     stats = get_stats(user.get("id"))
 
+    st.markdown("## Product Command Center")
+    st.markdown(
+        """
+<div class="gs-hero">
+  <h3 style="margin:0;">AI获客主链路</h3>
+  <p style="margin:.4rem 0 0 0;">OpenClaw负责第一步找潜客，SaaS负责筛选、沉淀、触达与转化。</p>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
     c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.metric("Plan", (user.get("plan") or "free").upper())
-    with c2:
-        st.metric("Subscription", user.get("subscription_status") or "inactive")
-    with c3:
-        st.metric("Total Leads", stats.get("total_leads", 0))
-    with c4:
-        st.metric("Emails Sent", stats.get("total_emails", 0))
+    c1.metric("Plan", (user.get("plan") or "free").upper())
+    c2.metric("Subscription", user.get("subscription_status") or "inactive")
+    c3.metric("Leads", stats.get("total_leads", 0))
+    c4.metric("Emails", stats.get("total_emails", 0))
 
     st.markdown("---")
-    st.write("Focus this product on study-abroad vertical lead acquisition:")
-    st.write("1. Capture social signals from comments/posts.")
-    st.write("2. Score purchase intent and keep only high-intent leads.")
-    st.write("3. Generate personalized outreach and handoff to SDR.")
-    st.write("4. Track funnel conversion and CAC/ROI by channel.")
-
-
-def _safe_value(row: Dict, keys: List[str]) -> str:
-    for key in keys:
-        val = row.get(key)
-        if val is not None and str(val).strip() != "":
-            return str(val).strip()
-    return ""
+    st.markdown("1. OpenClaw browsing comments/posts -> collect prospects")
+    st.markdown("2. Filter competitors/institutions + score intent")
+    st.markdown("3. Add to lead pool and trigger outreach workflow")
+    st.markdown("4. Track funnel and upsell paid subscription")
 
 
 def render_leads(user: Dict) -> None:
@@ -170,7 +427,7 @@ def render_leads(user: Dict) -> None:
             phone = st.text_input("Phone / WeChat", key="lead_phone")
             status = st.selectbox("Status", ["new", "contacted", "qualified", "converted", "lost"], key="lead_status")
         with c3:
-            source = st.text_input("Source", value="xiaohongshu", key="lead_source")
+            source = st.text_input("Source", value="xhs", key="lead_source")
             score = st.slider("Intent score", min_value=0, max_value=100, value=70, key="lead_score")
 
         notes = st.text_area("Notes", height=110, key="lead_notes")
@@ -202,12 +459,10 @@ def render_leads(user: Dict) -> None:
 
     st.markdown(f"### {len(leads)} leads")
     df = pd.DataFrame(leads)
-    columns = [c for c in ["name", "email", "phone", "status", "created_at", "notes"] if c in df.columns]
-    st.dataframe(df[columns], use_container_width=True, hide_index=True)
+    cols = [c for c in ["name", "email", "phone", "status", "created_at", "notes"] if c in df.columns]
+    st.dataframe(df[cols], use_container_width=True, hide_index=True)
 
     st.markdown("---")
-    st.markdown("### Quick status update")
-
     lead_map = {f"{x.get('name', 'Unknown')} | {x.get('email', '')}": x for x in leads}
     selected_label = st.selectbox("Select lead", list(lead_map.keys()), key="lead_pick")
     selected = lead_map[selected_label]
@@ -223,10 +478,56 @@ def render_leads(user: Dict) -> None:
 
 
 def render_acquisition(user: Dict) -> None:
-    st.markdown("## Acquisition Ingestion")
-    st.caption("Import social comments/posts as sales-ready leads")
+    st.markdown("## OpenClaw Prospecting (Step 1)")
+    st.caption("Use OpenClaw to read social posts/comments. This page ingests and filters those leads.")
 
-    with st.expander("Single lead capture", expanded=True):
+    raw_df, source_files = _load_external_sources()
+    norm_df = _normalize_external_df(raw_df)
+
+    with st.container(border=True):
+        c1, c2, c3 = st.columns(3)
+        exclude_comp = c1.checkbox("Exclude competitor institutions", value=True, key="oc_exclude_comp")
+        min_score = c2.slider("Min intent score", 0, 100, 60, key="oc_min_score")
+        import_limit = c3.slider("Max rows per sync", 20, 1000, 300, step=20, key="oc_import_limit")
+
+        if st.button("Sync latest OpenClaw leads into Lead Pool", type="primary", use_container_width=True, key="sync_openclaw"):
+            result = _sync_openclaw_leads(
+                user_id=user["id"],
+                min_score=min_score,
+                exclude_competitors=exclude_comp,
+                limit=import_limit,
+            )
+            st.success(f"Imported: {result['imported']} / {result['total']}")
+            st.info(
+                f"Skipped -> competitor: {result['skipped_competitor']}, low-score: {result['skipped_score']}, duplicate: {result['skipped_duplicate']}"
+            )
+            if result["files"]:
+                st.caption("Data sources: " + ", ".join(result["files"]))
+
+    st.markdown("---")
+    if norm_df.empty:
+        st.warning("No local OpenClaw/export lead files detected. Run OpenClaw acquisition first or upload CSV below.")
+    else:
+        st.markdown(f"### External leads detected: {len(norm_df)}")
+        if source_files:
+            st.caption("Detected files: " + ", ".join(source_files))
+        view_cols = [
+            "platform",
+            "keyword",
+            "author",
+            "score",
+            "is_competitor",
+            "post_url",
+            "author_url",
+            "content",
+            "source_file",
+        ]
+        st.dataframe(norm_df[view_cols].head(120), use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    st.markdown("### Manual / CSV fallback import")
+
+    with st.expander("Single lead capture", expanded=False):
         with st.form("single_capture", clear_on_submit=True):
             content = st.text_area("Comment or post text", key="single_content")
             author = st.text_input("Author", key="single_author")
@@ -253,14 +554,11 @@ def render_acquisition(user: Dict) -> None:
                 except Exception as exc:
                     st.error(f"Save failed: {exc}")
 
-    st.markdown("---")
-    st.markdown("### CSV bulk import")
     uploaded = st.file_uploader("Upload CSV", type=["csv"], key="bulk_csv")
-
     if uploaded is not None:
         raw_bytes = uploaded.getvalue()
         df = None
-        for enc in ["utf-8", "gbk", "utf-8-sig"]:
+        for enc in ["utf-8", "utf-8-sig", "gbk", "gb18030"]:
             try:
                 df = pd.read_csv(io.BytesIO(raw_bytes), encoding=enc)
                 break
@@ -268,33 +566,28 @@ def render_acquisition(user: Dict) -> None:
                 continue
 
         if df is None:
-            st.error("Could not parse CSV. Try utf-8 or gbk encoded file.")
+            st.error("Could not parse CSV. Try utf-8/gbk file.")
             return
 
         st.write("Detected columns:", ", ".join(df.columns.astype(str).tolist()))
-        st.dataframe(df.head(15), use_container_width=True, hide_index=True)
+        st.dataframe(df.head(20), use_container_width=True, hide_index=True)
 
         if st.button("Import CSV into lead pool", key="import_csv", type="primary", use_container_width=True):
             ok_count = 0
             fail_count = 0
-
             for row in df.fillna("").to_dict(orient="records"):
-                name = _safe_value(row, ["name", "author", "user", "nickname"])
-                email = _safe_value(row, ["email", "mail"])
-                phone = _safe_value(row, ["phone", "wechat", "contact"])
-                content = _safe_value(row, ["content", "comment", "text", "post", "title"])
-                source = _safe_value(row, ["platform", "source"])
-                score = _safe_value(row, ["score", "intent_score", "confidence"]) or "70"
-
+                name = _safe_str(row, ["name", "author", "user", "nickname"]) or "Unknown social user"
+                content = _safe_str(row, ["content", "comment", "text", "post", "title"])
+                source = _safe_str(row, ["platform", "source"]) or "import"
+                score = _safe_int(row.get("score"), default=_safe_int(row.get("intent_score"), 70))
                 lead = {
                     "user_id": user["id"],
-                    "name": name or "Unknown social user",
-                    "email": email,
-                    "phone": phone,
+                    "name": name,
+                    "email": _safe_str(row, ["email", "mail"]),
+                    "phone": _safe_str(row, ["phone", "wechat", "contact"]),
                     "status": "new",
-                    "notes": f"source={source or 'import'} | score={score}\n{content}",
+                    "notes": f"source={source} | score={score}\n{content}",
                 }
-
                 try:
                     add_lead(lead)
                     ok_count += 1
@@ -310,7 +603,7 @@ def main() -> None:
     init_session_state()
 
     if not _db_ready():
-        st.error("Supabase is not configured. Set SUPABASE_URL and SUPABASE_KEY.")
+        st.error("Database initialization failed.")
         st.stop()
 
     user = get_current_user()
@@ -327,13 +620,13 @@ def main() -> None:
 
     with st.sidebar:
         st.markdown("## GuestSeek")
-        st.caption("B2B SaaS for study-abroad institutions")
+        st.caption("Study-abroad vertical B2B SaaS")
         st.write(f"Account: {user.get('email', '-')}")
         st.write(f"Plan: {(user.get('plan') or 'free').upper()} | {user.get('subscription_status') or 'inactive'}")
 
         page = st.radio(
             "Workspace",
-            ["Overview", "Leads", "Acquisition", "Billing", "Logout"],
+            ["Overview", "Acquisition", "Leads", "Billing", "Logout"],
             key="workspace_nav",
         )
 
@@ -341,16 +634,16 @@ def main() -> None:
         logout_user()
         st.rerun()
 
+    # Soft paywall: allow usage in trial mode, keep billing upgrade path.
     if page in {"Leads", "Acquisition"} and not has_required_plan(user, minimum="pro"):
-        render_paywall(minimum_plan="pro")
-        st.stop()
+        st.info("Trial mode active. Upgrade to Pro for full automation and larger quotas.")
 
     if page == "Overview":
         render_overview(user)
-    elif page == "Leads":
-        render_leads(user)
     elif page == "Acquisition":
         render_acquisition(user)
+    elif page == "Leads":
+        render_leads(user)
     elif page == "Billing":
         render_billing_page()
 
