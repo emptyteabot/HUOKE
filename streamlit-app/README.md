@@ -1,209 +1,51 @@
-# 🚀 LeadPulse - Streamlit版
+﻿# GuestSeek (Streamlit SaaS)
 
-基于GitHub高星项目最佳实践重构的AI驱动B2B获客平台
+Vertical B2B SaaS for study-abroad lead generation:
+- OpenClaw-first prospect discovery
+- AI intent filtering and competitor exclusion
+- Personalized outreach + SDR handoff
+- Funnel analytics + channel ROI + A/B significance
 
-## ✨ 特性
+## App Entry
+- Main app: `streamlit-app/Home.py`
+- Streamlit config: `streamlit-app/.streamlit/config.toml`
 
-参考了以下高星项目的设计模式:
-- [run-llama/rags](https://github.com/run-llama/rags) (6.5k⭐) - 多页面架构
-- [langchain-ai/streamlit-agent](https://github.com/langchain-ai/streamlit-agent) - UI组件最佳实践
-- [streamlit/streamlit](https://github.com/streamlit/streamlit) (43.6k⭐) - 官方设计规范
+## Product Pages
+- `Overview`: command center and high-level metrics
+- `Acquisition`: ingest OpenClaw exports and sync filtered leads
+- `AI SDR`: personalized outreach generation + inbound triage + forced handoff
+- `Analytics`: channel ROI/CAC attribution and A/B significance
+- `Leads`: lead pool management
+- `Billing`: Stripe subscription management
 
-### 🎨 设计亮点
+## Architecture
+- `Home.py`: UI composition and workflow orchestration
+- `services/analytics_engine.py`: funnel/ROI/A-B analytics
+- `services/sdr_agent.py`: outreach generation, intent probability, handoff logic
+- `database.py`: Supabase + local JSON fallback backend
+- `auth.py`: PBKDF2 password hashing and JWT session auth
 
-✅ **多页面架构** - 清晰的导航结构
-✅ **渐变设计** - 现代化的视觉效果
-✅ **响应式布局** - 完美适配各种设备
-✅ **交互式组件** - 流畅的用户体验
-✅ **实时反馈** - 进度条和状态提示
-
-### 📁 项目结构
-
-```
-streamlit-app/
-├── Home.py                    # 主页 (登录/仪表盘)
-├── pages/
-│   ├── 1_👥_潜在客户.py      # 客户管理
-│   ├── 2_🤖_AI生成.py        # AI邮件生成
-│   ├── 3_✉️_邮件历史.py      # 邮件追踪
-│   └── 4_⚙️_设置.py          # 系统设置
-├── .streamlit/
-│   └── secrets.toml          # API配置
-└── requirements.txt          # 依赖
-```
-
-## 🚀 快速开始
-
-### 本地运行
-
+## Local Run
 ```bash
 cd streamlit-app
 pip install -r requirements.txt
 streamlit run Home.py
 ```
 
-访问: http://localhost:8501
+## Required Config
+Set via Streamlit secrets or environment variables:
+- `SUPABASE_URL`, `SUPABASE_KEY` (optional, local fallback works)
+- `JWT_SECRET`
+- `OPENAI_API_KEY` (optional, fallback copy generation works without it)
+- `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_ENTERPRISE` (billing)
 
-### 演示模式
+## Deployment (Streamlit Cloud)
+- Repository: `emptyteabot/HUOKE`
+- Branch: `main`
+- App file: `streamlit-app/Home.py`
 
-点击「演示模式」按钮即可无需登录直接体验
-
-## ☁️ 部署到云端
-
-### 方法1: Streamlit Cloud (推荐)
-
-1. 推送代码到GitHub
-2. 访问 https://share.streamlit.io/
-3. 连接仓库,选择 `streamlit-app/Home.py`
-4. 点击 Deploy
-
-**完成!** 你会得到公网地址: `https://your-app.streamlit.app`
-
-### 方法2: Docker部署
-
-```bash
-docker build -t leadpulse .
-docker run -p 8501:8501 leadpulse
-```
-
-## 🎯 功能页面
-
-### 📊 仪表盘
-- 实时统计数据
-- 快速操作入口
-- 最近活动展示
-
-### 👥 潜在客户
-- 客户列表管理
-- 添加/编辑客户
-- LinkedIn自动搜索
-- 批量导入/导出
-
-### 🤖 AI生成
-- 3步生成个性化邮件
-- 多种语气风格
-- 实时预览编辑
-- AI分析建议
-
-### ✉️ 邮件历史
-- 邮件追踪统计
-- 打开/点击分析
-- 效果趋势图
-- 最佳实践建议
-
-### ⚙️ 设置
-- 个人信息管理
-- API密钥配置
-- 邮件发送设置
-- 订阅套餐管理
-
-## 🎨 设计参考
-
-### 颜色方案
-- 主色: `#0ea5e9` (天蓝)
-- 辅色: `#6366f1` (靛蓝)
-- 成功: `#10b981` (绿色)
-- 危险: `#ef4444` (红色)
-
-### UI组件
-- 渐变标题
-- 卡片式布局
-- 悬停动画
-- 进度指示器
-- 状态标签
-
-## 📊 与高星项目对比
-
-| 特性 | LeadPulse | rags | streamlit-agent |
-|------|-----------|------|-----------------|
-| 多页面架构 | ✅ | ✅ | ✅ |
-| 状态管理 | ✅ | ✅ | ✅ |
-| 自定义样式 | ✅ | ❌ | ❌ |
-| 实时反馈 | ✅ | ✅ | ✅ |
-| 演示模式 | ✅ | ❌ | ❌ |
-
-## 🔧 配置
-
-### API密钥
-
-在 `.streamlit/secrets.toml` 中配置:
-
-```toml
-API_URL = "https://your-backend-api.com/api"
-OPENAI_API_KEY = "sk-..."
-SENDGRID_API_KEY = "SG..."
-```
-
-或在Streamlit Cloud的Settings -> Secrets中添加
-
-## 📈 性能优化
-
-- 使用 `@st.cache_data` 缓存数据
-- 懒加载大型组件
-- 最小化API调用
-- 优化图片资源
-
-## 🌐 浏览器支持
-
-- Chrome (推荐)
-- Firefox
-- Safari
-- Edge
-
-## 📝 开发计划
-
-- [ ] 添加更多图表类型
-- [ ] 集成更多AI模型
-- [ ] 移动端优化
-- [ ] 多语言支持
-- [ ] 暗黑模式
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request!
-
-## 📄 许可证
-
-MIT License
-
----
-
-**参考资源**:
-- [Streamlit官方文档](https://docs.streamlit.io/)
-- [Streamlit Gallery](https://streamlit.io/gallery)
-- [GitHub高星Streamlit项目](https://github.com/topics/streamlit)
-
----
-
-## Billing Setup (Stripe Subscription)
-
-1. Run SQL migration in Supabase:
-
-```sql
--- file: streamlit-app/sql/subscription_schema.sql
-```
-
-2. Add Streamlit secrets/env vars:
-
-```toml
-APP_BASE_URL = "https://ai-huoke.streamlit.app"
-SUPABASE_URL = "https://<your-project>.supabase.co"
-SUPABASE_KEY = "<your-anon-or-service-key>"
-JWT_SECRET = "<strong-random-string>"
-
-STRIPE_SECRET_KEY = "sk_live_..."
-STRIPE_PRICE_PRO = "price_..."
-STRIPE_PRICE_ENTERPRISE = "price_..."
-PRICE_LABEL_PRO = "¥1999 / month"
-PRICE_LABEL_ENTERPRISE = "¥5999 / month"
-```
-
-3. Deploy/restart Streamlit app.
-
-4. In app Home page, open **Billing/Subscription** card:
-- Click `Subscribe Pro` or `Subscribe Enterprise`
-- Complete Stripe checkout
-- Return to app success URL; plan is auto-activated and persisted to `users` table.
-
-5. Access control:
-- Core pages (`leads`, `ai`, `batch`, `workflow`, `scraper`, `analytics`) are gated behind paid plan (`pro`+).
+If the UI looks stale after push:
+1. Open Streamlit Cloud app settings.
+2. Confirm app file path is exactly `streamlit-app/Home.py`.
+3. Trigger `Reboot app` / `Rerun from latest commit`.
+4. Verify latest commit hash matches GitHub.

@@ -2,6 +2,7 @@
 import io
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -26,11 +27,29 @@ from billing import (
 from database import (
     add_lead,
     create_user,
+    get_emails,
     get_leads,
     get_stats,
     get_user_by_email,
     init_supabase,
+    save_email,
     update_lead,
+)
+from config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL
+from services.analytics_engine import (
+    build_ab_significance,
+    build_ab_variant_stats,
+    build_channel_metrics,
+    build_funnel,
+    extract_channel_from_lead,
+)
+from services.sdr_agent import (
+    append_handoff_event,
+    detect_handoff,
+    estimate_conversion_probability,
+    generate_agent_reply,
+    generate_outreach_copy,
+    trigger_handoff_webhook,
 )
 
 
@@ -43,18 +62,93 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-div.block-container {max-width: 1180px; padding-top: 1rem;}
-.gs-card {
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 14px 16px;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --gs-bg: #f5f9fc;
+  --gs-card: #ffffff;
+  --gs-text: #0b1220;
+  --gs-muted: #4b5563;
+  --gs-border: #dbe7f1;
+  --gs-accent: #0ea5e9;
+  --gs-accent-2: #14b8a6;
 }
+
+html, body, [class*="stApp"] {
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  color: var(--gs-text);
+  background:
+    radial-gradient(circle at 10% 0%, #e0f2fe 0%, transparent 36%),
+    radial-gradient(circle at 95% 10%, #ccfbf1 0%, transparent 34%),
+    var(--gs-bg);
+}
+
+div.block-container {
+  max-width: 1220px;
+  padding-top: 1.1rem;
+}
+
+.gs-card {
+  border: 1px solid var(--gs-border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+}
+
 .gs-hero {
-    border: 1px solid #cbd5e1;
-    border-radius: 16px;
-    padding: 16px;
-    background: radial-gradient(circle at 0% 0%, #eff6ff 0%, #ffffff 50%);
+  border: 1px solid var(--gs-border);
+  border-radius: 18px;
+  padding: 18px;
+  background:
+    linear-gradient(115deg, rgba(14,165,233,.08) 0%, rgba(20,184,166,.06) 45%, #ffffff 100%);
+  box-shadow: 0 10px 30px rgba(14, 116, 144, .08);
+}
+
+.gs-type {
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 2px solid var(--gs-accent);
+  width: 0;
+  animation: typing 2.1s steps(40, end) forwards, blink 1s step-end infinite;
+}
+
+.gs-chip {
+  display: inline-block;
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--gs-border);
+  background: #f0f9ff;
+  margin-right: 6px;
+  color: #075985;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+[data-testid="stMetricValue"] {
+  font-family: 'JetBrains Mono', monospace;
+  color: #0f172a;
+}
+
+.stButton > button {
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+  background: linear-gradient(180deg, #ffffff, #f0f9ff);
+}
+
+.stButton > button[kind="primary"] {
+  background: linear-gradient(135deg, var(--gs-accent) 0%, #0284c7 70%);
+  border: none;
+  color: #fff;
 }
 </style>
 """,
@@ -631,8 +725,11 @@ def render_overview(user: Dict) -> None:
     st.markdown(
         """
 <div class="gs-hero">
-  <h3 style="margin:0;">AI获客主链路</h3>
-  <p style="margin:.4rem 0 0 0;">OpenClaw负责第一步找潜客，SaaS负责筛选、沉淀、触达与转化。</p>
+  <div class="gs-chip">AI Lead Gen</div>
+  <div class="gs-chip">Study Abroad Vertical</div>
+  <div class="gs-chip">B2B SaaS</div>
+  <h3 style="margin:.65rem 0 .2rem 0;">GuestSeek Revenue Engine</h3>
+  <div class="gs-type" style="max-width:900px;">OpenClaw live prospecting -> AI intent filtering -> personalized outreach -> attribution loop</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -877,6 +974,277 @@ def render_acquisition(user: Dict) -> None:
                 except Exception as exc:
                     st.error(f"Save failed: {exc}")
 
+
+def _lead_label_map(leads: List[Dict]) -> Dict[str, Dict]:
+    labels: Dict[str, Dict] = {}
+    for x in leads:
+        channel = extract_channel_from_lead(x)
+        label = f"{x.get('name', 'Unknown')} | {channel} | {x.get('status', 'new')}"
+        labels[label] = x
+    return labels
+
+
+def _record_ab_email_event(
+    user_id: str,
+    lead_id: Optional[str],
+    variant: str,
+    subject: str,
+    body: str,
+    outcome: str,
+) -> str:
+    now = datetime.now().isoformat()
+    payload = {
+        "user_id": user_id,
+        "lead_id": lead_id,
+        "subject": f"[AB:{variant}] {subject}".strip(),
+        "body": body,
+        "status": "sent",
+        "sent_at": now,
+    }
+
+    if outcome in {"opened", "clicked"}:
+        payload["status"] = "opened"
+        payload["opened_at"] = now
+    if outcome == "clicked":
+        payload["status"] = "clicked"
+        payload["clicked_at"] = now
+
+    return save_email(payload)
+
+
+def render_analytics(user: Dict) -> None:
+    st.markdown("## Growth Analytics Lab")
+    st.caption("Channel ROI + CAC attribution + A/B significance for outreach prompts")
+
+    leads = get_leads(user.get("id"))
+    emails = get_emails(user.get("id"))
+
+    if not leads:
+        st.info("No leads yet. Import leads in Acquisition first.")
+        return
+
+    channels = sorted(set(extract_channel_from_lead(x) for x in leads))
+    if not channels:
+        channels = ["unknown"]
+
+    with st.container(border=True):
+        c1, c2 = st.columns(2)
+        avg_contract_value = c1.number_input("Avg contract value (CNY)", min_value=1000.0, value=15000.0, step=1000.0)
+        positive_metric = c2.selectbox("A/B positive metric", ["clicked", "opened"], index=0)
+
+        st.markdown("**Channel CAC assumptions (CNY per lead)**")
+        cols = st.columns(min(4, max(1, len(channels))))
+        cost_map: Dict[str, float] = {}
+        default_by_channel = {
+            "xhs": 35.0,
+            "weibo": 28.0,
+            "zhihu": 30.0,
+            "douyin": 36.0,
+            "bilibili": 32.0,
+            "unknown": 40.0,
+        }
+        for idx, channel in enumerate(channels):
+            default_cost = default_by_channel.get(channel, 40.0)
+            cost_map[channel] = cols[idx % len(cols)].number_input(
+                f"{channel}", min_value=1.0, value=float(default_cost), step=1.0, key=f"cac_{channel}"
+            )
+
+    channel_df = build_channel_metrics(leads, channel_costs=cost_map, avg_contract_value=float(avg_contract_value))
+    funnel_df = build_funnel(leads)
+
+    if channel_df.empty:
+        st.warning("No channel metrics available yet.")
+        return
+
+    total_cost = float(channel_df["acquisition_cost"].sum())
+    total_revenue = float(channel_df["revenue"].sum())
+    total_profit = float(channel_df["net_profit"].sum())
+    roi = (total_profit / total_cost * 100) if total_cost > 0 else 0.0
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Leads", len(leads))
+    m2.metric("Estimated Cost", f"?{total_cost:,.0f}")
+    m3.metric("Estimated Revenue", f"?{total_revenue:,.0f}")
+    m4.metric("ROI", f"{roi:.1f}%")
+
+    st.markdown("---")
+    st.markdown("### Channel ROI / CAC")
+    st.dataframe(channel_df, use_container_width=True, hide_index=True)
+
+    chart_df = channel_df[["channel", "roi_pct", "conversion_rate_pct", "dm_ready_rate_pct"]].set_index("channel")
+    st.bar_chart(chart_df, height=260)
+
+    st.markdown("### Funnel")
+    st.dataframe(funnel_df, use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    st.markdown("### Prompt A/B Testing")
+    ab_df = build_ab_variant_stats(emails)
+    if ab_df.empty:
+        st.info("No A/B-tagged outreach yet. Save outreach with variants in AI SDR page.")
+    else:
+        st.dataframe(ab_df, use_container_width=True, hide_index=True)
+        sig = build_ab_significance(ab_df, metric=positive_metric)
+        if sig.get("variant_a"):
+            line = (
+                f"{sig['variant_a']} vs {sig['variant_b']} | "
+                f"delta={sig['diff_pct']}% | p={sig['p_value']} | z={sig['z']}"
+            )
+            if sig.get("significant"):
+                st.success("Statistically significant: " + line)
+            else:
+                st.warning("Not significant yet: " + line)
+
+    with st.expander("Manual A/B event logger", expanded=False):
+        label_map = _lead_label_map(leads)
+        labels = list(label_map.keys())
+        with st.form("ab_event_form", clear_on_submit=True):
+            lead_label = st.selectbox("Lead", labels, key="ab_lead") if labels else None
+            variant = st.selectbox("Variant", ["A", "B", "C"], key="ab_variant")
+            outcome = st.selectbox("Outcome", ["sent", "opened", "clicked"], key="ab_outcome")
+            subject = st.text_input("Subject", value="Outreach experiment", key="ab_subject")
+            body = st.text_area("Body", value="variant test", key="ab_body", height=80)
+            ok = st.form_submit_button("Save A/B event", use_container_width=True)
+
+        if ok and lead_label:
+            lead = label_map[lead_label]
+            _record_ab_email_event(
+                user_id=user["id"],
+                lead_id=lead.get("id"),
+                variant=variant,
+                subject=subject,
+                body=body,
+                outcome=outcome,
+            )
+            st.success("A/B event saved.")
+            st.rerun()
+
+
+def render_sdr_agent(user: Dict) -> None:
+    st.markdown("## AI SDR Studio")
+    st.caption("Personalized outreach generation + auto triage + forced human handoff")
+
+    leads = get_leads(user.get("id"))
+    if not leads:
+        st.info("No leads available. Add or sync leads first.")
+        return
+
+    if "sdr_webhook_url" not in st.session_state:
+        st.session_state["sdr_webhook_url"] = ""
+
+    with st.container(border=True):
+        c1, c2 = st.columns([1, 2])
+        handoff_threshold = c1.slider("Human handoff threshold", 50, 95, 75, key="sdr_threshold")
+        st.session_state["sdr_webhook_url"] = c2.text_input(
+            "Webhook for urgent handoff (optional)",
+            value=st.session_state.get("sdr_webhook_url", ""),
+            key="sdr_webhook",
+            placeholder="https://example.com/webhook",
+        )
+
+    tab1, tab2 = st.tabs(["Outreach Composer", "Inbound Triage"])
+
+    with tab1:
+        lead_map = _lead_label_map(leads)
+        labels = list(lead_map.keys())
+        selected_label = st.selectbox("Target lead", labels, key="sdr_target")
+        lead = lead_map[selected_label]
+
+        c1, c2, c3 = st.columns(3)
+        variant = c1.selectbox("Prompt variant", ["A", "B", "C"], key="sdr_variant")
+        tone = c2.selectbox("Tone", ["professional", "direct", "warm", "consultative"], key="sdr_tone")
+        angle = c3.selectbox("Pain-point angle", ["timeline risk", "budget fit", "school selection", "essay quality", "visa uncertainty"], key="sdr_angle")
+        cta = st.text_input("CTA", value="book a 10-min feasibility call", key="sdr_cta")
+
+        if st.button("Generate personalized outreach", type="primary", use_container_width=True, key="sdr_gen"):
+            copy = generate_outreach_copy(
+                lead=lead,
+                angle=angle,
+                cta=cta,
+                variant=variant,
+                tone=tone,
+                openai_api_key=OPENAI_API_KEY,
+                openai_base_url=OPENAI_BASE_URL,
+                model=OPENAI_MODEL,
+            )
+            st.session_state["sdr_last_copy"] = copy
+
+        copy = st.session_state.get("sdr_last_copy")
+        if copy:
+            st.markdown("<div class='gs-card'>", unsafe_allow_html=True)
+            st.markdown(f"**Subject**: {copy.get('subject', '')}")
+            st.markdown(f"<div class='gs-type'>{copy.get('message', '')}</div>", unsafe_allow_html=True)
+            st.caption(f"Generated by: {copy.get('mode', 'fallback')}")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            c_log, c_out = st.columns([1.2, 1])
+            event_outcome = c_out.selectbox("Log outcome", ["sent", "opened", "clicked"], key="sdr_event_outcome")
+            if c_log.button("Save outreach event", use_container_width=True, key="sdr_save_event"):
+                _record_ab_email_event(
+                    user_id=user["id"],
+                    lead_id=lead.get("id"),
+                    variant=variant,
+                    subject=copy.get("subject", "Outreach"),
+                    body=copy.get("message", ""),
+                    outcome=event_outcome,
+                )
+                st.success("Outreach event logged for A/B analytics.")
+
+    with tab2:
+        lead_map = _lead_label_map(leads)
+        labels = list(lead_map.keys())
+        triage_label = st.selectbox("Lead", labels, key="triage_lead")
+        lead = lead_map[triage_label]
+        inbound = st.text_area(
+            "Inbound message / comment",
+            height=140,
+            key="triage_text",
+            placeholder="Paste client reply text here",
+        )
+
+        if st.button("Analyze and draft reply", type="primary", use_container_width=True, key="triage_btn"):
+            probability = estimate_conversion_probability(lead, inbound)
+            handoff, reason = detect_handoff(probability, inbound, threshold=handoff_threshold)
+            reply = generate_agent_reply(lead, inbound, probability)
+
+            p1, p2, p3 = st.columns(3)
+            p1.metric("Conversion probability", f"{probability}%")
+            p2.metric("Handoff", "YES" if handoff else "NO")
+            p3.metric("Threshold", f"{handoff_threshold}%")
+
+            st.markdown("### Suggested AI reply")
+            st.code(reply)
+
+            event = {
+                "user_id": user.get("id"),
+                "lead_id": lead.get("id"),
+                "lead_name": lead.get("name"),
+                "probability": probability,
+                "handoff": handoff,
+                "reason": reason,
+                "inbound": inbound,
+                "reply": reply,
+            }
+
+            if handoff:
+                log_path = append_handoff_event(PROJECT_ROOT, event)
+                st.error(f"Forced handoff triggered: {reason}")
+                st.caption(f"Handoff log: {log_path}")
+
+                webhook = st.session_state.get("sdr_webhook_url", "")
+                ok, msg = trigger_handoff_webhook(webhook, event)
+                if webhook:
+                    if ok:
+                        st.success(f"Webhook delivered ({msg})")
+                    else:
+                        st.warning(f"Webhook failed ({msg})")
+
+                # high-probability leads are moved to qualified for human follow-up queue
+                update_lead(lead["id"], {"status": "qualified"})
+            else:
+                st.success("Handled by AI agent boundary. No handoff needed.")
+
+
 def main() -> None:
     init_session_state()
 
@@ -904,7 +1272,7 @@ def main() -> None:
 
         page = st.radio(
             "Workspace",
-            ["Overview", "Acquisition", "Leads", "Billing", "Logout"],
+            ["Overview", "Acquisition", "AI SDR", "Analytics", "Leads", "Billing", "Logout"],
             key="workspace_nav",
         )
 
@@ -913,13 +1281,17 @@ def main() -> None:
         st.rerun()
 
     # Soft paywall: allow usage in trial mode, keep billing upgrade path.
-    if page in {"Leads", "Acquisition"} and not has_required_plan(user, minimum="pro"):
+    if page in {"Leads", "Acquisition", "AI SDR", "Analytics"} and not has_required_plan(user, minimum="pro"):
         st.info("Trial mode active. Upgrade to Pro for full automation and larger quotas.")
 
     if page == "Overview":
         render_overview(user)
     elif page == "Acquisition":
         render_acquisition(user)
+    elif page == "AI SDR":
+        render_sdr_agent(user)
+    elif page == "Analytics":
+        render_analytics(user)
     elif page == "Leads":
         render_leads(user)
     elif page == "Billing":
