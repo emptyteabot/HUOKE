@@ -65,44 +65,80 @@ st.markdown(
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
-  --gs-bg: #f5f9fc;
-  --gs-card: #ffffff;
+  --gs-bg: #f4f8ff;
   --gs-text: #0b1220;
-  --gs-muted: #4b5563;
-  --gs-border: #dbe7f1;
-  --gs-accent: #0ea5e9;
-  --gs-accent-2: #14b8a6;
+  --gs-border: #d8e3f0;
+  --gs-accent: #4f8cff;
+  --gs-accent-2: #25d0ce;
 }
 
 html, body, [class*="stApp"] {
-  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  font-family: 'Space Grotesk', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   color: var(--gs-text);
   background:
-    radial-gradient(circle at 10% 0%, #e0f2fe 0%, transparent 36%),
-    radial-gradient(circle at 95% 10%, #ccfbf1 0%, transparent 34%),
+    radial-gradient(circle at 12% 0%, rgba(126, 87, 194, .12) 0%, transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(37, 208, 206, .15) 0%, transparent 32%),
+    radial-gradient(circle at 45% 85%, rgba(79, 140, 255, .10) 0%, transparent 36%),
     var(--gs-bg);
+}
+
+[data-testid="stSidebar"],
+[data-testid="collapsedControl"] {
+  display: none !important;
 }
 
 div.block-container {
   max-width: 1220px;
-  padding-top: 1.1rem;
+  padding-top: .85rem;
+  padding-bottom: 2rem;
 }
 
-.gs-card {
+.gs-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   border: 1px solid var(--gs-border);
   border-radius: 16px;
-  padding: 16px 18px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+  padding: 12px 16px;
+  background: linear-gradient(120deg, rgba(79,140,255,.09) 0%, rgba(37,208,206,.10) 38%, #ffffff 100%);
+  box-shadow: 0 8px 24px rgba(30, 41, 59, .07);
+  margin-bottom: 10px;
+}
+
+.gs-topbar-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.gs-topbar-sub {
+  font-size: 12px;
+  color: #475569;
+}
+
+.gs-topbar-meta {
+  font-size: 12px;
+  color: #334155;
+  text-align: right;
 }
 
 .gs-hero {
   border: 1px solid var(--gs-border);
   border-radius: 18px;
   padding: 18px;
-  background:
-    linear-gradient(115deg, rgba(14,165,233,.08) 0%, rgba(20,184,166,.06) 45%, #ffffff 100%);
-  box-shadow: 0 10px 30px rgba(14, 116, 144, .08);
+  background: linear-gradient(115deg, rgba(79,140,255,.11) 0%, rgba(37,208,206,.09) 45%, #ffffff 100%);
+  box-shadow: 0 12px 26px rgba(30, 64, 175, .08);
+}
+
+.gs-chip {
+  display: inline-block;
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid #c9ddff;
+  background: #eef4ff;
+  margin-right: 6px;
+  color: #234a90;
 }
 
 .gs-type {
@@ -111,44 +147,40 @@ div.block-container {
   overflow: hidden;
   border-right: 2px solid var(--gs-accent);
   width: 0;
-  animation: typing 2.1s steps(40, end) forwards, blink 1s step-end infinite;
+  animation: typing 2.2s steps(42, end) forwards, blink 1s step-end infinite;
 }
 
-.gs-chip {
-  display: inline-block;
-  font-size: 12px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--gs-border);
-  background: #f0f9ff;
-  margin-right: 6px;
-  color: #075985;
-}
-
-@keyframes typing {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
-@keyframes blink {
-  50% { border-color: transparent; }
-}
+@keyframes typing { from { width: 0; } to { width: 100%; } }
+@keyframes blink { 50% { border-color: transparent; } }
 
 [data-testid="stMetricValue"] {
   font-family: 'JetBrains Mono', monospace;
-  color: #0f172a;
 }
 
 .stButton > button {
   border-radius: 12px;
-  border: 1px solid #bae6fd;
-  background: linear-gradient(180deg, #ffffff, #f0f9ff);
+  border: 1px solid #c7dcff;
+  background: linear-gradient(180deg, #ffffff, #eef5ff);
 }
 
 .stButton > button[kind="primary"] {
-  background: linear-gradient(135deg, var(--gs-accent) 0%, #0284c7 70%);
   border: none;
   color: #fff;
+  background: linear-gradient(135deg, #4f8cff 0%, #25d0ce 85%);
+}
+
+div[role="radiogroup"] {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+div[role="radiogroup"] label {
+  border: 1px solid #cfe0ff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,.8);
 }
 </style>
 """,
@@ -253,6 +285,50 @@ def _demo_user_payload() -> Dict:
 
 def _login_demo_user() -> None:
     demo = _demo_user_payload()
+
+
+def _is_demo_user(user: Optional[Dict]) -> bool:
+    return bool(user and str(user.get("id", "")).strip() == "demo-user")
+
+
+def _scoped_user_id(user: Optional[Dict]) -> Optional[str]:
+    if _is_demo_user(user):
+        return None
+    if not user:
+        return None
+    return user.get("id")
+
+
+def _bootstrap_demo_leads_if_needed(user: Optional[Dict]) -> None:
+    if not _is_demo_user(user):
+        return
+    if st.session_state.get("_demo_bootstrap_done"):
+        return
+
+    try:
+        existing_all = get_leads(None)
+        if len(existing_all) >= 200:
+            st.session_state["_demo_bootstrap_done"] = True
+            return
+
+        raw, files = _load_external_sources()
+        norm = _normalize_external_df(raw)
+        if norm.empty:
+            st.session_state["_demo_bootstrap_done"] = True
+            return
+
+        _sync_openclaw_leads(
+            user_id="demo-user",
+            min_score=0,
+            exclude_competitors=False,
+            limit=2000,
+            normalized=norm,
+            files=files,
+            only_target=False,
+            selected_platforms=[],
+        )
+    finally:
+        st.session_state["_demo_bootstrap_done"] = True
     token = create_access_token({"sub": demo["id"], "email": demo["email"]})
     login_user(demo, token)
 
@@ -746,9 +822,9 @@ def render_login_register() -> None:
 
 def render_overview(user: Dict) -> None:
     user = refresh_subscription_in_session(user)
-    stats = get_stats(user.get("id"))
+    stats = get_stats(_scoped_user_id(user))
 
-    st.markdown("## Product Command Center")
+    st.markdown("## AI ??")
     st.markdown(
         """
 <div class="gs-hero">
@@ -756,7 +832,7 @@ def render_overview(user: Dict) -> None:
   <div class="gs-chip">Study Abroad Vertical</div>
   <div class="gs-chip">B2B SaaS</div>
   <h3 style="margin:.65rem 0 .2rem 0;">GuestSeek Revenue Engine</h3>
-  <div class="gs-type" style="max-width:900px;">OpenClaw live prospecting -> AI intent filtering -> personalized outreach -> attribution loop</div>
+  <div class="gs-type" style="max-width:900px;">OpenClaw ???? -> AI ????? -> ?????? -> ??????</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -776,7 +852,7 @@ def render_overview(user: Dict) -> None:
 
 
 def render_leads(user: Dict) -> None:
-    st.markdown("## Lead Pool")
+    st.markdown("## ???")
 
     with st.form("add_lead_form", clear_on_submit=True):
         c1, c2, c3 = st.columns(3)
@@ -812,7 +888,7 @@ def render_leads(user: Dict) -> None:
             except Exception as exc:
                 st.error(f"Add lead failed: {exc}")
 
-    leads = get_leads(user.get("id"))
+    leads = get_leads(_scoped_user_id(user))
     if not leads:
         st.info("No leads yet.")
         return
@@ -838,7 +914,7 @@ def render_leads(user: Dict) -> None:
 
 
 def render_acquisition(user: Dict) -> None:
-    st.markdown("## OpenClaw Prospecting (Step 1)")
+    st.markdown("## ?????OpenClaw?")
     st.caption("OpenClaw reads social posts/comments. This page filters high-intent non-competitor leads and syncs them into your Lead Pool.")
 
     uploaded_files = st.file_uploader(
@@ -1040,11 +1116,11 @@ def _record_ab_email_event(
 
 
 def render_analytics(user: Dict) -> None:
-    st.markdown("## Growth Analytics Lab")
+    st.markdown("## ???????")
     st.caption("Channel ROI + CAC attribution + A/B significance for outreach prompts")
 
-    leads = get_leads(user.get("id"))
-    emails = get_emails(user.get("id"))
+    leads = get_leads(_scoped_user_id(user))
+    emails = get_emails(_scoped_user_id(user))
 
     if not leads:
         st.info("No leads yet. Import leads in Acquisition first.")
@@ -1148,10 +1224,10 @@ def render_analytics(user: Dict) -> None:
 
 
 def render_sdr_agent(user: Dict) -> None:
-    st.markdown("## AI SDR Studio")
+    st.markdown("## AI ?????")
     st.caption("Personalized outreach generation + auto triage + forced human handoff")
 
-    leads = get_leads(user.get("id"))
+    leads = get_leads(_scoped_user_id(user))
     if not leads:
         st.info("No leads available. Add or sync leads first.")
         return
@@ -1283,11 +1359,15 @@ def main() -> None:
     if not user:
         try:
             qp = st.query_params
-            demo_flag = str(qp.get("demo", "0")).strip().lower()
+            demo_flag = str(qp.get("demo", "1")).strip().lower()
+            auth_flag = str(qp.get("auth", "0")).strip().lower()
         except Exception:
-            demo_flag = "0"
+            demo_flag = "1"
+            auth_flag = "0"
 
-        if demo_flag in {"1", "true", "yes"}:
+        # Default behavior: auto-enter demo workspace.
+        # Use ?auth=1 when you need explicit login/register UI.
+        if auth_flag not in {"1", "true", "yes"} and demo_flag in {"1", "true", "yes"}:
             _login_demo_user()
             user = get_current_user()
 
@@ -1301,38 +1381,47 @@ def main() -> None:
         st.error(f"Checkout sync error: {exc}")
 
     user = refresh_subscription_in_session(get_current_user() or user)
+    _bootstrap_demo_leads_if_needed(user)
+    st.markdown(
+        f"""
+<div class="gs-topbar">
+  <div>
+    <div class="gs-topbar-title">GuestSeek ? 留学赛道 AI 获客 SaaS</div>
+    <div class="gs-topbar-sub">Gemini 渐变 + 打字机 + 硅谷 AI 初创风</div>
+  </div>
+  <div class="gs-topbar-meta">账号：{user.get('email', '-')}<br/>套餐：{(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
-    with st.sidebar:
-        st.markdown("## GuestSeek")
-        st.caption("Study-abroad vertical B2B SaaS")
-        st.write(f"Account: {user.get('email', '-')}")
-        st.write(f"Plan: {(user.get('plan') or 'free').upper()} | {user.get('subscription_status') or 'inactive'}")
+    page = st.radio(
+        "导航",
+        ["AI橱窗", "潜客采集", "AI触达", "数据归因", "线索池", "订阅", "退出登录"],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="workspace_nav_top",
+    )
 
-        page = st.radio(
-            "Workspace",
-            ["Overview", "Acquisition", "AI SDR", "Analytics", "Leads", "Billing", "Logout"],
-            key="workspace_nav",
-        )
-
-    if page == "Logout":
+    if page == "退出登录":
         logout_user()
         st.rerun()
 
     # Soft paywall: allow usage in trial mode, keep billing upgrade path.
-    if page in {"Leads", "Acquisition", "AI SDR", "Analytics"} and not has_required_plan(user, minimum="pro"):
-        st.info("Trial mode active. Upgrade to Pro for full automation and larger quotas.")
+    if page in {"线索池", "潜客采集", "AI触达", "数据归因"} and not has_required_plan(user, minimum="pro"):
+        st.info("试用模式已开启。升级到 Pro 可使用完整自动化能力和更高配额。")
 
-    if page == "Overview":
+    if page == "AI橱窗":
         render_overview(user)
-    elif page == "Acquisition":
+    elif page == "潜客采集":
         render_acquisition(user)
-    elif page == "AI SDR":
+    elif page == "AI触达":
         render_sdr_agent(user)
-    elif page == "Analytics":
+    elif page == "数据归因":
         render_analytics(user)
-    elif page == "Leads":
+    elif page == "线索池":
         render_leads(user)
-    elif page == "Billing":
+    elif page == "订阅":
         render_billing_page()
 
 
