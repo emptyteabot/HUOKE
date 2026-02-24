@@ -9,6 +9,17 @@ Vertical B2B SaaS for study-abroad lead generation:
 ## App Entry
 - Main app: `streamlit-app/Home.py`
 - Streamlit config: `streamlit-app/.streamlit/config.toml`
+## Redirect Gateway (old domain -> Next.js)
+If you keep `ai-huoke.streamlit.app` as the entry but serve product on Next.js:
+
+```toml
+ENABLE_NEXT_REDIRECT = true
+NEXT_APP_URL = "https://your-vercel-domain.vercel.app"
+NEXT_APP_CN_URL = "https://cn.your-domain.com"
+NEXT_REDIRECT_DELAY_MS = 1200
+```
+
+With this enabled, Streamlit acts as an entry gateway and auto-redirects traffic.
 
 ## Product Pages
 - `Lead Pack`: one-form order intake, queued processing, CSV outcome delivery
@@ -57,4 +68,5 @@ Run from project root:
 python openclaw_realtime_sync.py --user-email your-login@email.com --loop --interval 20
 ```
 This keeps pushing latest local OpenClaw artifacts into cloud leads, and the web `Acquisition` page can display `supabase_synced` data.
+
 

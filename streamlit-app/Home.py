@@ -37,9 +37,13 @@ from database import (
 )
 from config import (
     ENABLE_GUEST_AUTOLOGIN,
+    ENABLE_NEXT_REDIRECT,
     GUEST_ACCOUNT_COMPANY,
     GUEST_ACCOUNT_EMAIL,
     GUEST_ACCOUNT_NAME,
+    NEXT_APP_CN_URL,
+    NEXT_APP_URL,
+    NEXT_REDIRECT_DELAY_MS,
     OPENAI_API_KEY,
     OPENAI_BASE_URL,
     OPENAI_MODEL,
@@ -374,7 +378,36 @@ INSTITUTIONAL_AUTHOR_HINTS = [
     "播报",
 ]
 DIRECT_SELL_HINTS = ["私信", "加v", "微信", "咨询", "报价", "套餐", "保录", "代办", "服务"]
-否ISE_AUTHORS = {"search_card", "unknown", "匿名", "none", "null"}
+NOISE_AUTHORS = {"search_card", "unknown", "匿名", "none", "null"}
+DEMAND_SIGNAL_HINTS = [
+    "求推荐",
+    "求助",
+    "请问",
+    "有没有",
+    "哪家",
+    "想找",
+    "怎么选",
+    "怎么申请",
+    "预算",
+    "费用",
+    "急",
+    "ddl",
+    "deadline",
+    "避雷",
+]
+QUESTION_SIGNAL_HINTS = ["?", "？", "请问", "有没有", "哪家", "怎么", "如何"]
+SELF_PROMO_HINTS = [
+    "私信我",
+    "加我微信",
+    "微信咨询",
+    "欢迎咨询",
+    "点击主页",
+    "咨询我",
+    "服务报价",
+    "套餐",
+    "保录",
+    "代办",
+]
 SYNC_HEARTBEAT_PATH = OPENCLAW_DIR / "sync_heartbeat.json"
 
 
@@ -405,6 +438,42 @@ def _db_ready() -> bool:
     except Exception:
         return False
 
+
+def _render_next_gateway_if_enabled() -> None:
+    target = str(NEXT_APP_URL or "").strip()
+    if not (ENABLE_NEXT_REDIRECT and target):
+        return
+
+    delay_ms = max(0, int(NEXT_REDIRECT_DELAY_MS or 0))
+    target_safe = target.replace('"', "&quot;")
+    target_js = json.dumps(target, ensure_ascii=False)
+
+    cn_url = str(NEXT_APP_CN_URL or "").strip()
+    cn_block = ""
+    if cn_url:
+        cn_safe = cn_url.replace('"', "&quot;")
+        cn_block = (
+            f"<p style='margin:10px 0 0;color:#4a5e80;font-size:14px'>"
+            f"中国加速入口：<a href='{cn_safe}' target='_self'>{cn_safe}</a></p>"
+        )
+
+    st.markdown(
+        f"""
+<div style="max-width:880px;margin:72px auto;padding:32px;border:1px solid #cfddf5;border-radius:20px;background:linear-gradient(120deg, rgba(20,125,245,.10) 0%, rgba(22,195,194,.10) 55%, rgba(255,178,76,.09) 100%);box-shadow:0 16px 36px rgba(15,35,70,.10)">
+  <div style="font-size:24px;font-weight:800;color:#091226">AI获客增长引擎</div>
+  <div style="margin-top:8px;color:#4a5e80;font-size:15px">平台已升级到 Next.js 生产站点，正在自动跳转。</div>
+  <p style="margin:16px 0 0;color:#091226">如果未自动跳转，请点击：<a href="{target_safe}" target="_self">{target_safe}</a></p>
+  {cn_block}
+</div>
+<script>
+setTimeout(function () {{
+  window.location.href = {target_js};
+}}, {delay_ms});
+</script>
+""",
+        unsafe_allow_html=True,
+    )
+    st.stop()
 
 def _user_payload(user: Dict) -> Dict:
     return {
@@ -544,9 +613,26 @@ def _is_noise_author(author: str) -> bool:
     author_l = str(author or "").strip().lower()
     if not author_l:
         return True
-    if author_l in 否ISE_AUTHORS:
+    if author_l in NOISE_AUTHORS:
         return True
     return False
+
+
+def _contains_any(text: str, terms: List[str]) -> bool:
+    text_l = str(text or "").lower()
+    return any(str(term).lower() in text_l for term in terms)
+
+
+def _has_demand_signal(text: str) -> bool:
+    return _contains_any(text, DEMAND_SIGNAL_HINTS)
+
+
+def _has_question_signal(text: str) -> bool:
+    return _contains_any(text, QUESTION_SIGNAL_HINTS)
+
+
+def _has_self_promo_signal(text: str) -> bool:
+    return _contains_any(text, SELF_PROMO_HINTS)
 
 
 def _is_competitor(author: str, content: str) -> bool:
@@ -557,16 +643,23 @@ def _is_competitor(author: str, content: str) -> bool:
     if _is_noise_author(author_l):
         return True
 
+    author_is_institution = any(hint in author_l for hint in INSTITUTIONAL_AUTHOR_HINTS)
+    if author_is_institution:
+        return True
+
+    demand_like = _has_demand_signal(text) or _has_question_signal(text)
+    self_promo_like = _has_self_promo_signal(text)
+
     hints = list(COMPETITOR_KEYWORDS)
     hints.extend([str(x).strip() for x in pb.get("competitor_keywords", []) if str(x).strip()])
-    if any(str(kw).lower() in text for kw in hints):
-        return True
-
-    if any(hint in author_l for hint in INSTITUTIONAL_AUTHOR_HINTS):
-        return True
+    keyword_hit = any(str(kw).lower() in text for kw in hints)
 
     sales_hits = sum(1 for x in DIRECT_SELL_HINTS if x in text)
-    if sales_hits >= 2:
+    if self_promo_like or sales_hits >= 2:
+        return True
+
+    # Avoid false positives: "求推荐/求助/请问" usually indicates buyer demand.
+    if keyword_hit and not demand_like:
         return True
 
     return False
@@ -650,10 +743,14 @@ def _intent_signal(content: str, keyword: str) -> Tuple[int, str]:
         if kw in text:
             hit += 1
 
-    if hit >= 3:
-        return 18, "high"
-    if hit >= 1:
-        return 8, "medium"
+    urgent_terms = ["急", "ddl", "deadline", "来不及", "本周", "这周", "马上", "尽快"]
+    urgent = any(x in text for x in urgent_terms)
+    has_question = _has_question_signal(text)
+
+    if hit >= 2 or (hit >= 1 and urgent):
+        return 22, "high"
+    if hit >= 1 or has_question:
+        return 12, "medium"
     return 0, "low"
 
 
@@ -669,7 +766,14 @@ def _is_target_lead(author: str, content: str, intent_level: str, competitor: bo
         hints = [str(x).lower() for x in TARGET_LEAD_HINTS]
 
     text = f"{author} {content}".lower()
-    return sum(1 for k in hints if k in text) >= 2
+    hint_hits = sum(1 for k in hints if k in text)
+    if hint_hits >= 2:
+        return True
+    if hint_hits >= 1 and (_has_demand_signal(text) or _has_question_signal(text)):
+        return True
+    if _has_demand_signal(text) and len(text) >= 25:
+        return True
+    return False
 
 def _extract_json_rows(obj) -> List[Dict]:
     if isinstance(obj, list):
@@ -972,7 +1076,23 @@ def _normalize_external_df(df: pd.DataFrame) -> pd.DataFrame:
         intent_bonus, intent_level = _intent_signal(f"{content} {evidence_text}", keyword)
         competitor = _is_competitor(author, f"{content} {keyword}")
         noise_author = _is_noise_author(author)
-        score = min(100, max(0, base_score + intent_bonus + (10 if dm_ready else 0) - (12 if noise_author else 0)))
+
+        demand_text = f"{keyword} {content} {evidence_text}"
+        demand_bonus = 14 if _has_demand_signal(demand_text) else (6 if _has_question_signal(demand_text) else 0)
+        base_floor = 45 if content else 35
+        calibrated_base = max(base_score, base_floor)
+        score = min(
+            100,
+            max(
+                0,
+                calibrated_base
+                + intent_bonus
+                + demand_bonus
+                + (8 if dm_ready else 0)
+                - (10 if noise_author else 0)
+                - (18 if competitor else 0),
+            ),
+        )
         target = _is_target_lead(author, f"{content} {keyword}", intent_level, competitor)
 
         body = f"{platform}|{author}|{post_url}|{content[:80]}"
@@ -2190,6 +2310,7 @@ def render_sdr_agent(user: Dict) -> None:
 
 
 def main() -> None:
+    _render_next_gateway_if_enabled()
     init_session_state()
 
     db_ok = _db_ready()
@@ -2264,4 +2385,9 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
 

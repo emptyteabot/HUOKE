@@ -1,70 +1,68 @@
-# LeadPulse B2B Frontend
+﻿# LeadPulse Web SaaS (Next.js)
 
-AI驱动的B2B获客平台 - 前端应用
+留学赛道 AI 获客 SaaS 前端（生产版）。
 
-## 功能特性
+## 当前能力
 
-- 🔐 用户认证(登录/注册)
-- 📊 数据仪表盘
-- 👥 潜在客户管理
-- ✉️ 邮件历史追踪
-- 🤖 AI邮件生成
-- 📈 实时统计数据
+- 全中文 B2B SaaS 前台
+- 线索池看板（筛选、评分、竞品排除、私信可达）
+- AI 触达文案生成 API
+- 生产 API：优先读取 Supabase（云端 24h），本地 Python 仅兜底
 
-## 技术栈
-
-- Next.js 15 (App Router)
-- TypeScript
-- Tailwind CSS
-- Axios
-- Lucide Icons
-
-## 快速开始
-
-### 1. 安装依赖
+## 本地开发
 
 ```bash
+cd frontend-b2b
 npm install
-```
-
-### 2. 配置环境变量
-
-创建 `.env.local` 文件:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-```
-
-### 3. 启动开发服务器
-
-```bash
 npm run dev
 ```
 
-访问 http://localhost:3000
+访问：`http://localhost:3000`
 
-## 页面结构
+## 生产部署（Vercel）
 
-- `/` - 登录页面
-- `/register` - 注册页面
-- `/dashboard` - 主仪表盘
-- `/dashboard/leads` - 潜在客户管理
-- `/dashboard/emails` - 邮件历史
-- `/dashboard/ai` - AI邮件生成
+1. 在 Vercel 导入仓库。
+2. Root Directory 选择：`frontend-b2b`
+3. Build Command：`npm run build`
+4. Output：默认（Next.js）
+5. 配置环境变量（Production/Preview 都配）
 
-## 构建生产版本
-
-```bash
-npm run build
-npm start
+```env
+SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+# 兼容项（二选一）
+# SUPABASE_KEY=...
 ```
 
-## 部署
+说明：
+- `/api/leads` 会优先走 Supabase REST API（适合 Vercel 24h）。
+- 若 Supabase 未配置，才会尝试本地 Python 导出脚本（仅本地联调可用）。
 
-推荐使用 Vercel 部署:
+## API 路由
 
-```bash
-vercel
+- `GET /api/health`：健康检查
+- `GET /api/leads`：线索读取与筛选
+- `POST /api/ai/draft`：生成触达文案
+
+## 关键查询参数（/api/leads）
+
+- `minScore`：最低分，默认 `65`
+- `onlyTarget`：是否只看目标客户，默认 `1`
+- `excludeCompetitors`：是否排除机构/竞品，默认 `1`
+- `limit`：返回数量，默认 `200`
+- `vertical`：垂直领域，默认 `study_abroad`
+
+## 与旧域名联动
+
+如果继续保留 `ai-huoke.streamlit.app` 作为入口：
+
+在 Streamlit secrets 或环境变量中配置：
+
+```toml
+ENABLE_NEXT_REDIRECT = true
+NEXT_APP_URL = "https://your-vercel-domain.vercel.app"
+NEXT_APP_CN_URL = "https://cn.your-domain.com"
+NEXT_REDIRECT_DELAY_MS = 1200
 ```
 
-或使用其他支持 Next.js 的平台。
+配置后，旧 Streamlit 域名会自动跳转到 Next.js 新站。

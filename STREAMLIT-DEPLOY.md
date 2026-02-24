@@ -1,97 +1,53 @@
-# 🚀 LeadPulse - Streamlit云端部署指南
+﻿# Streamlit 入口网关部署说明
 
-## 立即部署到公网 (3分钟完成)
+目标：继续使用 `ai-huoke.streamlit.app` 作为入口，但实际产品由 Next.js（Vercel）承载。
 
-### 方案1: Streamlit Cloud (推荐 - 完全免费)
+## 1. 入口跳转开关
 
-1. **准备GitHub仓库**
-```bash
-cd C:\Users\陈盈桦\Desktop\LeadPulse
-git init
-git add .
-git commit -m "LeadPulse initial commit"
-git remote add origin https://github.com/你的用户名/leadpulse.git
-git push -u origin main
-```
+已在 `streamlit-app/Home.py` 内置入口网关。
 
-2. **部署前端**
-- 访问: https://share.streamlit.io/
-- 点击 "New app"
-- 选择你的GitHub仓库
-- Main file path: `streamlit-app/app.py`
-- 点击 "Deploy"
+在 Streamlit Cloud 的 Secrets 中添加：
 
-**完成! 你会得到一个公网地址: `https://leadpulse.streamlit.app`**
-
-3. **部署后端到Railway**
-- 访问: https://railway.app/
-- 连接GitHub
-- 选择 `backend` 目录
-- 添加PostgreSQL数据库
-- 配置环境变量
-- 自动部署
-
-**完成! 你会得到后端API地址: `https://your-app.railway.app`**
-
-4. **连接前后端**
-在Streamlit Cloud的Settings -> Secrets中添加:
 ```toml
-API_URL = "https://your-app.railway.app/api"
+ENABLE_NEXT_REDIRECT = true
+NEXT_APP_URL = "https://your-vercel-domain.vercel.app"
+NEXT_APP_CN_URL = "https://cn.your-domain.com"
+NEXT_REDIRECT_DELAY_MS = 1200
 ```
 
----
+含义：
+- `ENABLE_NEXT_REDIRECT`：开启旧站入口跳转
+- `NEXT_APP_URL`：全球主站
+- `NEXT_APP_CN_URL`：中国加速线路（可选）
+- `NEXT_REDIRECT_DELAY_MS`：自动跳转延迟
 
-## 方案2: 本地快速测试
+## 2. Next.js 正式站
 
-### 启动后端
-```bash
-cd backend
-npm run dev
+代码目录：`frontend-b2b`
+
+Vercel 环境变量至少需要：
+
+```env
+SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-### 启动Streamlit前端
-```bash
-cd streamlit-app
-streamlit run app.py
-```
+说明：`/api/leads` 生产优先读 Supabase，避免依赖本机 Python。
 
-访问自动打开的浏览器窗口
+## 3. 数据流
 
----
+- 本机 OpenClaw 持续采集社媒线索
+- 通过同步脚本写入云端（Supabase）
+- Next.js 前台实时读取 Supabase 展示
+- Streamlit 仅保留入口/兜底
 
-## 完整部署架构
+## 4. 建议域名结构（中国+全球）
 
-```
-用户浏览器
-    ↓
-Streamlit Cloud (前端)
-https://leadpulse.streamlit.app
-    ↓
-Railway (后端API)
-https://your-app.railway.app
-    ↓
-Railway PostgreSQL (数据库)
-```
+- 全球：`app.your-domain.com` -> Vercel
+- 中国：`cn.your-domain.com` -> 中国线路加速/镜像
+- 旧入口：`ai-huoke.streamlit.app` -> 自动跳转到上面域名
 
----
-
-## 成本
-
-- **Streamlit Cloud**: 免费
-- **Railway**:
-  - 免费额度: $5/月
-  - 足够运行小规模应用
-  - 付费: $5起/月
-
-**总成本: $0-5/月** 🎉
-
----
-
-## 下一步
-
-1. 部署到云端获得公网地址
-2. 分享给潜在客户测试
-3. 收集反馈优化产品
-4. 开始收费!
-
-**现在你有一个可以立即访问的在线产品了!** 🚀
+这样可以保证：
+- 历史入口不丢
+- 前台统一升级为 Next.js
+- 线索数据由云端统一读取
