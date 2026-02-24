@@ -51,7 +51,7 @@ from services.sdr_agent import (
     generate_outreach_copy,
     trigger_handoff_webhook,
 )
-from services.lead_pack import (
+from lead_pack import (
     create_lead_pack_order,
     list_lead_pack_orders,
     mark_lead_pack_paid,
@@ -1562,3 +1562,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

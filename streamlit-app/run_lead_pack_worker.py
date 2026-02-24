@@ -3,7 +3,7 @@ import json
 import time
 from pathlib import Path
 
-from services.lead_pack import process_lead_pack_order, process_queued_orders
+from lead_pack import process_lead_pack_order, process_queued_orders
 
 
 def main() -> None:
@@ -39,3 +39,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
