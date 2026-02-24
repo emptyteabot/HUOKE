@@ -731,59 +731,59 @@ def _sync_openclaw_leads(
     }
 
 def render_login_register() -> None:
-    st.title("GuestSeek AI Lead Gen")
-    st.caption("Production workspace: auth + acquisition + outreach + billing")
+    st.title("GuestSeek AI ????")
+    st.caption("?????????? + ???? + AI?? + ????")
 
-    login_tab, register_tab = st.tabs(["Login", "Register"])
+    login_tab, register_tab = st.tabs(["??", "??"])
 
     with login_tab:
         with st.form("login_form", clear_on_submit=False):
-            email = st.text_input("Email", key="login_email", placeholder="you@company.com")
-            password = st.text_input("Password", type="password", key="login_password")
-            submitted = st.form_submit_button("Sign in", use_container_width=True, type="primary")
+            email = st.text_input("??", key="login_email", placeholder="you@company.com")
+            password = st.text_input("??", type="password", key="login_password")
+            submitted = st.form_submit_button("??", use_container_width=True, type="primary")
 
         if submitted:
             if not email or not password:
-                st.error("Email and password are required.")
+                st.error("??????????")
                 return
 
             user = get_user_by_email(email.strip().lower())
             if not user:
-                st.error("Account not found. Please register first.")
+                st.error("???????????")
                 return
             if not verify_password(password, user.get("password_hash", "")):
-                st.error("Invalid password.")
+                st.error("?????")
                 return
 
             token = create_access_token({"sub": user["id"], "email": user["email"]})
             login_user(_user_payload(user), token)
-            st.success("Signed in.")
+            st.success("?????")
             st.rerun()
 
     with register_tab:
         with st.form("register_form", clear_on_submit=False):
-            name = st.text_input("Name", key="reg_name")
-            company = st.text_input("Company", key="reg_company")
-            email = st.text_input("Email", key="reg_email")
-            password = st.text_input("Password", type="password", key="reg_password")
-            password_confirm = st.text_input("Confirm password", type="password", key="reg_password_confirm")
-            submitted = st.form_submit_button("Create account", use_container_width=True)
+            name = st.text_input("??", key="reg_name")
+            company = st.text_input("??/??", key="reg_company")
+            email = st.text_input("??", key="reg_email")
+            password = st.text_input("??", type="password", key="reg_password")
+            password_confirm = st.text_input("????", type="password", key="reg_password_confirm")
+            submitted = st.form_submit_button("????", use_container_width=True)
 
         if submitted:
             if not all([name, company, email, password, password_confirm]):
-                st.error("All fields are required.")
+                st.error("??????????")
                 return
             if password != password_confirm:
-                st.error("Passwords do not match.")
+                st.error("????????")
                 return
             if len(password) < 8:
-                st.error("Password must be at least 8 characters.")
+                st.error("???? 8 ??")
                 return
 
             email_norm = email.strip().lower()
             existing = get_user_by_email(email_norm)
             if existing:
-                st.error("Email already registered. Please sign in.")
+                st.error("????????????")
                 return
 
             user_id = create_user(
@@ -810,7 +810,7 @@ def render_login_register() -> None:
             }
             token = create_access_token({"sub": user["id"], "email": user["email"]})
             login_user(_user_payload(user), token)
-            st.success("Account created and signed in.")
+            st.success("???????????")
             st.rerun()
 
 
@@ -1520,43 +1520,43 @@ def main() -> None:
         f"""
 <div class="gs-topbar">
   <div>
-    <div class="gs-topbar-title">GuestSeek | AI Lead Gen SaaS</div>
-    <div class="gs-topbar-sub">Sell outcomes: lead request -> pipeline run -> CSV delivery</div>
+    <div class="gs-topbar-title">GuestSeek | AI?? SaaS</div>
+    <div class="gs-topbar-sub">???????? -> ???? -> CSV??</div>
   </div>
-  <div class="gs-topbar-meta">Account: {user.get('email', '-')}<br/>Plan: {(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
+  <div class="gs-topbar-meta">???{user.get('email', '-')}<br/>???{(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
     page = st.radio(
-        "Navigation",
-        ["Lead Pack", "Overview", "Acquisition", "AI SDR", "Analytics", "Leads", "Billing", "Logout"],
+        "??",
+        ["???", "??", "????", "AI??", "????", "???", "??", "????"],
         horizontal=True,
         label_visibility="collapsed",
         key="workspace_nav_top",
     )
 
-    if page == "Logout":
+    if page == "????":
         logout_user()
         st.rerun()
 
-    if page in {"Leads", "Acquisition", "AI SDR", "Analytics"} and not has_required_plan(user, minimum="pro"):
-        st.info("Trial mode active. Upgrade to Pro for full automation and higher quotas.")
+    if page in {"???", "????", "AI??", "????"} and not has_required_plan(user, minimum="pro"):
+        st.info("??????????? Pro ????????????????")
 
-    if page == "Lead Pack":
+    if page == "???":
         render_lead_pack(user)
-    elif page == "Overview":
+    elif page == "??":
         render_overview(user)
-    elif page == "Acquisition":
+    elif page == "????":
         render_acquisition(user)
-    elif page == "AI SDR":
+    elif page == "AI??":
         render_sdr_agent(user)
-    elif page == "Analytics":
+    elif page == "????":
         render_analytics(user)
-    elif page == "Leads":
+    elif page == "???":
         render_leads(user)
-    elif page == "Billing":
+    elif page == "??":
         render_billing_page()
 
 
