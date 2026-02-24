@@ -59,6 +59,14 @@ from services.sdr_agent import (
     generate_outreach_copy,
     trigger_handoff_webhook,
 )
+from services.vertical_playbooks import (
+    DEFAULT_VERTICAL,
+    build_vertical_query,
+    get_vertical_playbook,
+    list_vertical_playbooks,
+    normalize_vertical_key,
+    vertical_label,
+)
 from lead_pack import (
     create_lead_pack_order,
     list_lead_pack_orders,
@@ -69,7 +77,7 @@ from lead_pack import (
 
 
 st.set_page_config(
-    page_title="留学获客引擎 | 线索Pulse SaaS",
+    page_title="AI获客增长引擎 | 线索Pulse SaaS",
     page_icon="*",
     layout="wide",
 )
@@ -370,6 +378,27 @@ DIRECT_SELL_HINTS = ["私信", "加v", "微信", "咨询", "报价", "套餐", "
 SYNC_HEARTBEAT_PATH = OPENCLAW_DIR / "sync_heartbeat.json"
 
 
+def _active_vertical_key() -> str:
+    raw = st.session_state.get("active_vertical", DEFAULT_VERTICAL)
+    key = normalize_vertical_key(str(raw))
+    st.session_state["active_vertical"] = key
+    return key
+
+
+def _active_playbook() -> Dict:
+    return get_vertical_playbook(_active_vertical_key())
+
+
+def _vertical_label_map() -> Dict[str, str]:
+    out: Dict[str, str] = {}
+    for item in list_vertical_playbooks():
+        key = str(item.get("key", "")).strip()
+        if not key:
+            continue
+        out[key] = str(item.get("label", key))
+    return out
+
+
 def _db_ready() -> bool:
     try:
         return init_supabase()
@@ -523,11 +552,14 @@ def _is_noise_author(author: str) -> bool:
 def _is_competitor(author: str, content: str) -> bool:
     author_l = str(author or "").strip().lower()
     text = f"{author} {content}".lower()
+    pb = _active_playbook()
 
     if _is_noise_author(author_l):
         return True
 
-    if any(kw.lower() in text for kw in COMPETITOR_KEYWORDS):
+    hints = list(COMPETITOR_KEYWORDS)
+    hints.extend([str(x).strip() for x in pb.get("competitor_keywords", []) if str(x).strip()])
+    if any(str(kw).lower() in text for kw in hints):
         return True
 
     if any(hint in author_l for hint in INSTITUTIONAL_AUTHOR_HINTS):
@@ -608,9 +640,14 @@ def _normalize_platform(platform: str, post_url: str, source_url: str) -> str:
 
 def _intent_signal(content: str, keyword: str) -> Tuple[int, str]:
     text = f"{keyword} {content}".lower()
+    pb = _active_playbook()
+    intent_terms = [str(x).lower() for x in pb.get("intent_keywords", []) if str(x).strip()]
+    if not intent_terms:
+        intent_terms = [str(x).lower() for x in HIGH_INTENT_KEYWORDS]
+
     hit = 0
-    for kw in HIGH_INTENT_KEYWORDS:
-        if kw.lower() in text:
+    for kw in intent_terms:
+        if kw in text:
             hit += 1
 
     if hit >= 3:
@@ -625,8 +662,14 @@ def _is_target_lead(author: str, content: str, intent_level: str, competitor: bo
         return False
     if intent_level in {"high", "medium"}:
         return True
+
+    pb = _active_playbook()
+    hints = [str(x).strip().lower() for x in pb.get("target_hints", []) if str(x).strip()]
+    if not hints:
+        hints = [str(x).lower() for x in TARGET_LEAD_HINTS]
+
     text = f"{author} {content}".lower()
-    return sum(1 for k in TARGET_LEAD_HINTS if k in text) >= 2
+    return sum(1 for k in hints if k in text) >= 2
 
 def _extract_json_rows(obj) -> List[Dict]:
     if isinstance(obj, list):
@@ -1092,7 +1135,7 @@ def _collect_acquisition_dataset(user: Dict, uploaded_files=None) -> Tuple[pd.Da
 
 
 def _build_mission_plan(objective: str, hb: Dict, target_rows: int, dm_rows: int) -> List[str]:
-    mission = (objective or '').strip() or '留学赛道高意向潜客规模化增长'
+    mission = (objective or '').strip() or f"{vertical_label(_active_vertical_key())}高意向潜客规模化增长"
     hb_status = str((hb or {}).get('status', 'unknown')).lower()
 
     sync_line = '保持 OpenClaw + 本地管道持续抓取' if hb_status in {'ok', 'local_only'} else '先修复采集链路，再扩大抓取量'
@@ -1136,9 +1179,11 @@ def render_command_center(user: Dict) -> None:
     delivered_orders = sum(1 for x in orders if str(x.get('status', '')).lower() in {'delivered', 'completed'})
     running_orders = sum(1 for x in orders if str(x.get('status', '')).lower() in {'queued', 'running', 'retry'})
     competitor_rows = int(norm_df['is_competitor'].sum()) if (not norm_df.empty and 'is_competitor' in norm_df.columns) else 0
+    retention_count = sum(1 for x in leads if str(x.get('status', '')).lower() in {'contacted', 'qualified', 'converted'})
+    monetization_count = sum(1 for x in orders if str(x.get('payment_status', '')).lower() == 'paid' or str(x.get('status', '')).lower() in {'delivered', 'completed'})
 
     if 'mission_objective' not in st.session_state:
-        st.session_state['mission_objective'] = '在留学赛道持续获取高意向个人客户，优先私信可直达主页'
+        st.session_state['mission_objective'] = f"在{vertical_label(_active_vertical_key())}持续获取高意向个人客户，优先私信可直达主页"
 
     if 'mission_plan' not in st.session_state:
         st.session_state['mission_plan'] = []
@@ -1148,7 +1193,7 @@ def render_command_center(user: Dict) -> None:
         '''
 <div class="gs-hero">
   <div class="gs-chip">Manus化工作流</div>
-  <div class="gs-chip">留学垂直</div>
+  <div class="gs-chip">多垂直赛道</div>
   <div class="gs-chip">结果交付</div>
   <h3 style="margin:.65rem 0 .2rem 0;">AI 获客作战台</h3>
   <div class="gs-type" style="max-width:920px;">目标输入 -> 全网采集 -> 意图筛选 -> AI触达 -> 线索包交付 -> ROI归因</div>
@@ -1156,6 +1201,24 @@ def render_command_center(user: Dict) -> None:
 ''',
         unsafe_allow_html=True,
     )
+
+    label_map = _vertical_label_map()
+    vertical_keys = list(label_map.keys()) or [DEFAULT_VERTICAL]
+    current_vertical = _active_vertical_key()
+    default_vertical_idx = vertical_keys.index(current_vertical) if current_vertical in vertical_keys else 0
+    selected_vertical = st.selectbox(
+        '当前业务赛道',
+        vertical_keys,
+        index=default_vertical_idx,
+        format_func=lambda x: label_map.get(x, x),
+        key='mission_vertical_selector',
+    )
+    if selected_vertical != current_vertical:
+        st.session_state['active_vertical'] = normalize_vertical_key(selected_vertical)
+        st.rerun()
+
+    pb = _active_playbook()
+    st.caption(f"当前赛道: {pb.get('label', '-')} | ICP: {pb.get('icp', '-')}")
 
     with st.container(border=True):
         with st.form('mission_center_form', clear_on_submit=False):
@@ -1196,13 +1259,28 @@ def render_command_center(user: Dict) -> None:
     c5.metric('触达事件', int(len(emails)))
     c6.metric('已交付订单', int(delivered_orders))
 
+    def _ua_rate(curr: int, prev: int) -> str:
+        if prev <= 0:
+            return '-'
+        return f"{(curr / prev * 100):.1f}%"
+
+    ua_rows = [
+        {'阶段': 'Reach 触达', '指标': '采集线索', '数量': len(norm_df), '上一步转化率': '-'},
+        {'阶段': 'Conversion 转化', '指标': '入库线索', '数量': len(leads), '上一步转化率': _ua_rate(len(leads), len(norm_df))},
+        {'阶段': 'Activation 激活', '指标': '触达事件', '数量': len(emails), '上一步转化率': _ua_rate(len(emails), len(leads))},
+        {'阶段': 'Retention 留存', '指标': '持续跟进', '数量': retention_count, '上一步转化率': _ua_rate(retention_count, len(emails))},
+        {'阶段': 'Monetization 变现', '指标': '付费/交付', '数量': monetization_count, '上一步转化率': _ua_rate(monetization_count, retention_count)},
+    ]
+    st.markdown("### UA 五步漏斗（Reach -> Monetization）")
+    st.dataframe(pd.DataFrame(ua_rows), use_container_width=True, hide_index=True)
+
     sync_status = str(hb.get('status', 'unknown')).lower() if hb else 'unknown'
     step_defs = [
-        ('01 数据采集', f'状态: {sync_status} | 数据源: {len(source_files)}'),
-        ('02 去噪筛选', f'候选: {len(target_df)} | 机构排除: {competitor_rows}'),
-        ('03 线索入库', f'线索池累计: {len(leads)}'),
-        ('04 AI触达', f'触达事件: {len(emails)}'),
-        ('05 结果交付', f'进行中: {running_orders} | 已交付: {delivered_orders}'),
+        ('01 Reach 触达', f'状态: {sync_status} | 数据源: {len(source_files)} | 抓取: {len(norm_df)}'),
+        ('02 Conversion 转化', f'候选: {len(target_df)} | 机构排除: {competitor_rows} | 入库: {len(leads)}'),
+        ('03 Activation 激活', f'可直私信: {len(dm_df)} | 触达事件: {len(emails)}'),
+        ('04 Retention 留存', f'持续跟进: {retention_count}'),
+        ('05 Monetization 变现', f'进行中: {running_orders} | 已交付: {delivered_orders} | 付费: {monetization_count}'),
     ]
 
     st.markdown('### 执行流水线')
@@ -1210,13 +1288,13 @@ def render_command_center(user: Dict) -> None:
         css = 'todo'
         if idx == 0 and len(norm_df) > 0:
             css = 'ok'
-        elif idx == 1 and len(target_df) > 0:
+        elif idx == 1 and len(leads) > 0:
             css = 'ok'
-        elif idx == 2 and len(leads) > 0:
+        elif idx == 2 and len(emails) > 0:
             css = 'ok'
-        elif idx == 3 and len(emails) > 0:
+        elif idx == 3 and retention_count > 0:
             css = 'ok'
-        elif idx == 4 and delivered_orders > 0:
+        elif idx == 4 and monetization_count > 0:
             css = 'ok'
         elif idx == 0 and sync_status in {'error', 'unknown'}:
             css = 'warn'
@@ -1263,7 +1341,7 @@ def render_command_center(user: Dict) -> None:
         st.dataframe(dm_df[dm_cols].head(80), use_container_width=True, hide_index=True)
 
 def render_login_register() -> None:
-    st.title("留学获客引擎")
+    st.title("AI获客增长引擎")
     st.caption("生产工作台：账号 + 获客 + 触达 + 订阅")
 
     login_tab, register_tab = st.tabs(["登录", "注册"])
@@ -1348,18 +1426,39 @@ def render_login_register() -> None:
 
 def render_lead_pack(user: Dict) -> None:
     st.markdown("## 线索包订单")
-    st.caption("$50 / 500 条线索：提交需求 -> 队列处理 -> 导出 CSV -> 邮件交付。")
+    st.caption("$50 / 500 条线索：提交需求 -> 队列处理 -> 导出 CSV -> 邮件交付（失败自动本地保存）。")
+
+    label_map = _vertical_label_map()
+    vertical_keys = list(label_map.keys()) or [DEFAULT_VERTICAL]
+    current_vertical = _active_vertical_key()
+    if current_vertical not in vertical_keys:
+        current_vertical = vertical_keys[0]
+        st.session_state["active_vertical"] = current_vertical
+
+    selected_vertical = st.selectbox(
+        "订单赛道",
+        vertical_keys,
+        index=vertical_keys.index(current_vertical) if current_vertical in vertical_keys else 0,
+        format_func=lambda x: label_map.get(x, x),
+        key="lp_vertical_selector",
+    )
+    if selected_vertical != current_vertical:
+        st.session_state["active_vertical"] = normalize_vertical_key(selected_vertical)
+        st.rerun()
+
+    pb = _active_playbook()
 
     with st.container(border=True):
         with st.form("lead_pack_form", clear_on_submit=False):
             request_text = st.text_input(
                 "你需要什么类型的线索？",
-                placeholder="示例：新加坡 SaaS 创始人，对留学规划有需求",
+                value=str(pb.get("default_request", "")),
+                placeholder="示例：高意向决策者，优先可私信主页",
             )
             c1, c2, c3 = st.columns(3)
-            region = c1.text_input("地区", value="Singapore")
-            role = c2.text_input("角色", value="Founder")
-            industry = c3.text_input("行业", value="SaaS")
+            region = c1.text_input("地区", value=str(pb.get("default_region", "Global")))
+            role = c2.text_input("角色", value=str(pb.get("default_role", "Founder")))
+            industry = c3.text_input("行业", value=str(pb.get("default_industry", "SaaS")))
 
             c4, c5, c6 = st.columns(3)
             quantity = c4.number_input("线索数量", min_value=100, max_value=2000, value=500, step=50)
@@ -1385,6 +1484,7 @@ def render_lead_pack(user: Dict) -> None:
                     delivery_email=delivery_email.strip(),
                     package_price_usd=50,
                     payment_status="paid" if mark_paid else "unpaid",
+                    vertical=_active_vertical_key(),
                     project_root=PROJECT_ROOT,
                 )
 
@@ -1396,11 +1496,12 @@ def render_lead_pack(user: Dict) -> None:
                 if process_now and mark_paid:
                     try:
                         done = process_lead_pack_order(order["id"], project_root=PROJECT_ROOT)
-                        st.success(
-                            f"订单已处理 rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}"
-                        )
+                        st.success(f"订单已处理 rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}")
                         if done.get("csv_path"):
                             st.code(done.get("csv_path"))
+                        if done.get("delivery_local_path"):
+                            st.info("邮件未发送，已写入本地交付箱：")
+                            st.code(done.get("delivery_local_path"))
                     except Exception as exc:
                         st.error(f"处理失败: {exc}")
 
@@ -1410,15 +1511,23 @@ def render_lead_pack(user: Dict) -> None:
         st.info("暂无线索包订单。")
         return
 
+    delivery_map = {
+        "pending": "待交付",
+        "sent": "邮件已发送",
+        "local_saved": "本地已保存",
+        "failed": "交付失败",
+    }
+
     st.markdown(f"### 你的订单: {len(orders)}")
     table = []
     for o in orders:
         table.append(
             {
                 "order_id": o.get("id"),
+                "vertical": vertical_label(str(o.get("vertical", DEFAULT_VERTICAL))),
                 "status": o.get("status"),
                 "payment": o.get("payment_status"),
-                "delivery": o.get("delivery_status"),
+                "delivery": delivery_map.get(str(o.get("delivery_status", "pending")), o.get("delivery_status")),
                 "rows": o.get("rows_exported", 0),
                 "email": o.get("delivery_email", ""),
                 "created_at": o.get("created_at", ""),
@@ -1438,11 +1547,12 @@ def render_lead_pack(user: Dict) -> None:
     if c2.button("处理当前订单", key="lp_process_one_btn", use_container_width=True):
         try:
             done = process_lead_pack_order(selected_order_id, project_root=PROJECT_ROOT)
-            st.success(
-                f"已完成 rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}"
-            )
+            st.success(f"已完成 rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}")
             if done.get("csv_path"):
                 st.code(done.get("csv_path"))
+            if done.get("delivery_local_path"):
+                st.info("邮件未发送，已写入本地交付箱：")
+                st.code(done.get("delivery_local_path"))
             if done.get("delivery_error"):
                 st.warning(done.get("delivery_error"))
             st.rerun()
@@ -1459,8 +1569,11 @@ def render_lead_pack(user: Dict) -> None:
     if selected_order:
         st.markdown("---")
         st.markdown(f"**订单详情**: `{selected_order.get('id', '')}`")
+        st.caption(f"赛道: {vertical_label(str(selected_order.get('vertical', DEFAULT_VERTICAL)))}")
         if selected_order.get("csv_path"):
             st.code(selected_order.get("csv_path"))
+        if selected_order.get("delivery_local_path"):
+            st.code(selected_order.get("delivery_local_path"))
         if selected_order.get("delivery_error"):
             st.warning(selected_order.get("delivery_error"))
 
@@ -1475,7 +1588,7 @@ def render_overview(user: Dict) -> None:
         """
 <div class="gs-hero">
   <div class="gs-chip">结果优先</div>
-  <div class="gs-chip">留学垂直</div>
+  <div class="gs-chip">多垂直赛道</div>
   <div class="gs-chip">B2B SaaS</div>
   <h3 style="margin:.65rem 0 .2rem 0;">留学AI获客引擎</h3>
   <div class="gs-type" style="max-width:900px;">提交需求 -> 抓取 -> 筛选 -> Export CSV -> 交付</div>
@@ -1593,6 +1706,27 @@ def render_acquisition(user: Dict) -> None:
     st.markdown("## 获客（OpenClaw）")
     st.caption("读取社交媒体帖子/评论，筛出真实潜客，排除机构号，并同步到线索池。")
 
+    label_map = _vertical_label_map()
+    vertical_keys = list(label_map.keys()) or [DEFAULT_VERTICAL]
+    current_vertical = _active_vertical_key()
+    if current_vertical not in vertical_keys:
+        current_vertical = vertical_keys[0]
+        st.session_state["active_vertical"] = current_vertical
+
+    selected_vertical = st.selectbox(
+        "赛道模板",
+        vertical_keys,
+        index=vertical_keys.index(current_vertical) if current_vertical in vertical_keys else 0,
+        format_func=lambda x: label_map.get(x, x),
+        key="acq_vertical_selector",
+    )
+    if selected_vertical != current_vertical:
+        st.session_state["active_vertical"] = normalize_vertical_key(selected_vertical)
+        st.rerun()
+
+    pb = _active_playbook()
+    st.caption(f"当前赛道: {pb.get('label', '-')} | ICP: {pb.get('icp', '-')}")
+
     hb = _load_sync_heartbeat()
     if hb:
         c1, c2, c3, c4 = st.columns(4)
@@ -1628,13 +1762,14 @@ def render_acquisition(user: Dict) -> None:
     default_platforms = platform_options[:]
 
     with st.container(border=True):
-        c1, c2, c3, c4, c5 = st.columns([1.5, 1, 1, 1, 1.2])
+        c1, c2, c3, c4, c5, c6 = st.columns([1.4, 1, 1, 1, 1.1, 1.1])
         selected_platforms = c1.multiselect("平台", platform_options, default=default_platforms, key="oc_platforms")
         min_score = c2.slider("最低意向分", 0, 100, 65, key="oc_min_score")
         only_target = c3.checkbox("仅保留目标潜客", value=True, key="oc_only_target")
         exclude_comp = c4.checkbox("排除机构/竞品", value=True, key="oc_exclude_comp")
-        import_limit = c5.slider("单次同步上限", 20, 2000, 400, step=20, key="oc_import_limit")
-        text_filter = st.text_input("关键词过滤(\u4f5c\u8005/\u5185\u5bb9/\u5173\u952e\u8bcd)", key="oc_text_filter").strip().lower()
+        use_vertical_filter = c5.checkbox("按赛道词过滤", value=True, key="oc_use_vertical_filter")
+        import_limit = c6.slider("单次同步上限", 20, 2000, 400, step=20, key="oc_import_limit")
+        text_filter = st.text_input("关键词过滤(作者/内容/关键词)", key="oc_text_filter").strip().lower()
 
     view_df = norm_df.copy()
     if selected_platforms:
@@ -1644,6 +1779,21 @@ def render_acquisition(user: Dict) -> None:
     if only_target:
         view_df = view_df[view_df["is_target"]]
     view_df = view_df[view_df["score"] >= min_score]
+
+    if use_vertical_filter and not view_df.empty:
+        vtoks = []
+        for x in pb.get("reach_keywords", []) + pb.get("intent_keywords", []):
+            s = str(x).strip().lower()
+            if s and s not in vtoks:
+                vtoks.append(s)
+        vtoks = vtoks[:18]
+        if vtoks:
+            mask = pd.Series([False] * len(view_df), index=view_df.index)
+            for tok in vtoks:
+                mask = mask | view_df["author"].astype(str).str.lower().str.contains(tok, na=False)
+                mask = mask | view_df["content"].astype(str).str.lower().str.contains(tok, na=False)
+                mask = mask | view_df["keyword"].astype(str).str.lower().str.contains(tok, na=False)
+            view_df = view_df[mask]
 
     if text_filter:
         mask = (
@@ -1665,7 +1815,7 @@ def render_acquisition(user: Dict) -> None:
     m4.metric("DM可直联", dm_ready_count)
 
     if source_files:
-        st.caption("数据来源: " + ", ".join(source_files))
+        st.caption("数据来源: " + ", ".join(source_files) + f" | 赛道: {pb.get('label', '-')}")
 
     st.markdown("---")
     if st.button("同步筛选线索到线索池", type="primary", use_container_width=True, key="sync_openclaw"):
@@ -1754,7 +1904,7 @@ def render_acquisition(user: Dict) -> None:
                     "email": "",
                     "phone": contact.strip(),
                     "status": "new",
-                    "notes": f"source=social_comment | score={score}\n{content.strip()}",
+                    "notes": f"source=social_comment | vertical={_active_vertical_key()} | score={score}\n{content.strip()}",
                 }
                 try:
                     add_lead(payload)
@@ -1762,6 +1912,7 @@ def render_acquisition(user: Dict) -> None:
                     st.rerun()
                 except Exception as exc:
                     st.error(f"保存失败: {exc}")
+
 
 
 def _lead_label_map(leads: List[Dict]) -> Dict[str, Dict]:
@@ -2069,7 +2220,7 @@ def main() -> None:
         f"""
 <div class="gs-topbar">
   <div>
-    <div class="gs-topbar-title">留学获客引擎 | Manus级 AI 作战台</div>
+    <div class="gs-topbar-title">AI获客增长引擎 | Manus级 AI 作战台</div>
     <div class="gs-topbar-sub">卖结果：目标输入 -> 自动执行 -> 线索交付 -> 复盘优化</div>
   </div>
   <div class="gs-topbar-meta">账号: {user.get('email', '-')}<br/>套餐: {(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>

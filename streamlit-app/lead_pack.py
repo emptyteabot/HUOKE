@@ -29,6 +29,20 @@ except Exception:  # pragma: no cover
 
 from config import FROM_EMAIL, FROM_NAME, SENDGRID_API_KEY
 
+try:
+    from services.vertical_playbooks import DEFAULT_VERTICAL, build_vertical_query, get_vertical_playbook, normalize_vertical_key
+except Exception:
+    DEFAULT_VERTICAL = "study_abroad"
+
+    def normalize_vertical_key(key: str) -> str:
+        return str(key or DEFAULT_VERTICAL).strip().lower() or DEFAULT_VERTICAL
+
+    def get_vertical_playbook(key: str) -> Dict:
+        return {"key": normalize_vertical_key(key), "intent_keywords": [], "competitor_keywords": []}
+
+    def build_vertical_query(key: str, max_terms: int = 10) -> str:
+        return ""
+
 COMPETITOR_HINTS = [
     "留学机构",
     "留学中介",
@@ -63,11 +77,17 @@ def _output_dir(project_root: Optional[Path] = None) -> Path:
     return _root(project_root) / "data" / "lead_packs" / "outputs"
 
 
+def _outbox_dir(project_root: Optional[Path] = None) -> Path:
+    return _root(project_root) / "data" / "lead_packs" / "outbox"
+
+
 def _ensure_paths(project_root: Optional[Path] = None) -> None:
     op = _orders_path(project_root)
     od = _output_dir(project_root)
+    ob = _outbox_dir(project_root)
     op.parent.mkdir(parents=True, exist_ok=True)
     od.mkdir(parents=True, exist_ok=True)
+    ob.mkdir(parents=True, exist_ok=True)
     if not op.exists():
         op.write_text("[]", encoding="utf-8")
 
@@ -100,6 +120,7 @@ def create_lead_pack_order(
     delivery_email: str,
     package_price_usd: int = 50,
     payment_status: str = "unpaid",
+    vertical: str = DEFAULT_VERTICAL,
     project_root: Optional[Path] = None,
 ) -> Dict:
     orders = _load_orders(project_root)
@@ -111,6 +132,7 @@ def create_lead_pack_order(
         "region": str(region or "").strip(),
         "role": str(role or "").strip(),
         "industry": str(industry or "").strip(),
+        "vertical": normalize_vertical_key(vertical),
         "quantity": int(max(50, min(2000, int(quantity or 500)))),
         "package_price_usd": int(package_price_usd),
         "delivery_email": str(delivery_email or "").strip(),
@@ -119,6 +141,7 @@ def create_lead_pack_order(
         "rows_exported": 0,
         "csv_path": "",
         "delivery_status": "pending",
+        "delivery_local_path": "",
         "delivery_error": "",
         "created_at": _now_iso(),
         "updated_at": _now_iso(),
@@ -351,9 +374,12 @@ def _tokenize(text: str) -> List[str]:
     return out
 
 
-def _is_competitor(author: str, content: str) -> bool:
+def _is_competitor(author: str, content: str, competitor_hints: Optional[List[str]] = None) -> bool:
     text = f"{author} {content}".lower()
-    return any(k in text for k in COMPETITOR_HINTS)
+    hints = list(COMPETITOR_HINTS)
+    if competitor_hints:
+        hints.extend([str(x).strip() for x in competitor_hints if str(x).strip()])
+    return any(str(k).lower() in text for k in hints)
 
 
 def build_lead_pack_rows(order: Dict, project_root: Optional[Path] = None) -> List[Dict]:
@@ -361,12 +387,17 @@ def build_lead_pack_rows(order: Dict, project_root: Optional[Path] = None) -> Li
     if not all_rows:
         return []
 
+    vertical = normalize_vertical_key(order.get("vertical", DEFAULT_VERTICAL))
+    playbook = get_vertical_playbook(vertical)
+    vertical_query = build_vertical_query(vertical, max_terms=10)
+
     query = " ".join(
         [
             str(order.get("request_text", "")),
             str(order.get("region", "")),
             str(order.get("role", "")),
             str(order.get("industry", "")),
+            str(vertical_query),
         ]
     ).strip()
     tokens = _tokenize(query)
@@ -374,7 +405,11 @@ def build_lead_pack_rows(order: Dict, project_root: Optional[Path] = None) -> Li
 
     ranked: List[Dict] = []
     for row in all_rows:
-        if _is_competitor(str(row.get("author", "")), str(row.get("content", ""))):
+        if _is_competitor(
+            str(row.get("author", "")),
+            str(row.get("content", "")),
+            competitor_hints=playbook.get("competitor_keywords", []),
+        ):
             continue
 
         blob = str(row.get("search_blob", ""))
@@ -387,13 +422,19 @@ def build_lead_pack_rows(order: Dict, project_root: Optional[Path] = None) -> Li
                 continue
 
         score = int(row.get("score", 60) or 60)
-        rank_score = score + match_score * 12
+        vertical_hits = 0
+        for tok in playbook.get("intent_keywords", [])[:12]:
+            if str(tok).lower() in blob:
+                vertical_hits += 1
+
+        rank_score = score + match_score * 12 + min(vertical_hits, 4) * 6
         if row.get("author_url"):
             rank_score += 8
         if row.get("contact"):
             rank_score += 5
 
         out = dict(row)
+        out["vertical"] = vertical
         out["match_score"] = match_score
         out["rank_score"] = rank_score
         ranked.append(out)
@@ -436,6 +477,7 @@ def export_order_csv(order_id: str, rows: List[Dict], project_root: Optional[Pat
         "source_url",
         "collected_at",
         "source_file",
+        "vertical",
         "content",
     ]
 
@@ -487,6 +529,24 @@ def _send_csv_via_sendgrid(to_email: str, order_id: str, request_text: str, csv_
     return {"ok": True, "status_code": resp.status_code}
 
 
+def _save_local_delivery(order: Dict, csv_path: Path, delivery_error: str, project_root: Optional[Path] = None) -> Dict:
+    outbox = _outbox_dir(project_root)
+    outbox.mkdir(parents=True, exist_ok=True)
+    out_path = outbox / f"{str(order.get('id', 'unknown'))}.json"
+
+    payload = {
+        "order_id": str(order.get("id", "")),
+        "delivery_email": str(order.get("delivery_email", "")),
+        "request_text": str(order.get("request_text", "")),
+        "csv_path": str(csv_path),
+        "delivery_error": str(delivery_error or ""),
+        "saved_at": _now_iso(),
+        "mode": "local_saved",
+    }
+    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"ok": True, "mode": "local_saved", "path": str(out_path)}
+
+
 def process_lead_pack_order(order_id: str, project_root: Optional[Path] = None, force: bool = False) -> Dict:
     order = get_lead_pack_order(order_id, project_root)
     if not order:
@@ -518,15 +578,31 @@ def process_lead_pack_order(order_id: str, project_root: Optional[Path] = None, 
     )
 
     if delivery.get("ok"):
-        updated = update_lead_pack_order(order_id, {"delivery_status": "sent", "status": "delivered"}, project_root)
+        updated = update_lead_pack_order(
+            order_id,
+            {"delivery_status": "sent", "delivery_local_path": "", "status": "delivered"},
+            project_root,
+        )
+        return updated or get_lead_pack_order(order_id, project_root) or {}
+
+    delivery_error = str(delivery.get("error", "unknown email error"))
+    local_delivery = _save_local_delivery(order, csv_path, delivery_error, project_root)
+    if local_delivery.get("ok"):
+        updated = update_lead_pack_order(
+            order_id,
+            {
+                "delivery_status": "local_saved",
+                "delivery_local_path": str(local_delivery.get("path", "")),
+                "delivery_error": delivery_error,
+                "status": "delivered",
+            },
+            project_root,
+        )
         return updated or get_lead_pack_order(order_id, project_root) or {}
 
     updated = update_lead_pack_order(
         order_id,
-        {
-            "delivery_status": "failed",
-            "delivery_error": str(delivery.get("error", "unknown email error")),
-        },
+        {"delivery_status": "failed", "delivery_error": delivery_error, "status": "failed"},
         project_root,
     )
     return updated or get_lead_pack_order(order_id, project_root) or {}
