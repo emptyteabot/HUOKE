@@ -10,6 +10,7 @@ except Exception:  # pragma: no cover
     stripe = None
 
 from database import get_user_subscription, update_user_subscription
+from config import APP_BASE_URL
 
 PLAN_ORDER = {"free": 0, "pro": 1, "enterprise": 2}
 ACTIVE_STATUSES = {"active", "trialing"}
@@ -20,7 +21,22 @@ def _env(key: str, default: str = "") -> str:
 
 
 def app_base_url() -> str:
-    return _env("APP_BASE_URL", "https://ai-huoke.streamlit.app").rstrip("/")
+    # Priority: explicit env/secrets -> current runtime URL -> config fallback -> hardcoded fallback
+    explicit = _env("APP_BASE_URL", "")
+    if explicit:
+        return explicit.rstrip("/")
+
+    try:
+        runtime_url = str(getattr(st.context, "url", "") or "").strip()
+        if runtime_url:
+            return runtime_url.split("?", 1)[0].rstrip("/")
+    except Exception:
+        pass
+
+    if APP_BASE_URL:
+        return str(APP_BASE_URL).rstrip("/")
+
+    return "https://ai-huoke.streamlit.app"
 
 
 def plan_catalog() -> Dict[str, Dict[str, str]]:
