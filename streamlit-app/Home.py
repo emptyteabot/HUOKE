@@ -832,7 +832,7 @@ def render_overview(user: Dict) -> None:
   <div class="gs-chip">Study Abroad Vertical</div>
   <div class="gs-chip">B2B SaaS</div>
   <h3 style="margin:.65rem 0 .2rem 0;">GuestSeek Revenue Engine</h3>
-  <div class="gs-type" style="max-width:900px;">OpenClaw ???? -> AI ????? -> ?????? -> ??????</div>
+  <div class="gs-type" style="max-width:900px;">OpenClaw 实时采集 -> AI 识别高意向 -> 千人千面触达 -> 统计归因迭代</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -845,10 +845,10 @@ def render_overview(user: Dict) -> None:
     c4.metric("Emails", stats.get("total_emails", 0))
 
     st.markdown("---")
-    st.markdown("1. OpenClaw browsing comments/posts -> collect prospects")
-    st.markdown("2. Filter competitors/institutions + score intent")
-    st.markdown("3. Add to lead pool and trigger outreach workflow")
-    st.markdown("4. Track funnel and upsell paid subscription")
+    st.markdown("1. OpenClaw 读取评论与帖子，持续发现潜在客户")
+    st.markdown("2. 自动排除同业机构并计算购买意向分")
+    st.markdown("3. 同步入线索池，触发个性化触达工作流")
+    st.markdown("4. 统计转化漏斗与ROI，持续优化获客路径")
 
 
 def render_leads(user: Dict) -> None:
@@ -914,7 +914,7 @@ def render_leads(user: Dict) -> None:
 
 
 def render_acquisition(user: Dict) -> None:
-    st.markdown("## ?????OpenClaw?")
+    st.markdown("## 潜客采集（OpenClaw）")
     st.caption("OpenClaw reads social posts/comments. This page filters high-intent non-competitor leads and syncs them into your Lead Pool.")
 
     uploaded_files = st.file_uploader(
@@ -1116,7 +1116,7 @@ def _record_ab_email_event(
 
 
 def render_analytics(user: Dict) -> None:
-    st.markdown("## ???????")
+    st.markdown("## 数据归因实验室")
     st.caption("Channel ROI + CAC attribution + A/B significance for outreach prompts")
 
     leads = get_leads(_scoped_user_id(user))
@@ -1224,7 +1224,7 @@ def render_analytics(user: Dict) -> None:
 
 
 def render_sdr_agent(user: Dict) -> None:
-    st.markdown("## AI ?????")
+    st.markdown("## AI 触达工作台")
     st.caption("Personalized outreach generation + auto triage + forced human handoff")
 
     leads = get_leads(_scoped_user_id(user))
