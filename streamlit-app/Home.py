@@ -69,7 +69,7 @@ from lead_pack import (
 
 
 st.set_page_config(
-    page_title="留学获客引擎 | LeadPulse SaaS",
+    page_title="留学获客引擎 | 线索Pulse SaaS",
     page_icon="*",
     layout="wide",
 )
@@ -77,24 +77,27 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap');
 
 :root {
-  --gs-bg: #f4f8ff;
-  --gs-text: #0b1220;
-  --gs-border: #d8e3f0;
-  --gs-accent: #4f8cff;
-  --gs-accent-2: #25d0ce;
+  --gs-bg: #eef5ff;
+  --gs-bg-soft: #f8fbff;
+  --gs-text: #091226;
+  --gs-muted: #4a5e80;
+  --gs-border: #cfddf5;
+  --gs-accent: #147df5;
+  --gs-accent-2: #16c3c2;
+  --gs-accent-3: #ffb24c;
 }
 
 html, body, [class*="stApp"] {
-  font-family: 'Space Grotesk', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   color: var(--gs-text);
   background:
-    radial-gradient(circle at 12% 0%, rgba(126, 87, 194, .12) 0%, transparent 34%),
-    radial-gradient(circle at 90% 10%, rgba(37, 208, 206, .15) 0%, transparent 32%),
-    radial-gradient(circle at 45% 85%, rgba(79, 140, 255, .10) 0%, transparent 36%),
-    var(--gs-bg);
+    radial-gradient(1200px 420px at 8% -10%, rgba(20,125,245,.22), transparent 58%),
+    radial-gradient(1000px 450px at 95% 0%, rgba(22,195,194,.20), transparent 58%),
+    radial-gradient(820px 300px at 50% 100%, rgba(255,178,76,.16), transparent 62%),
+    linear-gradient(180deg, var(--gs-bg) 0%, var(--gs-bg-soft) 100%);
 }
 
 [data-testid="stSidebar"],
@@ -103,9 +106,9 @@ html, body, [class*="stApp"] {
 }
 
 div.block-container {
-  max-width: 1220px;
+  max-width: 1260px;
   padding-top: .85rem;
-  padding-bottom: 2rem;
+  padding-bottom: 2.4rem;
 }
 
 .gs-topbar {
@@ -113,75 +116,134 @@ div.block-container {
   justify-content: space-between;
   align-items: center;
   border: 1px solid var(--gs-border);
-  border-radius: 16px;
-  padding: 12px 16px;
-  background: linear-gradient(120deg, rgba(79,140,255,.09) 0%, rgba(37,208,206,.10) 38%, #ffffff 100%);
-  box-shadow: 0 8px 24px rgba(30, 41, 59, .07);
+  border-radius: 18px;
+  padding: 13px 16px;
+  background: linear-gradient(120deg, rgba(20,125,245,.12) 0%, rgba(22,195,194,.12) 42%, rgba(255,178,76,.10) 100%);
+  box-shadow: 0 14px 30px rgba(15, 35, 70, .08);
   margin-bottom: 10px;
 }
 
 .gs-topbar-title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
   letter-spacing: .2px;
 }
 
 .gs-topbar-sub {
   font-size: 12px;
-  color: #475569;
+  color: var(--gs-muted);
 }
 
 .gs-topbar-meta {
   font-size: 12px;
-  color: #334155;
+  color: #314869;
   text-align: right;
 }
 
 .gs-hero {
   border: 1px solid var(--gs-border);
-  border-radius: 18px;
-  padding: 18px;
-  background: linear-gradient(115deg, rgba(79,140,255,.11) 0%, rgba(37,208,206,.09) 45%, #ffffff 100%);
-  box-shadow: 0 12px 26px rgba(30, 64, 175, .08);
+  border-radius: 20px;
+  padding: 20px;
+  background: linear-gradient(116deg, rgba(20,125,245,.15) 0%, rgba(22,195,194,.12) 46%, rgba(255,178,76,.12) 100%);
+  box-shadow: 0 18px 30px rgba(20, 45, 91, .11);
+}
+
+.gs-subhero {
+  border: 1px solid #dbe7fa;
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 22px rgba(14, 34, 67, .06);
 }
 
 .gs-chip {
   display: inline-block;
   font-size: 12px;
-  padding: 4px 9px;
+  padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid #c9ddff;
-  background: #eef4ff;
+  border: 1px solid #bed6f8;
+  background: #edf5ff;
   margin-right: 6px;
-  color: #234a90;
+  color: #18498e;
 }
 
 .gs-type {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
+  display: inline-block;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
-  border-right: 2px solid var(--gs-accent);
+  border-right: 2px solid #1d6cd8;
   width: 0;
-  animation: typing 2.2s steps(42, end) forwards, blink 1s step-end infinite;
+  animation: typing 2.4s steps(48, end) forwards, blink 1s step-end infinite;
 }
 
 @keyframes typing { from { width: 0; } to { width: 100%; } }
 @keyframes blink { 50% { border-color: transparent; } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
 
 [data-testid="stMetricValue"] {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.gs-panel {
+  border: 1px solid #d5e4f9;
+  border-radius: 16px;
+  padding: 14px 14px 12px 14px;
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 10px 22px rgba(14, 34, 67, .06);
+  animation: riseIn .35s ease;
+}
+
+.gs-card {
+  border: 1px solid #d5e4f9;
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,.92);
+}
+
+.gs-panel h4 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+}
+
+.gs-muted {
+  color: var(--gs-muted);
+  font-size: 12px;
+}
+
+.gs-step {
+  border: 1px solid #d5e4f9;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.92);
+  margin-bottom: 8px;
+}
+
+.gs-step.ok { border-color: #9fdccf; background: rgba(224, 255, 248, .70); }
+.gs-step.warn { border-color: #ffd08f; background: rgba(255, 245, 221, .78); }
+.gs-step.todo { border-color: #d5e4f9; background: rgba(255,255,255,.92); }
+
+.gs-kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #476690;
 }
 
 .stButton > button {
   border-radius: 12px;
-  border: 1px solid #c7dcff;
-  background: linear-gradient(180deg, #ffffff, #eef5ff);
+  border: 1px solid #c5d9f5;
+  background: linear-gradient(180deg, #ffffff, #edf5ff);
 }
 
 .stButton > button[kind="primary"] {
   border: none;
   color: #fff;
-  background: linear-gradient(135deg, #4f8cff 0%, #25d0ce 85%);
+  background: linear-gradient(135deg, #147df5 0%, #16c3c2 62%, #f5b34f 100%);
+  box-shadow: 0 10px 22px rgba(21, 89, 181, .28);
 }
 
 div[role="radiogroup"] {
@@ -192,10 +254,15 @@ div[role="radiogroup"] {
 }
 
 div[role="radiogroup"] label {
-  border: 1px solid #cfe0ff;
+  border: 1px solid #c8daf6;
   border-radius: 999px;
-  padding: 4px 10px;
-  background: rgba(255,255,255,.8);
+  padding: 4px 11px;
+  background: rgba(255,255,255,.84);
+}
+
+div[role="radiogroup"] label:has(input:checked) {
+  border-color: #6aa6ee;
+  background: rgba(223, 238, 255, .86);
 }
 </style>
 """,
@@ -275,7 +342,7 @@ INSTITUTIONAL_AUTHOR_HINTS = [
     "播报",
 ]
 DIRECT_SELL_HINTS = ["私信", "加v", "微信", "咨询", "报价", "套餐", "保录", "代办", "服务"]
-NOISE_AUTHORS = {"search_card", "unknown", "匿名", "none", "null"}
+否ISE_AUTHORS = {"search_card", "unknown", "匿名", "none", "null"}
 SYNC_HEARTBEAT_PATH = OPENCLAW_DIR / "sync_heartbeat.json"
 
 
@@ -314,7 +381,7 @@ def _auto_login_guest_user() -> bool:
             create_user(
                 {
                     "name": str(GUEST_ACCOUNT_NAME or "guest_user"),
-                    "company": str(GUEST_ACCOUNT_COMPANY or "LeadPulse"),
+                    "company": str(GUEST_ACCOUNT_COMPANY or "线索Pulse"),
                     "email": email,
                     "password_hash": get_password_hash("guest-pass-2026"),
                     "plan": "enterprise",
@@ -424,7 +491,7 @@ def _is_noise_author(author: str) -> bool:
     author_l = str(author or "").strip().lower()
     if not author_l:
         return True
-    if author_l in NOISE_AUTHORS:
+    if author_l in 否ISE_AUTHORS:
         return True
     return False
 
@@ -980,6 +1047,197 @@ def _sync_openclaw_leads(
         "skipped_platform": skipped_platform,
     }
 
+
+
+def _collect_acquisition_dataset(user: Dict, uploaded_files=None) -> Tuple[pd.DataFrame, List[str]]:
+    raw_df, source_files = _load_external_sources()
+    remote_df, remote_files = _load_remote_openclaw_sources(_scoped_user_id(user))
+    upload_df, upload_files = _parse_uploaded_lead_files(uploaded_files)
+
+    frames: List[pd.DataFrame] = []
+    for frame in [raw_df, remote_df, upload_df]:
+        if frame is not None and not frame.empty:
+            frames.append(frame)
+
+    source_files = list(dict.fromkeys(source_files + remote_files + upload_files))
+    if not frames:
+        return pd.DataFrame(), source_files
+
+    combined_raw = pd.concat(frames, ignore_index=True)
+    return _normalize_external_df(combined_raw), source_files
+
+
+def _build_mission_plan(objective: str, hb: Dict, target_rows: int, dm_rows: int) -> List[str]:
+    mission = (objective or '').strip() or '留学赛道高意向潜客规模化增长'
+    hb_status = str((hb or {}).get('status', 'unknown')).lower()
+
+    sync_line = '保持 OpenClaw + 本地管道持续抓取' if hb_status in {'ok', 'local_only'} else '先修复采集链路，再扩大抓取量'
+    filter_line = f'按意向分和机构排除规则收敛至 {max(80, target_rows)} 条高质量线索'
+    dm_line = f'优先处理 {max(20, dm_rows)} 条可直接私信主页线索，执行千人千面破冰'
+
+    return [
+        f'任务目标：{mission}',
+        sync_line,
+        filter_line,
+        dm_line,
+        '把高置信度线索推入线索池并触发 AI SDR，按转化概率自动分流人工接管',
+        '每24小时复盘渠道ROI与文案A/B显著性，砍掉负ROI分支',
+    ]
+
+
+def render_command_center(user: Dict) -> None:
+    user = refresh_subscription_in_session(user)
+    leads = get_leads(_scoped_user_id(user))
+    emails = get_emails(_scoped_user_id(user))
+    orders = list_lead_pack_orders(str(user.get('id', '')), project_root=PROJECT_ROOT)
+    hb = _load_sync_heartbeat()
+    norm_df, source_files = _collect_acquisition_dataset(user)
+
+    target_df = norm_df.copy()
+    if not target_df.empty:
+        if 'is_competitor' in target_df.columns:
+            target_df = target_df[~target_df['is_competitor']]
+        if 'is_target' in target_df.columns:
+            target_df = target_df[target_df['is_target']]
+        if 'score' in target_df.columns:
+            target_df = target_df[target_df['score'] >= 65]
+
+    dm_df = target_df.copy()
+    if not dm_df.empty:
+        if 'dm_ready' in dm_df.columns:
+            dm_df = dm_df[dm_df['dm_ready'] == True]
+        if 'author_url' in dm_df.columns:
+            dm_df = dm_df[dm_df['author_url'].astype(str).str.strip() != '']
+
+    delivered_orders = sum(1 for x in orders if str(x.get('status', '')).lower() in {'delivered', 'completed'})
+    running_orders = sum(1 for x in orders if str(x.get('status', '')).lower() in {'queued', 'running', 'retry'})
+    competitor_rows = int(norm_df['is_competitor'].sum()) if (not norm_df.empty and 'is_competitor' in norm_df.columns) else 0
+
+    if 'mission_objective' not in st.session_state:
+        st.session_state['mission_objective'] = '在留学赛道持续获取高意向个人客户，优先私信可直达主页'
+
+    if 'mission_plan' not in st.session_state:
+        st.session_state['mission_plan'] = []
+
+    st.markdown('## 作战中枢')
+    st.markdown(
+        '''
+<div class="gs-hero">
+  <div class="gs-chip">Manus化工作流</div>
+  <div class="gs-chip">留学垂直</div>
+  <div class="gs-chip">结果交付</div>
+  <h3 style="margin:.65rem 0 .2rem 0;">AI 获客作战台</h3>
+  <div class="gs-type" style="max-width:920px;">目标输入 -> 全网采集 -> 意图筛选 -> AI触达 -> 线索包交付 -> ROI归因</div>
+</div>
+''',
+        unsafe_allow_html=True,
+    )
+
+    with st.container(border=True):
+        with st.form('mission_center_form', clear_on_submit=False):
+            objective = st.text_area(
+                '增长目标（系统将自动生成执行路径）',
+                value=st.session_state.get('mission_objective', ''),
+                height=90,
+                key='mission_objective_input',
+            )
+            c1, c2, c3, c4 = st.columns(4)
+            mission_min_score = c1.slider('最低意向分', 50, 95, 70, key='mission_min_score')
+            mission_limit = c2.slider('本轮导入上限', 50, 1200, 300, step=50, key='mission_limit')
+            mission_only_target = c3.checkbox('仅目标潜客', value=True, key='mission_only_target')
+            mission_exclude_comp = c4.checkbox('排除机构号', value=True, key='mission_exclude_comp')
+            submitted = st.form_submit_button('生成执行计划', type='primary', use_container_width=True)
+
+        if submitted:
+            st.session_state['mission_objective'] = objective.strip()
+            st.session_state['mission_plan'] = _build_mission_plan(
+                objective=objective,
+                hb=hb,
+                target_rows=int(len(target_df)),
+                dm_rows=int(len(dm_df)),
+            )
+
+    plan = st.session_state.get('mission_plan') or _build_mission_plan(
+        objective=st.session_state.get('mission_objective', ''),
+        hb=hb,
+        target_rows=int(len(target_df)),
+        dm_rows=int(len(dm_df)),
+    )
+
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1.metric('抓取总量', int(len(norm_df)))
+    c2.metric('高意向候选', int(len(target_df)))
+    c3.metric('可直私信', int(len(dm_df)))
+    c4.metric('线索池总量', int(len(leads)))
+    c5.metric('触达事件', int(len(emails)))
+    c6.metric('已交付订单', int(delivered_orders))
+
+    sync_status = str(hb.get('status', 'unknown')).lower() if hb else 'unknown'
+    step_defs = [
+        ('01 数据采集', f'状态: {sync_status} | 数据源: {len(source_files)}'),
+        ('02 去噪筛选', f'候选: {len(target_df)} | 机构排除: {competitor_rows}'),
+        ('03 线索入库', f'线索池累计: {len(leads)}'),
+        ('04 AI触达', f'触达事件: {len(emails)}'),
+        ('05 结果交付', f'进行中: {running_orders} | 已交付: {delivered_orders}'),
+    ]
+
+    st.markdown('### 执行流水线')
+    for idx, (title, desc) in enumerate(step_defs):
+        css = 'todo'
+        if idx == 0 and len(norm_df) > 0:
+            css = 'ok'
+        elif idx == 1 and len(target_df) > 0:
+            css = 'ok'
+        elif idx == 2 and len(leads) > 0:
+            css = 'ok'
+        elif idx == 3 and len(emails) > 0:
+            css = 'ok'
+        elif idx == 4 and delivered_orders > 0:
+            css = 'ok'
+        elif idx == 0 and sync_status in {'error', 'unknown'}:
+            css = 'warn'
+        st.markdown(f'<div class="gs-step {css}"><b>{title}</b><div class="gs-muted">{desc}</div></div>', unsafe_allow_html=True)
+
+    st.markdown('### 本轮计划')
+    for i, line in enumerate(plan, 1):
+        st.markdown(f'{i}. {line}')
+
+    action1, action2, action3, action4 = st.columns(4)
+    if action1.button('一键同步线索到线索池', type='primary', use_container_width=True, key='mission_sync_now'):
+        if norm_df.empty:
+            st.warning('当前没有可同步线索，请先保证采集产出。')
+        else:
+            result = _sync_openclaw_leads(
+                user_id=user['id'],
+                min_score=int(st.session_state.get('mission_min_score', 70)),
+                exclude_competitors=bool(st.session_state.get('mission_exclude_comp', True)),
+                limit=int(st.session_state.get('mission_limit', 300)),
+                normalized=norm_df,
+                files=source_files,
+                only_target=bool(st.session_state.get('mission_only_target', True)),
+                selected_platforms=[],
+            )
+            st.success(f"同步完成: {result['imported']} / {result['total']}")
+            st.rerun()
+
+    if action2.button('进入获客雷达', use_container_width=True, key='go_acq_center'):
+        st.session_state['workspace_nav_top'] = '获客'
+        st.rerun()
+    if action3.button('进入AI销售', use_container_width=True, key='go_sdr_center'):
+        st.session_state['workspace_nav_top'] = 'AI销售'
+        st.rerun()
+    if action4.button('进入线索包交付', use_container_width=True, key='go_pack_center'):
+        st.session_state['workspace_nav_top'] = '线索包'
+        st.rerun()
+
+    st.markdown('### 高优先级可私信线索')
+    if dm_df.empty:
+        st.info('当前还没有可直接私信的高质量线索。先跑采集并放宽关键词。')
+    else:
+        dm_cols = ['platform', 'author', 'score', 'keyword', 'author_url', 'post_url', 'content']
+        dm_cols = [c for c in dm_cols if c in dm_df.columns]
+        st.dataframe(dm_df[dm_cols].head(80), use_container_width=True, hide_index=True)
+
 def render_login_register() -> None:
     st.title("留学获客引擎")
     st.caption("生产工作台：账号 + 获客 + 触达 + 订阅")
@@ -1328,25 +1586,7 @@ def render_acquisition(user: Dict) -> None:
         key="oc_uploads",
     )
 
-    raw_df, source_files = _load_external_sources()
-    remote_df, remote_files = _load_remote_openclaw_sources(_scoped_user_id(user))
-    upload_df, upload_files = _parse_uploaded_lead_files(uploaded_files)
-
-    frames: List[pd.DataFrame] = []
-    if not raw_df.empty:
-        frames.append(raw_df)
-    if not remote_df.empty:
-        frames.append(remote_df)
-    if not upload_df.empty:
-        frames.append(upload_df)
-
-    if frames:
-        combined_raw = pd.concat(frames, ignore_index=True)
-        norm_df = _normalize_external_df(combined_raw)
-    else:
-        norm_df = pd.DataFrame()
-
-    source_files = list(dict.fromkeys(source_files + remote_files + upload_files))
+    norm_df, source_files = _collect_acquisition_dataset(user, uploaded_files=uploaded_files)
 
     if norm_df.empty:
         st.warning("未检测到线索数据。请先运行 OpenClaw 或上传文件。")
@@ -1538,14 +1778,14 @@ def _record_ab_email_event(
 
 
 def render_analytics(user: Dict) -> None:
-    st.markdown("## Analytics")
-    st.caption("Channel ROI + CAC attribution + outreach A/B significance")
+    st.markdown("## 数据分析")
+    st.caption("渠道 ROI + CAC 归因 + 文案 A/B 显著性")
 
     leads = get_leads(_scoped_user_id(user))
     emails = get_emails(_scoped_user_id(user))
 
     if not leads:
-        st.info("No leads yet. Import leads in Acquisition first.")
+        st.info("暂无线索，请先在获客页同步。")
         return
 
     channels = sorted(set(extract_channel_from_lead(x) for x in leads))
@@ -1554,10 +1794,10 @@ def render_analytics(user: Dict) -> None:
 
     with st.container(border=True):
         c1, c2 = st.columns(2)
-        avg_contract_value = c1.number_input("Avg contract value (CNY)", min_value=1000.0, value=15000.0, step=1000.0)
-        positive_metric = c2.selectbox("A/B positive metric", ["clicked", "opened"], index=0)
+        avg_contract_value = c1.number_input("平均客单价（CNY）", min_value=1000.0, value=15000.0, step=1000.0)
+        positive_metric = c2.selectbox("A/B 正向指标", ["clicked", "opened"], index=0)
 
-        st.markdown("**Channel CAC assumptions (CNY per lead)**")
+        st.markdown("**渠道 CAC 假设（每条线索成本）**")
         cols = st.columns(min(4, max(1, len(channels))))
         cost_map: Dict[str, float] = {}
         default_by_channel = {
@@ -1578,7 +1818,7 @@ def render_analytics(user: Dict) -> None:
     funnel_df = build_funnel(leads)
 
     if channel_df.empty:
-        st.warning("No channel metrics available yet.")
+        st.warning("暂无渠道指标数据。")
         return
 
     total_cost = float(channel_df["acquisition_cost"].sum())
@@ -1587,26 +1827,26 @@ def render_analytics(user: Dict) -> None:
     roi = (total_profit / total_cost * 100) if total_cost > 0 else 0.0
 
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Leads", len(leads))
-    m2.metric("Estimated Cost", f"CNY {total_cost:,.0f}")
-    m3.metric("Estimated Revenue", f"CNY {total_revenue:,.0f}")
+    m1.metric("线索量", len(leads))
+    m2.metric("预计成本", f"CNY {total_cost:,.0f}")
+    m3.metric("预计收入", f"CNY {total_revenue:,.0f}")
     m4.metric("ROI", f"{roi:.1f}%")
 
     st.markdown("---")
-    st.markdown("### Channel ROI / CAC")
+    st.markdown("### 渠道 ROI / CAC")
     st.dataframe(channel_df, use_container_width=True, hide_index=True)
 
     chart_df = channel_df[["channel", "roi_pct", "conversion_rate_pct", "dm_ready_rate_pct"]].set_index("channel")
     st.bar_chart(chart_df, height=260)
 
-    st.markdown("### Funnel")
+    st.markdown("### 转化漏斗")
     st.dataframe(funnel_df, use_container_width=True, hide_index=True)
 
     st.markdown("---")
-    st.markdown("### Prompt A/B Testing")
+    st.markdown("### 文案 A/B 测试")
     ab_df = build_ab_variant_stats(emails)
     if ab_df.empty:
-        st.info("No A/B-tagged outreach yet. Save events in AI SDR.")
+        st.info("还没有 A/B 打标触达记录，请先在 AI 销售页保存事件。")
     else:
         st.dataframe(ab_df, use_container_width=True, hide_index=True)
         sig = build_ab_significance(ab_df, metric=positive_metric)
@@ -1616,20 +1856,20 @@ def render_analytics(user: Dict) -> None:
                 f"delta={sig['diff_pct']}% | p={sig['p_value']} | z={sig['z']}"
             )
             if sig.get("significant"):
-                st.success("Statistically significant: " + line)
+                st.success("达到统计显著：" + line)
             else:
-                st.warning("Not significant yet: " + line)
+                st.warning("暂未达到显著：" + line)
 
-    with st.expander("Manual A/B event logger", expanded=False):
+    with st.expander("手动记录 A/B 事件", expanded=False):
         label_map = _lead_label_map(leads)
         labels = list(label_map.keys())
         with st.form("ab_event_form", clear_on_submit=True):
-            lead_label = st.selectbox("Lead", labels, key="ab_lead") if labels else None
-            variant = st.selectbox("Variant", ["A", "B", "C"], key="ab_variant")
-            outcome = st.selectbox("Outcome", ["sent", "opened", "clicked"], key="ab_outcome")
-            subject = st.text_input("Subject", value="Outreach experiment", key="ab_subject")
-            body = st.text_area("Body", value="variant test", key="ab_body", height=80)
-            ok = st.form_submit_button("Save A/B event", use_container_width=True)
+            lead_label = st.selectbox("线索", labels, key="ab_lead") if labels else None
+            variant = st.selectbox("版本", ["A", "B", "C"], key="ab_variant")
+            outcome = st.selectbox("结果", ["sent", "opened", "clicked"], key="ab_outcome")
+            subject = st.text_input("标题", value="Outreach experiment", key="ab_subject")
+            body = st.text_area("正文", value="variant test", key="ab_body", height=80)
+            ok = st.form_submit_button("保存 A/B 事件", use_container_width=True)
 
         if ok and lead_label:
             lead = label_map[lead_label]
@@ -1641,17 +1881,17 @@ def render_analytics(user: Dict) -> None:
                 body=body,
                 outcome=outcome,
             )
-            st.success("A/B event saved.")
+            st.success("A/B 事件已保存。")
             st.rerun()
 
 
 def render_sdr_agent(user: Dict) -> None:
-    st.markdown("## AI SDR")
-    st.caption("Personalized outreach generation + auto triage + forced human handoff")
+    st.markdown("## AI 销售")
+    st.caption("个性化触达生成 + 自动分诊 + 高价值强制转人工")
 
     leads = get_leads(_scoped_user_id(user))
     if not leads:
-        st.info("No leads available. Add or sync leads first.")
+        st.info("当前没有线索，请先新增或同步。")
         return
 
     if "sdr_webhook_url" not in st.session_state:
@@ -1659,33 +1899,33 @@ def render_sdr_agent(user: Dict) -> None:
 
     with st.container(border=True):
         c1, c2 = st.columns([1, 2])
-        handoff_threshold = c1.slider("Human handoff threshold", 50, 95, 75, key="sdr_threshold")
+        handoff_threshold = c1.slider("人工接管阈值", 50, 95, 75, key="sdr_threshold")
         st.session_state["sdr_webhook_url"] = c2.text_input(
-            "Webhook for urgent handoff (optional)",
+            "紧急接管 Webhook（可选）",
             value=st.session_state.get("sdr_webhook_url", ""),
             key="sdr_webhook",
             placeholder="https://example.com/webhook",
         )
 
-    tab1, tab2 = st.tabs(["Outreach Composer", "Inbound Triage"])
+    tab1, tab2 = st.tabs(["触达文案", "回复分诊"])
 
     with tab1:
         lead_map = _lead_label_map(leads)
         labels = list(lead_map.keys())
-        selected_label = st.selectbox("Target lead", labels, key="sdr_target")
+        selected_label = st.selectbox("目标线索", labels, key="sdr_target")
         lead = lead_map[selected_label]
 
         c1, c2, c3 = st.columns(3)
-        variant = c1.selectbox("Prompt variant", ["A", "B", "C"], key="sdr_variant")
-        tone = c2.selectbox("Tone", ["professional", "direct", "warm", "consultative"], key="sdr_tone")
+        variant = c1.selectbox("提示词版本", ["A", "B", "C"], key="sdr_variant")
+        tone = c2.selectbox("语气风格", ["professional", "direct", "warm", "consultative"], key="sdr_tone")
         angle = c3.selectbox(
-            "Pain-point angle",
+            "痛点角度",
             ["timeline risk", "budget fit", "school selection", "essay quality", "visa uncertainty"],
             key="sdr_angle",
         )
-        cta = st.text_input("CTA", value="book a 10-min feasibility call", key="sdr_cta")
+        cta = st.text_input("行动指令", value="预约10分钟评估沟通", key="sdr_cta")
 
-        if st.button("Generate personalized outreach", type="primary", use_container_width=True, key="sdr_gen"):
+        if st.button("生成个性化触达文案", type="primary", use_container_width=True, key="sdr_gen"):
             copy = generate_outreach_copy(
                 lead=lead,
                 angle=angle,
@@ -1701,14 +1941,14 @@ def render_sdr_agent(user: Dict) -> None:
         copy = st.session_state.get("sdr_last_copy")
         if copy:
             st.markdown("<div class='gs-card'>", unsafe_allow_html=True)
-            st.markdown(f"**Subject**: {copy.get('subject', '')}")
+            st.markdown(f"**标题**: {copy.get('subject', '')}")
             st.markdown(f"<div class='gs-type'>{copy.get('message', '')}</div>", unsafe_allow_html=True)
-            st.caption(f"Generated by: {copy.get('mode', 'fallback')}")
+            st.caption(f"生成模式：{copy.get('mode', 'fallback')}")
             st.markdown("</div>", unsafe_allow_html=True)
 
             c_log, c_out = st.columns([1.2, 1])
-            event_outcome = c_out.selectbox("Log outcome", ["sent", "opened", "clicked"], key="sdr_event_outcome")
-            if c_log.button("Save outreach event", use_container_width=True, key="sdr_save_event"):
+            event_outcome = c_out.selectbox("记录结果", ["sent", "opened", "clicked"], key="sdr_event_outcome")
+            if c_log.button("保存触达事件", use_container_width=True, key="sdr_save_event"):
                 _record_ab_email_event(
                     user_id=user["id"],
                     lead_id=lead.get("id"),
@@ -1717,31 +1957,31 @@ def render_sdr_agent(user: Dict) -> None:
                     body=copy.get("message", ""),
                     outcome=event_outcome,
                 )
-                st.success("Outreach event logged for A/B analytics.")
+                st.success("触达事件已记录到 A/B 分析。")
 
     with tab2:
         lead_map = _lead_label_map(leads)
         labels = list(lead_map.keys())
-        triage_label = st.selectbox("Lead", labels, key="triage_lead")
+        triage_label = st.selectbox("线索", labels, key="triage_lead")
         lead = lead_map[triage_label]
         inbound = st.text_area(
-            "Inbound message / comment",
+            "客户回复/评论内容",
             height=140,
             key="triage_text",
-            placeholder="Paste client reply text here",
+            placeholder="粘贴客户回复文本",
         )
 
-        if st.button("Analyze and draft reply", type="primary", use_container_width=True, key="triage_btn"):
+        if st.button("分析并生成回复", type="primary", use_container_width=True, key="triage_btn"):
             probability = estimate_conversion_probability(lead, inbound)
             handoff, reason = detect_handoff(probability, inbound, threshold=handoff_threshold)
             reply = generate_agent_reply(lead, inbound, probability)
 
             p1, p2, p3 = st.columns(3)
-            p1.metric("Conversion probability", f"{probability}%")
-            p2.metric("Handoff", "YES" if handoff else "NO")
-            p3.metric("Threshold", f"{handoff_threshold}%")
+            p1.metric("转化概率", f"{probability}%")
+            p2.metric("转人工", "是" if handoff else "否")
+            p3.metric("阈值", f"{handoff_threshold}%")
 
-            st.markdown("### Suggested AI reply")
+            st.markdown("### AI建议回复")
             st.code(reply)
 
             event = {
@@ -1757,21 +1997,21 @@ def render_sdr_agent(user: Dict) -> None:
 
             if handoff:
                 log_path = append_handoff_event(PROJECT_ROOT, event)
-                st.error(f"Forced handoff triggered: {reason}")
-                st.caption(f"Handoff log: {log_path}")
+                st.error(f"触发强制转人工：{reason}")
+                st.caption(f"转人工 log: {log_path}")
 
                 webhook = st.session_state.get("sdr_webhook_url", "")
                 ok, msg = trigger_handoff_webhook(webhook, event)
                 if webhook:
                     if ok:
-                        st.success(f"Webhook delivered ({msg})")
+                        st.success(f"Webhook 已送达（{msg}）")
                     else:
-                        st.warning(f"Webhook failed ({msg})")
+                        st.warning(f"Webhook 失败（{msg}）")
 
                 # high-probability leads are moved to qualified for human follow-up queue
                 update_lead(lead["id"], {"status": "qualified"})
             else:
-                st.success("Handled by AI agent boundary. No handoff needed.")
+                st.success("由 AI 代理自动处理，无需转人工。")
 
 
 def main() -> None:
@@ -1805,8 +2045,8 @@ def main() -> None:
         f"""
 <div class="gs-topbar">
   <div>
-    <div class="gs-topbar-title">留学获客引擎 | AI Lead Gen SaaS</div>
-    <div class="gs-topbar-sub">卖结果：提交需求 -> 管道执行 -> CSV 交付</div>
+    <div class="gs-topbar-title">留学获客引擎 | Manus级 AI 作战台</div>
+    <div class="gs-topbar-sub">卖结果：目标输入 -> 自动执行 -> 线索交付 -> 复盘优化</div>
   </div>
   <div class="gs-topbar-meta">账号: {user.get('email', '-')}<br/>套餐: {(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
 </div>
@@ -1816,7 +2056,7 @@ def main() -> None:
 
     page = st.radio(
         "导航",
-        ["线索包", "总览", "获客", "AI销售", "数据分析", "线索池", "订阅", "退出登录"],
+        ["作战中枢", "线索包", "总览", "获客", "AI销售", "数据分析", "线索池", "订阅", "退出登录"],
         horizontal=True,
         label_visibility="collapsed",
         key="workspace_nav_top",
@@ -1826,10 +2066,12 @@ def main() -> None:
         logout_user()
         st.rerun()
 
-    if page in {"线索池", "获客", "AI销售", "数据分析"} and not has_required_plan(user, minimum="pro"):
+    if page in {"作战中枢", "线索池", "获客", "AI销售", "数据分析"} and not has_required_plan(user, minimum="pro"):
         st.info("当前为试用模式。升级 Pro 可开启完整自动化和更高额度。")
 
-    if page == "线索包":
+    if page == "作战中枢":
+        render_command_center(user)
+    elif page == "线索包":
         render_lead_pack(user)
     elif page == "总览":
         render_overview(user)
