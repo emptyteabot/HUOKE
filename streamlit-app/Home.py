@@ -105,10 +105,34 @@ html, body, [class*="stApp"] {
   display: none !important;
 }
 
+header[data-testid="stHeader"] {
+  height: 0 !important;
+  min-height: 0 !important;
+  background: transparent !important;
+}
+
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+#MainMenu,
+footer {
+  visibility: hidden !important;
+  height: 0 !important;
+  position: fixed !important;
+}
+
 div.block-container {
   max-width: 1260px;
-  padding-top: .85rem;
+  padding-top: 3.2rem;
   padding-bottom: 2.4rem;
+}
+
+@media (max-width: 900px) {
+  div.block-container {
+    padding-top: 3.8rem;
+    padding-left: .7rem;
+    padding-right: .7rem;
+  }
 }
 
 .gs-topbar {
