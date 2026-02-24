@@ -1,34 +1,49 @@
-﻿# OpenClaw 本机 -> 云端实时同步
+# OpenClaw Local -> Cloud Realtime Sync
 
-目标：本机持续读取最新 OpenClaw 抓取结果，实时写入云端 Supabase，网页端可直接看到。
+Goal: continuously read local OpenClaw outputs and sync filtered leads to Supabase so the web app can show them in realtime.
 
-## 1. 环境变量
-
-```powershell
-$env:SUPABASE_URL="你的 Supabase URL"
-$env:SUPABASE_KEY="你的 Supabase Key"
-$env:SYNC_USER_EMAIL="你在网站登录的邮箱"
-```
-
-## 2. 启动持续同步
+## 1. Environment Variables
 
 ```powershell
-python .\openclaw_realtime_sync.py --user-email $env:SYNC_USER_EMAIL --loop --interval 20 --min-score 60 --max-rows 500
+$env:SUPABASE_URL="your Supabase URL"
+$env:SUPABASE_KEY="your Supabase Key"
+$env:SYNC_USER_EMAIL="your app login email"
+$env:SYNC_HEARTBEAT_PATH="data/openclaw/sync_heartbeat.json"
 ```
 
-说明：
-- 默认会排除同业机构
-- 默认每 20 秒同步一次
-- 会自动按 `external_id` 去重，避免重复写入
+## 2. Start Continuous Sync
 
-## 3. 网页查看位置
+```powershell
+python .\openclaw_realtime_sync.py --user-email $env:SYNC_USER_EMAIL --loop --interval 20 --min-score 60 --max-rows 500 --heartbeat-path $env:SYNC_HEARTBEAT_PATH
+```
 
-登录网站后进入：
-- `潜客采集`：可看到云端同步来源 `supabase_synced`
-- `线索池`：可看到已入库线索
+Notes:
+- Competitor-like rows are excluded by default.
+- Default interval is 20 seconds.
+- Dedup is based on `external_id`.
+- Exponential backoff is applied on repeated errors.
 
-## 4. 单次手动同步（调试）
+## 3. Web Visibility
+
+The web workspace can show:
+- `Acquisition`: synced source `supabase_synced` and heartbeat status.
+- `Lead Pool`: imported leads.
+
+Guest auto-login is enabled by default (`ENABLE_GUEST_AUTOLOGIN=true`).
+
+## 4. One-Time Debug Sync
 
 ```powershell
 python .\openclaw_realtime_sync.py --user-email $env:SYNC_USER_EMAIL --min-score 60 --max-rows 200
 ```
+
+## 5. Heartbeat File
+
+Path: `data/openclaw/sync_heartbeat.json`
+
+Key fields:
+- `status`: `ok` or `error`
+- `loop_count`
+- `last_success_at`
+- `last_error`
+- `error_streak`

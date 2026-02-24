@@ -12,14 +12,14 @@ except ImportError:
     # 如果没有config.py,使用环境变量
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
     FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@guestseek.com")
-    FROM_NAME = "GuestSeek"
+    FROM_NAME = "\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce"
 
 def send_email(
     to_email: str,
     to_name: str,
     subject: str,
     body: str,
-    from_name: str = "GuestSeek",
+    from_name: str = "\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce",
     track_opens: bool = True,
     track_clicks: bool = True,
     email_id: Optional[str] = None
@@ -99,7 +99,7 @@ def send_batch_emails(
     recipients: List[Dict],
     subject_template: str,
     body_template: str,
-    from_name: str = "GuestSeek"
+    from_name: str = "\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce"
 ) -> Dict:
     """
     批量发送邮件
@@ -168,7 +168,7 @@ def send_batch_emails(
         'results': results
     }
 
-def format_email_html(body_text: str, institution_name: str = "GuestSeek") -> str:
+def format_email_html(body_text: str, institution_name: str = "\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce") -> str:
     """
     将纯文本邮件转换为HTML格式
 
@@ -231,7 +231,7 @@ def format_email_html(body_text: str, institution_name: str = "GuestSeek") -> st
                 {body_html}
             </div>
             <div class="email-footer">
-                <p>此邮件由 {institution_name} 通过 GuestSeek 发送</p>
+                <p>此邮件由 {institution_name} 通过 \u7559\u5b66\u83b7\u5ba2\u5f15\u64ce 发送</p>
                 <p style="font-size: 0.8em; color: #9ca3af;">
                     如不想再收到此类邮件,请<a href="{{{{unsubscribe}}}}">点击退订</a>
                 </p>
@@ -266,7 +266,7 @@ def test_sendgrid_connection() -> Dict:
         message = Mail(
             from_email=FROM_EMAIL,
             to_emails=FROM_EMAIL,
-            subject='GuestSeek 测试邮件',
+            subject='\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce 测试邮件',
             html_content='<p>这是一封测试邮件,如果你收到了,说明SendGrid配置成功!</p>'
         )
 

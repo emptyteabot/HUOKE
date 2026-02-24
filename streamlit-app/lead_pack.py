@@ -181,6 +181,36 @@ def _safe_int(value, default: int = 0) -> int:
         return default
 
 
+def _repair_mojibake(text: str) -> str:
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+
+    best = raw
+    for enc in ("gb18030", "gbk"):
+        try:
+            candidate = raw.encode(enc, errors="ignore").decode("utf-8", errors="ignore").strip()
+        except Exception:
+            continue
+        if candidate and candidate.count("?") < best.count("?"):
+            best = candidate
+    return best
+
+
+def _normalize_platform(platform: str, post_url: str, source_url: str) -> str:
+    p = _repair_mojibake(platform).lower()
+    merged = f"{p} {str(post_url).lower()} {str(source_url).lower()}"
+    if "xiaohongshu" in merged or "xhs" in merged or "\u5c0f\u7ea2\u4e66" in merged:
+        return "xhs"
+    if "weibo" in merged or "\u5fae\u535a" in merged:
+        return "weibo"
+    if "zhihu" in merged or "\u77e5\u4e4e" in merged:
+        return "zhihu"
+    if "douyin" in merged or "\u6296\u97f3" in merged:
+        return "douyin"
+    return p or "xhs"
+
+
 def _extract_json_rows(obj) -> List[Dict]:
     rows: List[Dict] = []
 
@@ -220,18 +250,27 @@ def _candidate_files(project_root: Optional[Path] = None) -> List[Path]:
     openclaw_dir = root / "data" / "openclaw"
     exports_dir = root / "data" / "exports"
 
-    out = [
-        openclaw_dir / "openclaw_leads_latest.csv",
-        openclaw_dir / "openclaw_leads_latest.json",
-        exports_dir / "high_value_leads_latest.csv",
-        exports_dir / "high_value_leads_latest.json",
-    ]
+    out = []
+
+    openclaw_csv = openclaw_dir / "openclaw_leads_latest.csv"
+    openclaw_json = openclaw_dir / "openclaw_leads_latest.json"
+    if openclaw_csv.exists():
+        out.append(openclaw_csv)
+    elif openclaw_json.exists():
+        out.append(openclaw_json)
+
+    latest_fixed_csv = exports_dir / "high_value_leads_latest.csv"
+    latest_fixed_json = exports_dir / "high_value_leads_latest.json"
+    if latest_fixed_csv.exists():
+        out.append(latest_fixed_csv)
+    elif latest_fixed_json.exists():
+        out.append(latest_fixed_json)
 
     latest_csv = _latest(exports_dir, "high_value_leads_*.csv")
     latest_json = _latest(exports_dir, "high_value_leads_*.json")
     if latest_csv:
         out.append(latest_csv)
-    if latest_json:
+    elif latest_json:
         out.append(latest_json)
 
     seen = set()
@@ -266,14 +305,15 @@ def _normalize_source_rows(project_root: Optional[Path] = None) -> List[Dict]:
             loaded = _extract_json_rows(obj)
 
         for row in loaded:
-            platform = (_safe_str(row, ["platform", "source"]) or "xhs").lower()
-            author = _safe_str(row, ["author", "name", "nickname", "user"]) or "unknown"
-            content = _safe_str(row, TEXT_KEYS)
-            keyword = _safe_str(row, ["keyword", "query"])
-            contact = _safe_str(row, ["phone", "wechat", "contact", "email"])
+            platform_raw = _safe_str(row, ["platform", "source"]) or "xhs"
+            author = _repair_mojibake(_safe_str(row, ["author", "name", "nickname", "user"])) or "unknown"
+            content = _repair_mojibake(_safe_str(row, TEXT_KEYS))
+            keyword = _repair_mojibake(_safe_str(row, ["keyword", "query"]))
+            contact = _repair_mojibake(_safe_str(row, ["phone", "wechat", "contact", "email"]))
             author_url = _safe_str(row, ["author_url", "profile_url", "user_url"])
             post_url = _safe_str(row, ["note_url", "post_url", "url", "link"])
             source_url = _safe_str(row, ["source_url", "search_url", "origin_url"])
+            platform = _normalize_platform(platform_raw, post_url, source_url)
             score = _safe_int(row.get("score"), _safe_int(row.get("confidence"), 65))
             collected_at = _safe_str(row, ["collected_at", "created_at", "timestamp"])
 

@@ -1,16 +1,19 @@
 ﻿import argparse
 import hashlib
+import json
 import os
 import re
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 import requests
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 STREAMLIT_APP_DIR = PROJECT_ROOT / "streamlit-app"
+SYNC_HEARTBEAT_PATH = PROJECT_ROOT / "data" / "openclaw" / "sync_heartbeat.json"
 if str(STREAMLIT_APP_DIR) not in sys.path:
     sys.path.insert(0, str(STREAMLIT_APP_DIR))
 
@@ -58,11 +61,24 @@ def _get_env(key: str, default: str = "") -> str:
     return (os.getenv(key, default) or "").strip()
 
 
-def _supabase_conf() -> Dict[str, str]:
+def _write_heartbeat(path: Path, payload: Dict) -> None:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        merged = {
+            "updated_at": datetime.now().isoformat(timespec="seconds"),
+            **dict(payload or {}),
+        }
+        path.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        # heartbeat is observability only; never break sync loop
+        pass
+
+
+def _supabase_conf() -> Optional[Dict[str, str]]:
     url = _get_env("SUPABASE_URL")
     key = _get_env("SUPABASE_KEY")
     if not url or not key:
-        raise RuntimeError("SUPABASE_URL or SUPABASE_KEY missing")
+        return None
     return {"url": url.rstrip("/"), "key": key}
 
 
@@ -170,11 +186,15 @@ def run_once(
     dry_run: bool,
 ) -> Dict:
     conf = _supabase_conf()
-    if not user_id:
+    cloud_enabled = conf is not None
+
+    if cloud_enabled and not user_id:
         user_id = _lookup_user_id(conf, user_email)
+    if not user_id:
+        user_id = str(user_email or "local-guest").strip().lower() or "local-guest"
 
     all_rows = _normalize_source_rows(PROJECT_ROOT)
-    existing_ids = _existing_external_ids(conf, user_id)
+    existing_ids = _existing_external_ids(conf, user_id) if cloud_enabled else set()
 
     prepared: List[Dict] = []
     skipped_low = 0
@@ -205,7 +225,7 @@ def run_once(
             break
 
     inserted = 0
-    if not dry_run and prepared:
+    if cloud_enabled and not dry_run and prepared:
         inserted = _insert_batches(conf, prepared)
 
     return {
@@ -217,6 +237,8 @@ def run_once(
         "skipped_competitor": skipped_comp,
         "skipped_duplicate": skipped_dup,
         "dry_run": dry_run,
+        "cloud_enabled": cloud_enabled,
+        "mode": "cloud_sync" if cloud_enabled else "local_only",
     }
 
 
@@ -230,12 +252,32 @@ def main() -> None:
     parser.add_argument("--loop", action="store_true", help="run forever")
     parser.add_argument("--interval", type=int, default=20, help="seconds between loops")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--heartbeat-path", default=_get_env("SYNC_HEARTBEAT_PATH"), help="path to sync heartbeat json")
     args = parser.parse_args()
 
     if not args.user_id and not args.user_email:
-        raise SystemExit("Please set --user-email or --user-id")
+        args.user_id = "local-guest"
+
+    heartbeat_path = Path(args.heartbeat_path).expanduser() if args.heartbeat_path else SYNC_HEARTBEAT_PATH
+    interval_sec = max(5, int(args.interval))
+    loop_count = 0
+    error_streak = 0
+    last_success_at = ""
+
+    _write_heartbeat(
+        heartbeat_path,
+        {
+            "status": "booting",
+            "loop_count": loop_count,
+            "interval_sec": interval_sec,
+            "last_success_at": last_success_at,
+            "last_error": "",
+        },
+    )
 
     while True:
+        loop_count += 1
+        started_at = datetime.now().isoformat(timespec="seconds")
         try:
             result = run_once(
                 user_email=args.user_email,
@@ -246,12 +288,44 @@ def main() -> None:
                 dry_run=args.dry_run,
             )
             print(result)
+            error_streak = 0
+            last_success_at = datetime.now().isoformat(timespec="seconds")
+            _write_heartbeat(
+                heartbeat_path,
+                {
+                    "status": "ok" if result.get("cloud_enabled") else "local_only",
+                    "loop_count": loop_count,
+                    "interval_sec": interval_sec,
+                    "started_at": started_at,
+                    "last_success_at": last_success_at,
+                    "last_error": "",
+                    "error_streak": error_streak,
+                    "last_result": result,
+                },
+            )
         except Exception as exc:
-            print({"error": str(exc)})
+            err = str(exc)
+            print({"error": err})
+            error_streak += 1
+            _write_heartbeat(
+                heartbeat_path,
+                {
+                    "status": "error",
+                    "loop_count": loop_count,
+                    "interval_sec": interval_sec,
+                    "started_at": started_at,
+                    "last_success_at": last_success_at,
+                    "last_error": err,
+                    "error_streak": error_streak,
+                },
+            )
 
         if not args.loop:
             break
-        time.sleep(max(5, int(args.interval)))
+
+        # exponential backoff on consecutive failures (capped)
+        sleep_sec = interval_sec if error_streak == 0 else min(interval_sec * (2 ** min(error_streak, 4)), 300)
+        time.sleep(max(5, int(sleep_sec)))
 
 
 if __name__ == "__main__":

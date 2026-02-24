@@ -35,7 +35,15 @@ from database import (
     save_email,
     update_lead,
 )
-from config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL
+from config import (
+    ENABLE_GUEST_AUTOLOGIN,
+    GUEST_ACCOUNT_COMPANY,
+    GUEST_ACCOUNT_EMAIL,
+    GUEST_ACCOUNT_NAME,
+    OPENAI_API_KEY,
+    OPENAI_BASE_URL,
+    OPENAI_MODEL,
+)
 from services.analytics_engine import (
     build_ab_significance,
     build_ab_variant_stats,
@@ -61,7 +69,7 @@ from lead_pack import (
 
 
 st.set_page_config(
-    page_title="GuestSeek - AI Study Abroad Lead SaaS",
+    page_title="留学获客引擎 | LeadPulse SaaS",
     page_icon="*",
     layout="wide",
 )
@@ -252,7 +260,23 @@ TARGET_LEAD_HINTS = [
     "签证",
 ]
 
-MOJIBAKE_TOKENS = ["�", "?"]
+MOJIBAKE_TOKENS = ["�", "锟"]
+MOJIBAKE_GLYPHS = ['锛', '馃', '鐣', '寰', '鎴', '涓', '鍙', '澦', '鐢', '鏄', '€', '鈥']
+INSTITUTIONAL_AUTHOR_HINTS = [
+    "中介",
+    "机构",
+    "顾问",
+    "工作室",
+    "教育",
+    "老师",
+    "留学咨询",
+    "留学服务",
+    "官方",
+    "播报",
+]
+DIRECT_SELL_HINTS = ["私信", "加v", "微信", "咨询", "报价", "套餐", "保录", "代办", "服务"]
+NOISE_AUTHORS = {"search_card", "unknown", "匿名", "none", "null"}
+SYNC_HEARTBEAT_PATH = OPENCLAW_DIR / "sync_heartbeat.json"
 
 
 def _db_ready() -> bool:
@@ -275,6 +299,56 @@ def _user_payload(user: Dict) -> Dict:
         "current_period_end": user.get("current_period_end"),
     }
 
+
+def _auto_login_guest_user() -> bool:
+    if not ENABLE_GUEST_AUTOLOGIN:
+        return False
+
+    email = str(GUEST_ACCOUNT_EMAIL or "").strip().lower()
+    if not email:
+        return False
+
+    try:
+        user = get_user_by_email(email)
+        if not user:
+            create_user(
+                {
+                    "name": str(GUEST_ACCOUNT_NAME or "guest_user"),
+                    "company": str(GUEST_ACCOUNT_COMPANY or "LeadPulse"),
+                    "email": email,
+                    "password_hash": get_password_hash("guest-pass-2026"),
+                    "plan": "enterprise",
+                    "subscription_status": "active",
+                }
+            )
+            user = get_user_by_email(email)
+    except Exception:
+        return False
+
+    if not user:
+        return False
+
+    token = create_access_token({"sub": user["id"], "email": user["email"]})
+    login_user(_user_payload(user), token)
+    return True
+
+
+
+def _force_session_guest_login() -> Dict:
+    user = {
+        "id": "local-guest",
+        "email": str(GUEST_ACCOUNT_EMAIL or "guest@ai-huoke.local").strip().lower(),
+        "name": str(GUEST_ACCOUNT_NAME or "\u8bbf\u5ba2\u8d26\u53f7"),
+        "company": str(GUEST_ACCOUNT_COMPANY or "\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce"),
+        "plan": "enterprise",
+        "subscription_status": "active",
+        "stripe_customer_id": "",
+        "stripe_subscription_id": "",
+        "current_period_end": None,
+    }
+    token = create_access_token({"sub": user["id"], "email": user["email"]})
+    login_user(_user_payload(user), token)
+    return user
 
 def _scoped_user_id(user: Optional[Dict]) -> Optional[str]:
     if not user:
@@ -346,10 +420,33 @@ def _safe_int(value, default: int = 0) -> int:
         return default
 
 
-def _is_competitor(author: str, content: str) -> bool:
-    text = f"{author} {content}".lower()
-    return any(kw.lower() in text for kw in COMPETITOR_KEYWORDS)
+def _is_noise_author(author: str) -> bool:
+    author_l = str(author or "").strip().lower()
+    if not author_l:
+        return True
+    if author_l in NOISE_AUTHORS:
+        return True
+    return False
 
+
+def _is_competitor(author: str, content: str) -> bool:
+    author_l = str(author or "").strip().lower()
+    text = f"{author} {content}".lower()
+
+    if _is_noise_author(author_l):
+        return True
+
+    if any(kw.lower() in text for kw in COMPETITOR_KEYWORDS):
+        return True
+
+    if any(hint in author_l for hint in INSTITUTIONAL_AUTHOR_HINTS):
+        return True
+
+    sales_hits = sum(1 for x in DIRECT_SELL_HINTS if x in text)
+    if sales_hits >= 2:
+        return True
+
+    return False
 
 def _text_quality_score(text: str) -> int:
     if not text:
@@ -359,6 +456,13 @@ def _text_quality_score(text: str) -> int:
     return cjk_count * 4 - bad_count * 6 + min(len(text), 500) // 20
 
 
+def _garble_ratio(text: str) -> float:
+    raw = str(text or "")
+    if not raw:
+        return 0.0
+    hits = sum(raw.count(tok) for tok in MOJIBAKE_GLYPHS)
+    return hits / max(len(raw), 1)
+
 def _repair_mojibake(text: str) -> str:
     raw = (text or "").strip()
     if not raw:
@@ -366,19 +470,30 @@ def _repair_mojibake(text: str) -> str:
 
     best = raw
     best_score = _text_quality_score(raw)
+    raw_garble = _garble_ratio(raw)
 
-    for enc in ("gb18030", "gbk"):
+    transforms = [("gb18030", "utf-8"), ("gbk", "utf-8"), ("latin1", "utf-8")]
+    for src_enc, dst_enc in transforms:
         try:
-            candidate = raw.encode(enc, errors="ignore").decode("utf-8", errors="ignore").strip()
+            candidate = raw.encode(src_enc, errors="ignore").decode(dst_enc, errors="ignore").strip()
         except Exception:
             continue
+
+        if not candidate:
+            continue
+
         score = _text_quality_score(candidate)
-        if candidate and score > best_score + 2:
+        cand_garble = _garble_ratio(candidate)
+        if score > best_score + 2:
+            best = candidate
+            best_score = score
+            continue
+
+        if raw_garble >= 0.015 and cand_garble <= raw_garble * 0.6 and score >= best_score - 4:
             best = candidate
             best_score = score
 
     return best
-
 
 def _normalize_platform(platform: str, post_url: str, source_url: str) -> str:
     p = _repair_mojibake(platform).lower()
@@ -415,13 +530,12 @@ def _intent_signal(content: str, keyword: str) -> Tuple[int, str]:
 
 
 def _is_target_lead(author: str, content: str, intent_level: str, competitor: bool) -> bool:
-    if competitor:
+    if competitor or _is_noise_author(author):
         return False
     if intent_level in {"high", "medium"}:
         return True
     text = f"{author} {content}".lower()
     return sum(1 for k in TARGET_LEAD_HINTS if k in text) >= 2
-
 
 def _extract_json_rows(obj) -> List[Dict]:
     if isinstance(obj, list):
@@ -503,18 +617,27 @@ def _load_external_sources() -> Tuple[pd.DataFrame, List[str]]:
     frames: List[pd.DataFrame] = []
     used_files: List[str] = []
 
-    candidates: List[Path] = [
-        OPENCLAW_DIR / "openclaw_leads_latest.csv",
-        OPENCLAW_DIR / "openclaw_leads_latest.json",
-        EXPORTS_DIR / "high_value_leads_latest.csv",
-        EXPORTS_DIR / "high_value_leads_latest.json",
-    ]
+    candidates: List[Path] = []
+
+    openclaw_csv = OPENCLAW_DIR / "openclaw_leads_latest.csv"
+    openclaw_json = OPENCLAW_DIR / "openclaw_leads_latest.json"
+    if openclaw_csv.exists():
+        candidates.append(openclaw_csv)
+    elif openclaw_json.exists():
+        candidates.append(openclaw_json)
+
+    latest_fixed_csv = EXPORTS_DIR / "high_value_leads_latest.csv"
+    latest_fixed_json = EXPORTS_DIR / "high_value_leads_latest.json"
+    if latest_fixed_csv.exists():
+        candidates.append(latest_fixed_csv)
+    elif latest_fixed_json.exists():
+        candidates.append(latest_fixed_json)
 
     latest_csv = _latest_file(EXPORTS_DIR, "high_value_leads_*.csv")
     latest_json = _latest_file(EXPORTS_DIR, "high_value_leads_*.json")
     if latest_csv:
         candidates.append(latest_csv)
-    if latest_json:
+    elif latest_json:
         candidates.append(latest_json)
 
     seen = set()
@@ -551,6 +674,18 @@ def _load_external_sources() -> Tuple[pd.DataFrame, List[str]]:
         return pd.DataFrame(), []
 
     return pd.concat(frames, ignore_index=True), used_files
+
+
+def _load_sync_heartbeat() -> Dict:
+    if not SYNC_HEARTBEAT_PATH.exists():
+        return {}
+
+    try:
+        raw = SYNC_HEARTBEAT_PATH.read_text(encoding="utf-8")
+        data = json.loads(raw or "{}")
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
 
 
 def _parse_note_meta(notes: str) -> Dict[str, str]:
@@ -702,7 +837,8 @@ def _normalize_external_df(df: pd.DataFrame) -> pd.DataFrame:
 
         intent_bonus, intent_level = _intent_signal(f"{content} {evidence_text}", keyword)
         competitor = _is_competitor(author, f"{content} {keyword}")
-        score = min(100, max(0, base_score + intent_bonus + (10 if dm_ready else 0)))
+        noise_author = _is_noise_author(author)
+        score = min(100, max(0, base_score + intent_bonus + (10 if dm_ready else 0) - (12 if noise_author else 0)))
         target = _is_target_lead(author, f"{content} {keyword}", intent_level, competitor)
 
         body = f"{platform}|{author}|{post_url}|{content[:80]}"
@@ -729,6 +865,7 @@ def _normalize_external_df(df: pd.DataFrame) -> pd.DataFrame:
                 "collected_at": collected_at,
                 "source_file": source_file,
                 "is_competitor": competitor,
+                "is_noise_author": noise_author,
                 "external_id": external_id,
             }
         )
@@ -809,6 +946,7 @@ def _sync_openclaw_leads(
 
         notes = (
             f"source={row.get('platform', '')} | score={row.get('score', 0)} | intent={row.get('intent_level', 'low')} | keyword={row.get('keyword', '')}\n"
+            f"openclaw_sync=1\n"
             f"dm_ready={row.get('dm_ready', False)} | access_hint={row.get('access_hint', '')}\n"
             f"post_url={row.get('post_url', '')}\n"
             f"author_url={row.get('author_url', '')}\n"
@@ -843,59 +981,59 @@ def _sync_openclaw_leads(
     }
 
 def render_login_register() -> None:
-    st.title("GuestSeek AI Lead Gen")
-    st.caption("Production workspace: auth + acquisition + outreach + billing")
+    st.title("留学获客引擎")
+    st.caption("生产工作台：账号 + 获客 + 触达 + 订阅")
 
-    login_tab, register_tab = st.tabs(["Login", "Register"])
+    login_tab, register_tab = st.tabs(["登录", "注册"])
 
     with login_tab:
         with st.form("login_form", clear_on_submit=False):
-            email = st.text_input("Email", key="login_email", placeholder="you@company.com")
-            password = st.text_input("Password", type="password", key="login_password")
-            submitted = st.form_submit_button("Sign in", use_container_width=True, type="primary")
+            email = st.text_input("邮箱", key="login_email", placeholder="you@company.com")
+            password = st.text_input("密码", type="password", key="login_password")
+            submitted = st.form_submit_button("登录", use_container_width=True, type="primary")
 
         if submitted:
             if not email or not password:
-                st.error("Email and password are required.")
+                st.error("邮箱和密码不能为空。")
                 return
 
             user = get_user_by_email(email.strip().lower())
             if not user:
-                st.error("Account not found. Please register first.")
+                st.error("账号不存在，请先注册。")
                 return
             if not verify_password(password, user.get("password_hash", "")):
-                st.error("Invalid password.")
+                st.error("密码错误。")
                 return
 
             token = create_access_token({"sub": user["id"], "email": user["email"]})
             login_user(_user_payload(user), token)
-            st.success("Signed in.")
+            st.success("登录成功。")
             st.rerun()
 
     with register_tab:
         with st.form("register_form", clear_on_submit=False):
-            name = st.text_input("Name", key="reg_name")
-            company = st.text_input("Company", key="reg_company")
-            email = st.text_input("Email", key="reg_email")
-            password = st.text_input("Password", type="password", key="reg_password")
-            password_confirm = st.text_input("Confirm password", type="password", key="reg_password_confirm")
-            submitted = st.form_submit_button("Create account", use_container_width=True)
+            name = st.text_input("姓名", key="reg_name")
+            company = st.text_input("公司", key="reg_company")
+            email = st.text_input("邮箱", key="reg_email")
+            password = st.text_input("密码", type="password", key="reg_password")
+            password_confirm = st.text_input("确认密码", type="password", key="reg_password_confirm")
+            submitted = st.form_submit_button("创建账号", use_container_width=True)
 
         if submitted:
             if not all([name, company, email, password, password_confirm]):
-                st.error("All fields are required.")
+                st.error("所有字段都必填。")
                 return
             if password != password_confirm:
-                st.error("Passwords do not match.")
+                st.error("两次密码不一致。")
                 return
             if len(password) < 8:
-                st.error("Password must be at least 8 characters.")
+                st.error("密码长度至少 8 位。")
                 return
 
             email_norm = email.strip().lower()
             existing = get_user_by_email(email_norm)
             if existing:
-                st.error("Email already registered. Please sign in.")
+                st.error("该邮箱已注册，请直接登录。")
                 return
 
             user_id = create_user(
@@ -922,38 +1060,38 @@ def render_login_register() -> None:
             }
             token = create_access_token({"sub": user["id"], "email": user["email"]})
             login_user(_user_payload(user), token)
-            st.success("Account created and signed in.")
+            st.success("账号创建成功，已自动登录。")
             st.rerun()
 
 
 def render_lead_pack(user: Dict) -> None:
-    st.markdown("## Lead Pack Orders")
-    st.caption("$50 / 500 leads. Collect request -> queue backend task -> export CSV -> send email.")
+    st.markdown("## 线索包订单")
+    st.caption("$50 / 500 条线索：提交需求 -> 队列处理 -> 导出 CSV -> 邮件交付。")
 
     with st.container(border=True):
         with st.form("lead_pack_form", clear_on_submit=False):
             request_text = st.text_input(
-                "What leads do you need?",
-                placeholder="Example: Singapore SaaS founders interested in study-abroad planning",
+                "你需要什么类型的线索？",
+                placeholder="示例：新加坡 SaaS 创始人，对留学规划有需求",
             )
             c1, c2, c3 = st.columns(3)
-            region = c1.text_input("Region", value="Singapore")
-            role = c2.text_input("Role", value="Founder")
-            industry = c3.text_input("Industry", value="SaaS")
+            region = c1.text_input("地区", value="Singapore")
+            role = c2.text_input("角色", value="Founder")
+            industry = c3.text_input("行业", value="SaaS")
 
             c4, c5, c6 = st.columns(3)
-            quantity = c4.number_input("Lead quantity", min_value=100, max_value=2000, value=500, step=50)
-            delivery_email = c5.text_input("Delivery email", value=str(user.get("email", "")))
-            mark_paid = c6.checkbox("Mark paid (ops mode)", value=True)
+            quantity = c4.number_input("线索数量", min_value=100, max_value=2000, value=500, step=50)
+            delivery_email = c5.text_input("交付邮箱", value=str(user.get("email", "")))
+            mark_paid = c6.checkbox("标记为已支付（运营模式）", value=True)
 
-            process_now = st.checkbox("Run this order immediately after submit", value=False)
-            submit = st.form_submit_button("Create lead-pack order", use_container_width=True, type="primary")
+            process_now = st.checkbox("提交后立即执行该订单", value=False)
+            submit = st.form_submit_button("创建线索包订单", use_container_width=True, type="primary")
 
         if submit:
             if not request_text.strip():
-                st.error("Request text is required.")
+                st.error("请填写线索需求描述。")
             elif "@" not in delivery_email:
-                st.error("Please provide a valid delivery email.")
+                st.error("请填写有效的交付邮箱。")
             else:
                 order = create_lead_pack_order(
                     user_id=str(user.get("id", "")),
@@ -971,26 +1109,26 @@ def render_lead_pack(user: Dict) -> None:
                 if mark_paid:
                     mark_lead_pack_paid(order["id"], project_root=PROJECT_ROOT)
 
-                st.success(f"Order created: {order['id']}")
+                st.success(f"订单已创建: {order['id']}")
 
                 if process_now and mark_paid:
                     try:
                         done = process_lead_pack_order(order["id"], project_root=PROJECT_ROOT)
                         st.success(
-                            f"Order processed. rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}"
+                            f"订单已处理 rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}"
                         )
                         if done.get("csv_path"):
                             st.code(done.get("csv_path"))
                     except Exception as exc:
-                        st.error(f"Process failed: {exc}")
+                        st.error(f"处理失败: {exc}")
 
     st.markdown("---")
     orders = list_lead_pack_orders(str(user.get("id", "")), project_root=PROJECT_ROOT)
     if not orders:
-        st.info("No lead-pack orders yet.")
+        st.info("暂无线索包订单。")
         return
 
-    st.markdown(f"### Your orders ({len(orders)})")
+    st.markdown(f"### 你的订单: {len(orders)}")
     table = []
     for o in orders:
         table.append(
@@ -1006,20 +1144,20 @@ def render_lead_pack(user: Dict) -> None:
         )
     st.dataframe(pd.DataFrame(table), use_container_width=True, hide_index=True)
 
-    selected_order_id = st.selectbox("Select order", [o.get("id") for o in orders], key="lp_selected_order")
+    selected_order_id = st.selectbox("选择订单", [o.get("id") for o in orders], key="lp_selected_order")
     selected_order = next((o for o in orders if o.get("id") == selected_order_id), None)
 
     c1, c2, c3 = st.columns(3)
-    if c1.button("Mark selected as paid", key="lp_mark_paid_btn", use_container_width=True):
+    if c1.button("标记为已支付", key="lp_mark_paid_btn", use_container_width=True):
         mark_lead_pack_paid(selected_order_id, project_root=PROJECT_ROOT)
-        st.success("Payment status updated to paid.")
+        st.success("支付状态已更新为 paid。")
         st.rerun()
 
-    if c2.button("Process selected order", key="lp_process_one_btn", use_container_width=True):
+    if c2.button("处理当前订单", key="lp_process_one_btn", use_container_width=True):
         try:
             done = process_lead_pack_order(selected_order_id, project_root=PROJECT_ROOT)
             st.success(
-                f"Done. rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}"
+                f"已完成 rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}"
             )
             if done.get("csv_path"):
                 st.code(done.get("csv_path"))
@@ -1027,18 +1165,18 @@ def render_lead_pack(user: Dict) -> None:
                 st.warning(done.get("delivery_error"))
             st.rerun()
         except Exception as exc:
-            st.error(f"Process failed: {exc}")
+            st.error(f"处理失败: {exc}")
 
-    if c3.button("Process queue (max 3)", key="lp_process_queue_btn", use_container_width=True):
+    if c3.button("处理队列（最多3个）", key="lp_process_queue_btn", use_container_width=True):
         results = process_queued_orders(max_jobs=3, project_root=PROJECT_ROOT)
-        st.success(f"Queue processed: {len(results)} job(s)")
+        st.success(f"队列已处理: {len(results)}")
         if results:
             st.dataframe(pd.DataFrame(results), use_container_width=True, hide_index=True)
         st.rerun()
 
     if selected_order:
         st.markdown("---")
-        st.markdown(f"**Order detail:** `{selected_order.get('id', '')}`")
+        st.markdown(f"**订单详情**: `{selected_order.get('id', '')}`")
         if selected_order.get("csv_path"):
             st.code(selected_order.get("csv_path"))
         if selected_order.get("delivery_error"):
@@ -1050,68 +1188,68 @@ def render_overview(user: Dict) -> None:
     user = refresh_subscription_in_session(user)
     stats = get_stats(_scoped_user_id(user))
 
-    st.markdown("## Overview")
+    st.markdown("## 总览")
     st.markdown(
         """
 <div class="gs-hero">
-  <div class="gs-chip">Outcome-first</div>
-  <div class="gs-chip">Study Abroad Vertical</div>
+  <div class="gs-chip">结果优先</div>
+  <div class="gs-chip">留学垂直</div>
   <div class="gs-chip">B2B SaaS</div>
-  <h3 style="margin:.65rem 0 .2rem 0;">GuestSeek Revenue Engine</h3>
-  <div class="gs-type" style="max-width:900px;">Request -> Crawl -> Filter -> Export CSV -> Deliver</div>
+  <h3 style="margin:.65rem 0 .2rem 0;">留学AI获客引擎</h3>
+  <div class="gs-type" style="max-width:900px;">提交需求 -> 抓取 -> 筛选 -> Export CSV -> 交付</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Plan", (user.get("plan") or "free").upper())
-    c2.metric("Subscription", user.get("subscription_status") or "inactive")
-    c3.metric("Total leads", stats.get("total_leads", 0))
-    c4.metric("Outreach events", stats.get("total_emails", 0))
+    c1.metric("套餐", (user.get("plan") or "free").upper())
+    c2.metric("订阅", user.get("subscription_status") or "inactive")
+    c3.metric("线索总数", stats.get("total_leads", 0))
+    c4.metric("触达事件", stats.get("total_emails", 0))
 
     st.markdown("---")
-    st.markdown("1. Use **Lead Pack** to sell a fixed lead package.")
-    st.markdown("2. Use **Acquisition** to inspect and filter crawled social data.")
-    st.markdown("3. Use **AI SDR** to generate outreach and triage replies.")
-    st.markdown("4. Use **Analytics** to optimize ROI and A/B outcomes.")
+    st.markdown("1. 通过 **线索包** 售卖固定结果包")
+    st.markdown("2. 在 **获客** 页面筛选社媒线索")
+    st.markdown("3. 使用 **AI SDR** 生成触达文案与回复建议")
+    st.markdown("4. 在 **数据分析** 优化 ROI 与 A/B 效果")
 
 
 def render_leads(user: Dict) -> None:
-    st.markdown("## Lead Pool")
+    st.markdown("## 线索池")
 
     status_labels = {
-        "new": "New",
-        "contacted": "Contacted",
-        "qualified": "Qualified",
-        "converted": "Converted",
-        "lost": "Lost",
+        "new": "新线索",
+        "contacted": "已联系",
+        "qualified": "高意向",
+        "converted": "已转化",
+        "lost": "已流失",
     }
     status_keys = list(status_labels.keys())
 
     with st.form("add_lead_form", clear_on_submit=True):
         c1, c2, c3 = st.columns(3)
         with c1:
-            name = st.text_input("Name", key="lead_name")
-            email = st.text_input("Email", key="lead_email")
+            name = st.text_input("姓名", key="lead_name")
+            email = st.text_input("邮箱", key="lead_email")
         with c2:
-            phone = st.text_input("Contact (phone/wechat)", key="lead_phone")
+            phone = st.text_input("联系方式(phone/wechat)", key="lead_phone")
             status = st.selectbox(
-                "Status",
+                "状态",
                 status_keys,
                 format_func=lambda x: status_labels.get(x, x),
                 key="lead_status",
             )
         with c3:
-            source = st.text_input("Source", value="xhs", key="lead_source")
-            score = st.slider("Intent score", min_value=0, max_value=100, value=70, key="lead_score")
+            source = st.text_input("来源", value="xhs", key="lead_source")
+            score = st.slider("意向分", min_value=0, max_value=100, value=70, key="lead_score")
 
-        notes = st.text_area("Notes", height=110, key="lead_notes")
-        submit = st.form_submit_button("Save lead", type="primary", use_container_width=True)
+        notes = st.text_area("备注", height=110, key="lead_notes")
+        submit = st.form_submit_button("保存线索", type="primary", use_container_width=True)
 
     if submit:
         if not name.strip():
-            st.error("Lead name is required.")
+            st.error("线索姓名不能为空。")
         else:
             payload = {
                 "user_id": user["id"],
@@ -1123,58 +1261,68 @@ def render_leads(user: Dict) -> None:
             }
             try:
                 add_lead(payload)
-                st.success("Lead saved.")
+                st.success("线索已保存。")
                 st.rerun()
             except Exception as exc:
-                st.error(f"Save failed: {exc}")
+                st.error(f"保存失败: {exc}")
 
     leads = get_leads(_scoped_user_id(user))
     if not leads:
-        st.info("No leads yet. Sync leads from Acquisition first.")
+        st.info("暂无线索，请先在获客页同步。")
         return
 
-    st.markdown(f"### Total leads: {len(leads)}")
+    st.markdown(f"### 线索总数: {len(leads)}")
     df = pd.DataFrame(leads)
     if "status" in df.columns:
         df["status"] = df["status"].map(lambda x: status_labels.get(str(x), str(x)))
 
     rename_map = {
-        "name": "Name",
-        "email": "Email",
-        "phone": "Contact",
-        "status": "Status",
-        "created_at": "Created at",
-        "notes": "Notes",
+        "name": "姓名",
+        "email": "邮箱",
+        "phone": "联系方式",
+        "status": "状态",
+        "created_at": "创建时间",
+        "notes": "备注",
     }
     cols = [c for c in ["name", "email", "phone", "status", "created_at", "notes"] if c in df.columns]
     st.dataframe(df[cols].rename(columns=rename_map), use_container_width=True, hide_index=True)
 
     st.markdown("---")
-    lead_map = {f"{x.get('name', 'Unknown')} | {x.get('email', '')}": x for x in leads}
-    selected_label = st.selectbox("Select lead", list(lead_map.keys()), key="lead_pick")
+    lead_map = {f"{x.get('name', '未知')} | {x.get('email', '')}": x for x in leads}
+    selected_label = st.selectbox("选择线索", list(lead_map.keys()), key="lead_pick")
     selected = lead_map[selected_label]
     new_status = st.selectbox(
-        "New status",
+        "新状态",
         status_keys,
         format_func=lambda x: status_labels.get(x, x),
         key="lead_new_status",
     )
 
-    if st.button("Update status", key="update_status", use_container_width=True):
+    if st.button("更新状态", key="update_status", use_container_width=True):
         ok = update_lead(selected["id"], {"status": new_status})
         if ok:
-            st.success("Lead status updated.")
+            st.success("线索状态已更新。")
             st.rerun()
         else:
-            st.error("Status update failed.")
+            st.error("状态更新失败。")
 
 
 def render_acquisition(user: Dict) -> None:
-    st.markdown("## Acquisition (OpenClaw)")
-    st.caption("Read social posts/comments, filter true prospects, exclude agencies, and sync into Lead Pool.")
+    st.markdown("## 获客（OpenClaw）")
+    st.caption("读取社交媒体帖子/评论，筛出真实潜客，排除机构号，并同步到线索池。")
+
+    hb = _load_sync_heartbeat()
+    if hb:
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("同步状态", str(hb.get("status", "-")).upper())
+        c2.metric("循环次数", str(hb.get("loop_count", "-")))
+        c3.metric("最近成功", str(hb.get("last_success_at", "-") or "-"))
+        c4.metric("错误连击", str(hb.get("error_streak", 0)))
+        if hb.get("last_error"):
+            st.warning(f"同步异常：{hb.get('last_error')}")
 
     uploaded_files = st.file_uploader(
-        "Upload lead artifacts (csv/json/txt/md)",
+        "上传线索文件(csv/json/txt/md)",
         type=["csv", "json", "txt", "md"],
         accept_multiple_files=True,
         key="oc_uploads",
@@ -1201,15 +1349,15 @@ def render_acquisition(user: Dict) -> None:
     source_files = list(dict.fromkeys(source_files + remote_files + upload_files))
 
     if norm_df.empty:
-        st.warning("No lead data detected. Run OpenClaw first or upload files.")
-        with st.expander("Expected artifact paths"):
+        st.warning("未检测到线索数据。请先运行 OpenClaw 或上传文件。")
+        with st.expander("预期文件路径"):
             st.code(
                 "data/openclaw/openclaw_leads_latest.csv\n"
                 "data/openclaw/openclaw_leads_latest.json\n"
                 "data/exports/high_value_leads_latest.csv\n"
                 "data/exports/high_value_leads_latest.json"
             )
-        st.caption("For local-to-cloud realtime sync, run: python openclaw_realtime_sync.py --user-email YOUR_LOGIN_EMAIL --loop")
+        st.caption("本地到云端实时同步命令: python openclaw_realtime_sync.py --user-email YOUR_LOGIN_EMAIL --loop")
         return
 
     platform_options = sorted([p for p in norm_df["platform"].dropna().astype(str).unique().tolist() if p])
@@ -1217,12 +1365,12 @@ def render_acquisition(user: Dict) -> None:
 
     with st.container(border=True):
         c1, c2, c3, c4, c5 = st.columns([1.5, 1, 1, 1, 1.2])
-        selected_platforms = c1.multiselect("Platforms", platform_options, default=default_platforms, key="oc_platforms")
-        min_score = c2.slider("Min intent score", 0, 100, 65, key="oc_min_score")
-        only_target = c3.checkbox("Only target prospects", value=True, key="oc_only_target")
-        exclude_comp = c4.checkbox("Exclude competitors", value=True, key="oc_exclude_comp")
-        import_limit = c5.slider("Max rows per sync", 20, 2000, 400, step=20, key="oc_import_limit")
-        text_filter = st.text_input("Keyword filter (author/content/keyword)", key="oc_text_filter").strip().lower()
+        selected_platforms = c1.multiselect("平台", platform_options, default=default_platforms, key="oc_platforms")
+        min_score = c2.slider("最低意向分", 0, 100, 65, key="oc_min_score")
+        only_target = c3.checkbox("仅保留目标潜客", value=True, key="oc_only_target")
+        exclude_comp = c4.checkbox("排除机构/竞品", value=True, key="oc_exclude_comp")
+        import_limit = c5.slider("单次同步上限", 20, 2000, 400, step=20, key="oc_import_limit")
+        text_filter = st.text_input("关键词过滤(\u4f5c\u8005/\u5185\u5bb9/\u5173\u952e\u8bcd)", key="oc_text_filter").strip().lower()
 
     view_df = norm_df.copy()
     if selected_platforms:
@@ -1247,16 +1395,16 @@ def render_acquisition(user: Dict) -> None:
     dm_ready_count = int(view_df["dm_ready"].sum()) if not view_df.empty and "dm_ready" in view_df else 0
 
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Raw leads", raw_total)
-    m2.metric("After filters", filtered_total)
-    m3.metric("Target prospects", target_count)
-    m4.metric("DM-ready", dm_ready_count)
+    m1.metric("原始线索", raw_total)
+    m2.metric("筛选后", filtered_total)
+    m3.metric("目标潜客", target_count)
+    m4.metric("DM可直联", dm_ready_count)
 
     if source_files:
-        st.caption("Data sources: " + ", ".join(source_files))
+        st.caption("数据来源: " + ", ".join(source_files))
 
     st.markdown("---")
-    if st.button("Sync filtered leads into Lead Pool", type="primary", use_container_width=True, key="sync_openclaw"):
+    if st.button("同步筛选线索到线索池", type="primary", use_container_width=True, key="sync_openclaw"):
         result = _sync_openclaw_leads(
             user_id=user["id"],
             min_score=min_score,
@@ -1267,20 +1415,20 @@ def render_acquisition(user: Dict) -> None:
             only_target=only_target,
             selected_platforms=selected_platforms,
         )
-        st.success(f"Imported: {result['imported']} / {result['total']}")
+        st.success(f"已导入: {result['imported']} / {result['total']}")
         st.info(
-            "Skipped -> "
-            f"platform: {result['skipped_platform']}, "
-            f"competitor: {result['skipped_competitor']}, "
-            f"low-score: {result['skipped_score']}, "
-            f"non-target: {result['skipped_non_target']}, "
-            f"duplicate: {result['skipped_duplicate']}"
+            "已跳过: "
+            f"平台: {result['skipped_platform']}, "
+            f"机构/竞品: {result['skipped_competitor']}, "
+            f"低分: {result['skipped_score']}, "
+            f"非目标: {result['skipped_non_target']}, "
+            f"重复: {result['skipped_duplicate']}"
         )
 
     if view_df.empty:
-        st.warning("No leads pass current filters. Lower threshold or relax filters.")
+        st.warning("当前筛选条件下没有线索。请降低阈值或放宽筛选。")
     else:
-        st.markdown(f"### Filtered leads: {len(view_df)}")
+        st.markdown(f"### 筛选后线索: {len(view_df)}")
         table_cols = [
             "platform",
             "keyword",
@@ -1299,7 +1447,21 @@ def render_acquisition(user: Dict) -> None:
         table_cols = [c for c in table_cols if c in view_df.columns]
         st.dataframe(view_df[table_cols].head(import_limit), use_container_width=True, hide_index=True)
 
-        with st.expander("Outreach text evidence", expanded=False):
+        dm_df = view_df.copy()
+        if "dm_ready" in dm_df.columns:
+            dm_df = dm_df[dm_df["dm_ready"] == True]
+        if "is_competitor" in dm_df.columns:
+            dm_df = dm_df[~dm_df["is_competitor"]]
+        if "author_url" in dm_df.columns:
+            dm_df = dm_df[dm_df["author_url"].astype(str).str.strip() != ""]
+
+        if not dm_df.empty:
+            st.markdown(f"### 可直接私信主页: {len(dm_df)}")
+            dm_cols = ["platform", "author", "score", "keyword", "author_url", "post_url", "content"]
+            dm_cols = [c for c in dm_cols if c in dm_df.columns]
+            st.dataframe(dm_df[dm_cols].head(import_limit), use_container_width=True, hide_index=True)
+
+        with st.expander("线索证据文本", expanded=False):
             for row in view_df.head(30).to_dict(orient="records"):
                 url = row.get("author_url") or row.get("post_url") or row.get("source_url") or ""
                 snippet = str(row.get("content", "") or "").replace("\n", " ").strip()
@@ -1310,21 +1472,21 @@ def render_acquisition(user: Dict) -> None:
                     st.caption(snippet)
 
     st.markdown("---")
-    with st.expander("Single lead capture", expanded=False):
+    with st.expander("单条线索录入", expanded=False):
         with st.form("single_capture", clear_on_submit=True):
-            content = st.text_area("Comment/post text", key="single_content")
-            author = st.text_input("Author", key="single_author")
-            contact = st.text_input("Contact hint", key="single_contact")
-            score = st.slider("Intent confidence", 0, 100, 75, key="single_score")
-            submit_single = st.form_submit_button("Save lead", use_container_width=True, type="primary")
+            content = st.text_area("评论/帖子文本", key="single_content")
+            author = st.text_input("作者", key="single_author")
+            contact = st.text_input("联系方式提示", key="single_contact")
+            score = st.slider("意向置信度", 0, 100, 75, key="single_score")
+            submit_single = st.form_submit_button("保存线索", use_container_width=True, type="primary")
 
         if submit_single:
             if not author.strip() and not content.strip():
-                st.error("Author or content is required.")
+                st.error("作者或内容至少填一项。")
             else:
                 payload = {
                     "user_id": user["id"],
-                    "name": author.strip() or "Unknown social user",
+                    "name": author.strip() or "社交平台用户",
                     "email": "",
                     "phone": contact.strip(),
                     "status": "new",
@@ -1332,10 +1494,10 @@ def render_acquisition(user: Dict) -> None:
                 }
                 try:
                     add_lead(payload)
-                    st.success("Lead captured.")
+                    st.success("线索已保存。")
                     st.rerun()
                 except Exception as exc:
-                    st.error(f"Save failed: {exc}")
+                    st.error(f"保存失败: {exc}")
 
 
 def _lead_label_map(leads: List[Dict]) -> Dict[str, Dict]:
@@ -1615,11 +1777,15 @@ def render_sdr_agent(user: Dict) -> None:
 def main() -> None:
     init_session_state()
 
-    if not _db_ready():
-        st.error("Database initialization failed.")
-        st.stop()
+    db_ok = _db_ready()
+    if not db_ok:
+        st.warning("\u4e91\u6570\u636e\u5e93\u672a\u8fde\u63a5\uff0c\u5df2\u5207\u6362\u5230\u672c\u5730\u6a21\u5f0f\u3002")
 
     user = get_current_user()
+    if not user and _auto_login_guest_user():
+        user = get_current_user()
+    if not user and ENABLE_GUEST_AUTOLOGIN:
+        user = _force_session_guest_login()
     if not user:
         render_login_register()
         st.stop()
@@ -1630,49 +1796,52 @@ def main() -> None:
         st.error(f"Checkout sync error: {exc}")
 
     user = refresh_subscription_in_session(get_current_user() or user)
-    _bootstrap_user_leads_if_needed(user)
+    try:
+        _bootstrap_user_leads_if_needed(user)
+    except Exception as exc:
+        st.warning(f"\u7ebf\u7d22\u52a0\u8f7d\u5df2\u964d\u7ea7\u5230\u672c\u5730\u6a21\u5f0f\uff1a{exc}")
 
     st.markdown(
         f"""
 <div class="gs-topbar">
   <div>
-    <div class="gs-topbar-title">GuestSeek | AI Lead Gen SaaS</div>
-    <div class="gs-topbar-sub">Sell outcomes: lead request -> pipeline run -> CSV delivery</div>
+    <div class="gs-topbar-title">留学获客引擎 | AI Lead Gen SaaS</div>
+    <div class="gs-topbar-sub">卖结果：提交需求 -> 管道执行 -> CSV 交付</div>
   </div>
-  <div class="gs-topbar-meta">Account: {user.get('email', '-')}<br/>Plan: {(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
+  <div class="gs-topbar-meta">账号: {user.get('email', '-')}<br/>套餐: {(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
     page = st.radio(
-        "Navigation",
-        ["Lead Pack", "Overview", "Acquisition", "AI SDR", "Analytics", "Leads", "Billing", "Logout"],
+        "导航",
+        ["线索包", "总览", "获客", "AI销售", "数据分析", "线索池", "订阅", "退出登录"],
         horizontal=True,
         label_visibility="collapsed",
         key="workspace_nav_top",
     )
 
-    if page == "Logout":
+    if page == "退出登录":
         logout_user()
         st.rerun()
 
-    if page in {"Leads", "Acquisition", "AI SDR", "Analytics"} and not has_required_plan(user, minimum="pro"):
-        st.info("Trial mode active. Upgrade to Pro for full automation and higher quotas.")
+    if page in {"线索池", "获客", "AI销售", "数据分析"} and not has_required_plan(user, minimum="pro"):
+        st.info("当前为试用模式。升级 Pro 可开启完整自动化和更高额度。")
 
-    if page == "Lead Pack":
+    if page == "线索包":
         render_lead_pack(user)
-    elif page == "Overview":
+    elif page == "总览":
         render_overview(user)
-    elif page == "Acquisition":
+    elif page == "获客":
         render_acquisition(user)
-    elif page == "AI SDR":
+    elif page == "AI销售":
         render_sdr_agent(user)
-    elif page == "Analytics":
+    elif page == "数据分析":
         render_analytics(user)
-    elif page == "Leads":
+    elif page == "线索池":
         render_leads(user)
-    elif page == "Billing":
+    elif page == "订阅":
         render_billing_page()
 
 

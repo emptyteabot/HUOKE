@@ -64,9 +64,16 @@ def _read_int(key: str, default: int) -> int:
 
 
 # ==================== Core ====================
-APP_NAME = _read_setting("APP_NAME", "GuestSeek")
+APP_NAME = _read_setting("APP_NAME", "\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce")
 APP_VERSION = _read_setting("APP_VERSION", "1.0.0")
 APP_BASE_URL = _read_setting("APP_BASE_URL", "https://ai-huoke.streamlit.app")
+APP_LOCALE = _read_setting("APP_LOCALE", "zh-CN")
+
+# ==================== Access ====================
+ENABLE_GUEST_AUTOLOGIN = _read_bool("ENABLE_GUEST_AUTOLOGIN", True)
+GUEST_ACCOUNT_EMAIL = _read_setting("GUEST_ACCOUNT_EMAIL", "guest@ai-huoke.local").strip().lower()
+GUEST_ACCOUNT_NAME = _read_setting("GUEST_ACCOUNT_NAME", "访客账号")
+GUEST_ACCOUNT_COMPANY = _read_setting("GUEST_ACCOUNT_COMPANY", "\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce")
 
 # ==================== Supabase ====================
 SUPABASE_URL = _read_setting("SUPABASE_URL", "")

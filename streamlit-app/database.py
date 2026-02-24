@@ -1,5 +1,6 @@
 ﻿import json
 import os
+import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -26,6 +27,25 @@ _lock = RLock()
 _LOCAL_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "local_db.json"
 
 
+def _candidate_local_db_paths() -> List[Path]:
+    out: List[Path] = []
+    configured = (os.getenv("LOCAL_DB_PATH", "") or "").strip()
+    if configured:
+        out.append(Path(configured).expanduser())
+    out.append(Path(__file__).resolve().parents[1] / "data" / "local_db.json")
+    out.append(Path(tempfile.gettempdir()) / "leadpulse_local_db.json")
+
+    uniq: List[Path] = []
+    seen = set()
+    for path in out:
+        key = str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        uniq.append(path)
+    return uniq
+
+
 def _now() -> str:
     return datetime.now().isoformat()
 
@@ -35,16 +55,33 @@ def _new_id() -> str:
 
 
 def _ensure_local_db() -> None:
-    _LOCAL_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if not _LOCAL_DB_PATH.exists():
-        _LOCAL_DB_PATH.write_text(
-            json.dumps({"users": [], "leads": [], "emails": []}, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+    global _LOCAL_DB_PATH
+
+    payload = json.dumps({"users": [], "leads": [], "emails": []}, ensure_ascii=False, indent=2)
+    last_error: Optional[Exception] = None
+
+    for candidate in _candidate_local_db_paths():
+        try:
+            candidate.parent.mkdir(parents=True, exist_ok=True)
+            if not candidate.exists():
+                candidate.write_text(payload, encoding="utf-8")
+            else:
+                with candidate.open("a", encoding="utf-8"):
+                    pass
+            _LOCAL_DB_PATH = candidate
+            return
+        except Exception as exc:
+            last_error = exc
+
+    raise RuntimeError(f"local db init failed: {last_error}")
 
 
 def _load_local_db() -> Dict:
-    _ensure_local_db()
+    try:
+        _ensure_local_db()
+    except Exception:
+        return {"users": [], "leads": [], "emails": []}
+
     try:
         return json.loads(_LOCAL_DB_PATH.read_text(encoding="utf-8"))
     except Exception:
@@ -52,8 +89,11 @@ def _load_local_db() -> Dict:
 
 
 def _save_local_db(db: Dict) -> None:
-    _ensure_local_db()
-    _LOCAL_DB_PATH.write_text(json.dumps(db, ensure_ascii=False, indent=2), encoding="utf-8")
+    try:
+        _ensure_local_db()
+        _LOCAL_DB_PATH.write_text(json.dumps(db, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as exc:
+        print(f"local db save skipped: {exc}")
 
 
 def _using_supabase() -> bool:
@@ -74,8 +114,12 @@ def init_supabase() -> bool:
 
     supabase = None
     _backend = "local"
-    _ensure_local_db()
-    return True
+    try:
+        _ensure_local_db()
+        return True
+    except Exception as e:
+        print(f"Local DB init failed: {e}")
+        return False
 
 
 # ==================== Leads ====================

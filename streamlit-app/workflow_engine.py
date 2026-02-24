@@ -295,14 +295,14 @@ class WorkflowEngine:
         body = body.format(**variables)
 
         # 发送邮件
-        html_body = format_email_html(body, action.get('institution_name', 'GuestSeek'))
+        html_body = format_email_html(body, action.get('institution_name', '\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce'))
 
         result = send_email(
             to_email=lead['email'],
             to_name=lead['name'],
             subject=subject,
             body=html_body,
-            from_name=action.get('from_name', 'GuestSeek')
+            from_name=action.get('from_name', '\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce')
         )
 
         if result['success']:
