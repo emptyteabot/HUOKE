@@ -510,6 +510,56 @@ function loadFromLocalExporter(params: {
   }
 }
 
+function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string } | { ok: false; error: string; detail?: string } {
+  const snapshotPath = path.join(process.cwd(), "data", "leads_snapshot.json");
+  if (!existsSync(snapshotPath)) {
+    return { ok: false, error: "snapshot_missing", detail: snapshotPath };
+  }
+
+  try {
+    const raw = JSON.parse(readFileSync(snapshotPath, "utf-8"));
+    const rowsRaw = Array.isArray(raw?.rows) ? raw.rows : [];
+
+    const rows: LeadRow[] = rowsRaw
+      .map((item: any) => {
+        const platform = String(item?.platform || "unknown").trim().toLowerCase() || "unknown";
+        const author = String(item?.author || "Unknown").trim() || "Unknown";
+        const keyword = String(item?.keyword || "").trim();
+        const content = String(item?.content || "").trim();
+        const postUrl = String(item?.post_url || "").trim();
+
+        return {
+          external_id: String(item?.external_id || "").trim() || md5_16(`${platform}|${author}|${postUrl}|${content.slice(0, 80)}`),
+          platform,
+          author,
+          keyword,
+          score: clamp(parseIntSafe(String(item?.score ?? 0), 0), 0, 100),
+          intent_level: (["high", "medium", "low"].includes(String(item?.intent_level || ""))
+            ? String(item?.intent_level)
+            : "low") as IntentLevel,
+          is_target: Boolean(item?.is_target),
+          is_competitor: Boolean(item?.is_competitor),
+          dm_ready: Boolean(item?.dm_ready),
+          author_url: String(item?.author_url || "").trim(),
+          post_url: postUrl,
+          source_url: String(item?.source_url || "").trim(),
+          content,
+          contact: String(item?.contact || "").trim(),
+          collected_at: String(item?.collected_at || "").trim(),
+        };
+      })
+      .filter((x: LeadRow) => Boolean(x.external_id));
+
+    rows.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return String(b.collected_at || "").localeCompare(String(a.collected_at || ""));
+    });
+
+    return { ok: true, rows, detail: snapshotPath };
+  } catch (error) {
+    return { ok: false, error: "snapshot_read_failed", detail: String(error) };
+  }
+}
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const minScore = clamp(parseIntSafe(url.searchParams.get("minScore"), 65), 0, 100);
@@ -542,12 +592,33 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(fallback.payload);
   }
 
+  const snapshot = loadFromBundledSnapshot();
+  if (snapshot.ok) {
+    const payload = buildPayload(snapshot.rows, {
+      minScore,
+      limit,
+      onlyTarget,
+      excludeCompetitors,
+      vertical,
+    });
+
+    return NextResponse.json({
+      ...payload,
+      source: "bundled_snapshot",
+      source_detail: snapshot.detail,
+    });
+  }
+
   return NextResponse.json(
     {
       error: "lead_source_unavailable",
       supabase: supabaseLoad,
       local: fallback,
+      snapshot,
     },
     { status: 500 },
   );
 }
+
+
+
