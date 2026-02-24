@@ -11,6 +11,7 @@ Vertical B2B SaaS for study-abroad lead generation:
 - Streamlit config: `streamlit-app/.streamlit/config.toml`
 
 ## Product Pages
+- `Lead Pack`: one-form order intake, queued processing, CSV outcome delivery
 - `Overview`: command center and high-level metrics
 - `Acquisition`: ingest OpenClaw exports and sync filtered leads
 - `AI SDR`: personalized outreach generation + inbound triage + forced handoff

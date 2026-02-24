@@ -51,6 +51,13 @@ from services.sdr_agent import (
     generate_outreach_copy,
     trigger_handoff_webhook,
 )
+from services.lead_pack import (
+    create_lead_pack_order,
+    list_lead_pack_orders,
+    mark_lead_pack_paid,
+    process_lead_pack_order,
+    process_queued_orders,
+)
 
 
 st.set_page_config(
@@ -269,68 +276,46 @@ def _user_payload(user: Dict) -> Dict:
     }
 
 
-def _demo_user_payload() -> Dict:
-    return {
-        "id": "demo-user",
-        "email": "demo@guestseek.ai",
-        "name": "Demo User",
-        "company": "GuestSeek Demo",
-        "plan": "pro",
-        "subscription_status": "active",
-        "stripe_customer_id": "",
-        "stripe_subscription_id": "",
-        "current_period_end": None,
-    }
-
-
-def _login_demo_user() -> None:
-    demo = _demo_user_payload()
-
-
-def _is_demo_user(user: Optional[Dict]) -> bool:
-    return bool(user and str(user.get("id", "")).strip() == "demo-user")
-
-
 def _scoped_user_id(user: Optional[Dict]) -> Optional[str]:
-    if _is_demo_user(user):
-        return None
     if not user:
         return None
     return user.get("id")
 
 
-def _bootstrap_demo_leads_if_needed(user: Optional[Dict]) -> None:
-    if not _is_demo_user(user):
+def _bootstrap_user_leads_if_needed(user: Optional[Dict]) -> None:
+    """One-time session bootstrap: import existing OpenClaw artifacts for the current user."""
+    user_id = _scoped_user_id(user)
+    if not user_id:
         return
-    if st.session_state.get("_demo_bootstrap_done"):
+
+    guard_key = f"_user_bootstrap_done_{user_id}"
+    if st.session_state.get(guard_key):
         return
 
     try:
-        existing_all = get_leads(None)
-        if len(existing_all) >= 200:
-            st.session_state["_demo_bootstrap_done"] = True
+        existing = get_leads(user_id)
+        if len(existing) >= 1:
+            st.session_state[guard_key] = True
             return
 
         raw, files = _load_external_sources()
         norm = _normalize_external_df(raw)
         if norm.empty:
-            st.session_state["_demo_bootstrap_done"] = True
+            st.session_state[guard_key] = True
             return
 
         _sync_openclaw_leads(
-            user_id="demo-user",
-            min_score=0,
-            exclude_competitors=False,
+            user_id=user_id,
+            min_score=65,
+            exclude_competitors=True,
             limit=2000,
             normalized=norm,
             files=files,
-            only_target=False,
+            only_target=True,
             selected_platforms=[],
         )
     finally:
-        st.session_state["_demo_bootstrap_done"] = True
-    token = create_access_token({"sub": demo["id"], "email": demo["email"]})
-    login_user(demo, token)
+        st.session_state[guard_key] = True
 
 
 def _safe_str(row: Dict, keys: List[str]) -> str:
@@ -746,21 +731,14 @@ def _sync_openclaw_leads(
     }
 
 def render_login_register() -> None:
-    st.title("Study-Abroad AI Lead Gen SaaS")
-    st.caption("OpenClaw for prospecting + SaaS for conversion and subscription")
-
-    with st.container(border=True):
-        st.markdown("### Quick Demo Access")
-        st.caption("Skip account creation and enter a ready-to-use demo workspace.")
-        if st.button("Enter Demo Workspace (No Login)", type="primary", use_container_width=True, key="demo_login_btn"):
-            _login_demo_user()
-            st.rerun()
+    st.title("GuestSeek AI Lead Gen")
+    st.caption("Production workspace: auth + acquisition + outreach + billing")
 
     login_tab, register_tab = st.tabs(["Login", "Register"])
 
     with login_tab:
         with st.form("login_form", clear_on_submit=False):
-            email = st.text_input("Email", key="login_email")
+            email = st.text_input("Email", key="login_email", placeholder="you@company.com")
             password = st.text_input("Password", type="password", key="login_password")
             submitted = st.form_submit_button("Sign in", use_container_width=True, type="primary")
 
@@ -771,7 +749,7 @@ def render_login_register() -> None:
 
             user = get_user_by_email(email.strip().lower())
             if not user:
-                st.error("Account not found.")
+                st.error("Account not found. Please register first.")
                 return
             if not verify_password(password, user.get("password_hash", "")):
                 st.error("Invalid password.")
@@ -785,7 +763,7 @@ def render_login_register() -> None:
     with register_tab:
         with st.form("register_form", clear_on_submit=False):
             name = st.text_input("Name", key="reg_name")
-            company = st.text_input("Institution", key="reg_company")
+            company = st.text_input("Company", key="reg_company")
             email = st.text_input("Email", key="reg_email")
             password = st.text_input("Password", type="password", key="reg_password")
             password_confirm = st.text_input("Confirm password", type="password", key="reg_password_confirm")
@@ -802,37 +780,173 @@ def render_login_register() -> None:
                 st.error("Password must be at least 8 characters.")
                 return
 
-            existing = get_user_by_email(email.strip().lower())
+            email_norm = email.strip().lower()
+            existing = get_user_by_email(email_norm)
             if existing:
-                st.error("This email is already registered.")
+                st.error("Email already registered. Please sign in.")
                 return
 
-            create_user(
+            user_id = create_user(
                 {
                     "name": name.strip(),
                     "company": company.strip(),
-                    "email": email.strip().lower(),
+                    "email": email_norm,
                     "password_hash": get_password_hash(password),
                     "plan": "free",
                     "subscription_status": "inactive",
                 }
             )
-            st.success("Account created. Please sign in.")
+
+            user = get_user_by_email(email_norm) or {
+                "id": user_id,
+                "name": name.strip(),
+                "company": company.strip(),
+                "email": email_norm,
+                "plan": "free",
+                "subscription_status": "inactive",
+                "stripe_customer_id": "",
+                "stripe_subscription_id": "",
+                "current_period_end": None,
+            }
+            token = create_access_token({"sub": user["id"], "email": user["email"]})
+            login_user(_user_payload(user), token)
+            st.success("Account created and signed in.")
+            st.rerun()
+
+
+def render_lead_pack(user: Dict) -> None:
+    st.markdown("## Lead Pack Orders")
+    st.caption("$50 / 500 leads. Collect request -> queue backend task -> export CSV -> send email.")
+
+    with st.container(border=True):
+        with st.form("lead_pack_form", clear_on_submit=False):
+            request_text = st.text_input(
+                "What leads do you need?",
+                placeholder="Example: Singapore SaaS founders interested in study-abroad planning",
+            )
+            c1, c2, c3 = st.columns(3)
+            region = c1.text_input("Region", value="Singapore")
+            role = c2.text_input("Role", value="Founder")
+            industry = c3.text_input("Industry", value="SaaS")
+
+            c4, c5, c6 = st.columns(3)
+            quantity = c4.number_input("Lead quantity", min_value=100, max_value=2000, value=500, step=50)
+            delivery_email = c5.text_input("Delivery email", value=str(user.get("email", "")))
+            mark_paid = c6.checkbox("Mark paid (ops mode)", value=True)
+
+            process_now = st.checkbox("Run this order immediately after submit", value=False)
+            submit = st.form_submit_button("Create lead-pack order", use_container_width=True, type="primary")
+
+        if submit:
+            if not request_text.strip():
+                st.error("Request text is required.")
+            elif "@" not in delivery_email:
+                st.error("Please provide a valid delivery email.")
+            else:
+                order = create_lead_pack_order(
+                    user_id=str(user.get("id", "")),
+                    request_text=request_text.strip(),
+                    region=region.strip(),
+                    role=role.strip(),
+                    industry=industry.strip(),
+                    quantity=int(quantity),
+                    delivery_email=delivery_email.strip(),
+                    package_price_usd=50,
+                    payment_status="paid" if mark_paid else "unpaid",
+                    project_root=PROJECT_ROOT,
+                )
+
+                if mark_paid:
+                    mark_lead_pack_paid(order["id"], project_root=PROJECT_ROOT)
+
+                st.success(f"Order created: {order['id']}")
+
+                if process_now and mark_paid:
+                    try:
+                        done = process_lead_pack_order(order["id"], project_root=PROJECT_ROOT)
+                        st.success(
+                            f"Order processed. rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}"
+                        )
+                        if done.get("csv_path"):
+                            st.code(done.get("csv_path"))
+                    except Exception as exc:
+                        st.error(f"Process failed: {exc}")
+
+    st.markdown("---")
+    orders = list_lead_pack_orders(str(user.get("id", "")), project_root=PROJECT_ROOT)
+    if not orders:
+        st.info("No lead-pack orders yet.")
+        return
+
+    st.markdown(f"### Your orders ({len(orders)})")
+    table = []
+    for o in orders:
+        table.append(
+            {
+                "order_id": o.get("id"),
+                "status": o.get("status"),
+                "payment": o.get("payment_status"),
+                "delivery": o.get("delivery_status"),
+                "rows": o.get("rows_exported", 0),
+                "email": o.get("delivery_email", ""),
+                "created_at": o.get("created_at", ""),
+            }
+        )
+    st.dataframe(pd.DataFrame(table), use_container_width=True, hide_index=True)
+
+    selected_order_id = st.selectbox("Select order", [o.get("id") for o in orders], key="lp_selected_order")
+    selected_order = next((o for o in orders if o.get("id") == selected_order_id), None)
+
+    c1, c2, c3 = st.columns(3)
+    if c1.button("Mark selected as paid", key="lp_mark_paid_btn", use_container_width=True):
+        mark_lead_pack_paid(selected_order_id, project_root=PROJECT_ROOT)
+        st.success("Payment status updated to paid.")
+        st.rerun()
+
+    if c2.button("Process selected order", key="lp_process_one_btn", use_container_width=True):
+        try:
+            done = process_lead_pack_order(selected_order_id, project_root=PROJECT_ROOT)
+            st.success(
+                f"Done. rows={done.get('rows_exported', 0)}, delivery={done.get('delivery_status', 'pending')}"
+            )
+            if done.get("csv_path"):
+                st.code(done.get("csv_path"))
+            if done.get("delivery_error"):
+                st.warning(done.get("delivery_error"))
+            st.rerun()
+        except Exception as exc:
+            st.error(f"Process failed: {exc}")
+
+    if c3.button("Process queue (max 3)", key="lp_process_queue_btn", use_container_width=True):
+        results = process_queued_orders(max_jobs=3, project_root=PROJECT_ROOT)
+        st.success(f"Queue processed: {len(results)} job(s)")
+        if results:
+            st.dataframe(pd.DataFrame(results), use_container_width=True, hide_index=True)
+        st.rerun()
+
+    if selected_order:
+        st.markdown("---")
+        st.markdown(f"**Order detail:** `{selected_order.get('id', '')}`")
+        if selected_order.get("csv_path"):
+            st.code(selected_order.get("csv_path"))
+        if selected_order.get("delivery_error"):
+            st.warning(selected_order.get("delivery_error"))
+
 
 
 def render_overview(user: Dict) -> None:
     user = refresh_subscription_in_session(user)
     stats = get_stats(_scoped_user_id(user))
 
-    st.markdown("## AI ??")
+    st.markdown("## Overview")
     st.markdown(
         """
 <div class="gs-hero">
-  <div class="gs-chip">AI Lead Gen</div>
+  <div class="gs-chip">Outcome-first</div>
   <div class="gs-chip">Study Abroad Vertical</div>
   <div class="gs-chip">B2B SaaS</div>
   <h3 style="margin:.65rem 0 .2rem 0;">GuestSeek Revenue Engine</h3>
-  <div class="gs-type" style="max-width:900px;">OpenClaw 实时采集 -> AI 识别高意向 -> 千人千面触达 -> 统计归因迭代</div>
+  <div class="gs-type" style="max-width:900px;">Request -> Crawl -> Filter -> Export CSV -> Deliver</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -841,18 +955,27 @@ def render_overview(user: Dict) -> None:
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Plan", (user.get("plan") or "free").upper())
     c2.metric("Subscription", user.get("subscription_status") or "inactive")
-    c3.metric("Leads", stats.get("total_leads", 0))
-    c4.metric("Emails", stats.get("total_emails", 0))
+    c3.metric("Total leads", stats.get("total_leads", 0))
+    c4.metric("Outreach events", stats.get("total_emails", 0))
 
     st.markdown("---")
-    st.markdown("1. OpenClaw 读取评论与帖子，持续发现潜在客户")
-    st.markdown("2. 自动排除同业机构并计算购买意向分")
-    st.markdown("3. 同步入线索池，触发个性化触达工作流")
-    st.markdown("4. 统计转化漏斗与ROI，持续优化获客路径")
+    st.markdown("1. Use **Lead Pack** to sell a fixed lead package.")
+    st.markdown("2. Use **Acquisition** to inspect and filter crawled social data.")
+    st.markdown("3. Use **AI SDR** to generate outreach and triage replies.")
+    st.markdown("4. Use **Analytics** to optimize ROI and A/B outcomes.")
 
 
 def render_leads(user: Dict) -> None:
-    st.markdown("## ???")
+    st.markdown("## Lead Pool")
+
+    status_labels = {
+        "new": "New",
+        "contacted": "Contacted",
+        "qualified": "Qualified",
+        "converted": "Converted",
+        "lost": "Lost",
+    }
+    status_keys = list(status_labels.keys())
 
     with st.form("add_lead_form", clear_on_submit=True):
         c1, c2, c3 = st.columns(3)
@@ -860,14 +983,19 @@ def render_leads(user: Dict) -> None:
             name = st.text_input("Name", key="lead_name")
             email = st.text_input("Email", key="lead_email")
         with c2:
-            phone = st.text_input("Phone / WeChat", key="lead_phone")
-            status = st.selectbox("Status", ["new", "contacted", "qualified", "converted", "lost"], key="lead_status")
+            phone = st.text_input("Contact (phone/wechat)", key="lead_phone")
+            status = st.selectbox(
+                "Status",
+                status_keys,
+                format_func=lambda x: status_labels.get(x, x),
+                key="lead_status",
+            )
         with c3:
             source = st.text_input("Source", value="xhs", key="lead_source")
             score = st.slider("Intent score", min_value=0, max_value=100, value=70, key="lead_score")
 
         notes = st.text_area("Notes", height=110, key="lead_notes")
-        submit = st.form_submit_button("Add lead", type="primary", use_container_width=True)
+        submit = st.form_submit_button("Save lead", type="primary", use_container_width=True)
 
     if submit:
         if not name.strip():
@@ -883,42 +1011,58 @@ def render_leads(user: Dict) -> None:
             }
             try:
                 add_lead(payload)
-                st.success("Lead added.")
+                st.success("Lead saved.")
                 st.rerun()
             except Exception as exc:
-                st.error(f"Add lead failed: {exc}")
+                st.error(f"Save failed: {exc}")
 
     leads = get_leads(_scoped_user_id(user))
     if not leads:
-        st.info("No leads yet.")
+        st.info("No leads yet. Sync leads from Acquisition first.")
         return
 
-    st.markdown(f"### {len(leads)} leads")
+    st.markdown(f"### Total leads: {len(leads)}")
     df = pd.DataFrame(leads)
+    if "status" in df.columns:
+        df["status"] = df["status"].map(lambda x: status_labels.get(str(x), str(x)))
+
+    rename_map = {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Contact",
+        "status": "Status",
+        "created_at": "Created at",
+        "notes": "Notes",
+    }
     cols = [c for c in ["name", "email", "phone", "status", "created_at", "notes"] if c in df.columns]
-    st.dataframe(df[cols], use_container_width=True, hide_index=True)
+    st.dataframe(df[cols].rename(columns=rename_map), use_container_width=True, hide_index=True)
 
     st.markdown("---")
     lead_map = {f"{x.get('name', 'Unknown')} | {x.get('email', '')}": x for x in leads}
     selected_label = st.selectbox("Select lead", list(lead_map.keys()), key="lead_pick")
     selected = lead_map[selected_label]
-    new_status = st.selectbox("New status", ["new", "contacted", "qualified", "converted", "lost"], key="lead_new_status")
+    new_status = st.selectbox(
+        "New status",
+        status_keys,
+        format_func=lambda x: status_labels.get(x, x),
+        key="lead_new_status",
+    )
 
     if st.button("Update status", key="update_status", use_container_width=True):
         ok = update_lead(selected["id"], {"status": new_status})
         if ok:
-            st.success("Status updated.")
+            st.success("Lead status updated.")
             st.rerun()
         else:
             st.error("Status update failed.")
 
 
 def render_acquisition(user: Dict) -> None:
-    st.markdown("## 潜客采集（OpenClaw）")
-    st.caption("OpenClaw reads social posts/comments. This page filters high-intent non-competitor leads and syncs them into your Lead Pool.")
+    st.markdown("## Acquisition (OpenClaw)")
+    st.caption("Read social posts/comments, filter true prospects, exclude agencies, and sync into Lead Pool.")
 
     uploaded_files = st.file_uploader(
-        "Upload OpenClaw/partner lead files (csv/json/txt/md)",
+        "Upload lead artifacts (csv/json/txt/md)",
         type=["csv", "json", "txt", "md"],
         accept_multiple_files=True,
         key="oc_uploads",
@@ -942,7 +1086,7 @@ def render_acquisition(user: Dict) -> None:
     source_files = list(dict.fromkeys(source_files + upload_files))
 
     if norm_df.empty:
-        st.warning("No lead data detected. Run OpenClaw first or upload lead files above.")
+        st.warning("No lead data detected. Run OpenClaw first or upload files.")
         with st.expander("Expected artifact paths"):
             st.code(
                 "data/openclaw/openclaw_leads_latest.csv\n"
@@ -959,7 +1103,7 @@ def render_acquisition(user: Dict) -> None:
         c1, c2, c3, c4, c5 = st.columns([1.5, 1, 1, 1, 1.2])
         selected_platforms = c1.multiselect("Platforms", platform_options, default=default_platforms, key="oc_platforms")
         min_score = c2.slider("Min intent score", 0, 100, 65, key="oc_min_score")
-        only_target = c3.checkbox("Only target leads", value=True, key="oc_only_target")
+        only_target = c3.checkbox("Only target prospects", value=True, key="oc_only_target")
         exclude_comp = c4.checkbox("Exclude competitors", value=True, key="oc_exclude_comp")
         import_limit = c5.slider("Max rows per sync", 20, 2000, 400, step=20, key="oc_import_limit")
         text_filter = st.text_input("Keyword filter (author/content/keyword)", key="oc_text_filter").strip().lower()
@@ -989,7 +1133,7 @@ def render_acquisition(user: Dict) -> None:
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Raw leads", raw_total)
     m2.metric("After filters", filtered_total)
-    m3.metric("Target leads", target_count)
+    m3.metric("Target prospects", target_count)
     m4.metric("DM-ready", dm_ready_count)
 
     if source_files:
@@ -1018,7 +1162,7 @@ def render_acquisition(user: Dict) -> None:
         )
 
     if view_df.empty:
-        st.warning("No leads pass current filters. Try lowering score threshold or disabling filters.")
+        st.warning("No leads pass current filters. Lower threshold or relax filters.")
     else:
         st.markdown(f"### Filtered leads: {len(view_df)}")
         table_cols = [
@@ -1039,7 +1183,7 @@ def render_acquisition(user: Dict) -> None:
         table_cols = [c for c in table_cols if c in view_df.columns]
         st.dataframe(view_df[table_cols].head(import_limit), use_container_width=True, hide_index=True)
 
-        with st.expander("Top text evidence for outreach", expanded=False):
+        with st.expander("Outreach text evidence", expanded=False):
             for row in view_df.head(30).to_dict(orient="records"):
                 url = row.get("author_url") or row.get("post_url") or row.get("source_url") or ""
                 snippet = str(row.get("content", "") or "").replace("\n", " ").strip()
@@ -1052,7 +1196,7 @@ def render_acquisition(user: Dict) -> None:
     st.markdown("---")
     with st.expander("Single lead capture", expanded=False):
         with st.form("single_capture", clear_on_submit=True):
-            content = st.text_area("Comment or post text", key="single_content")
+            content = st.text_area("Comment/post text", key="single_content")
             author = st.text_input("Author", key="single_author")
             contact = st.text_input("Contact hint", key="single_contact")
             score = st.slider("Intent confidence", 0, 100, 75, key="single_score")
@@ -1116,8 +1260,8 @@ def _record_ab_email_event(
 
 
 def render_analytics(user: Dict) -> None:
-    st.markdown("## 数据归因实验室")
-    st.caption("Channel ROI + CAC attribution + A/B significance for outreach prompts")
+    st.markdown("## Analytics")
+    st.caption("Channel ROI + CAC attribution + outreach A/B significance")
 
     leads = get_leads(_scoped_user_id(user))
     emails = get_emails(_scoped_user_id(user))
@@ -1166,8 +1310,8 @@ def render_analytics(user: Dict) -> None:
 
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Leads", len(leads))
-    m2.metric("Estimated Cost", f"?{total_cost:,.0f}")
-    m3.metric("Estimated Revenue", f"?{total_revenue:,.0f}")
+    m2.metric("Estimated Cost", f"CNY {total_cost:,.0f}")
+    m3.metric("Estimated Revenue", f"CNY {total_revenue:,.0f}")
     m4.metric("ROI", f"{roi:.1f}%")
 
     st.markdown("---")
@@ -1184,7 +1328,7 @@ def render_analytics(user: Dict) -> None:
     st.markdown("### Prompt A/B Testing")
     ab_df = build_ab_variant_stats(emails)
     if ab_df.empty:
-        st.info("No A/B-tagged outreach yet. Save outreach with variants in AI SDR page.")
+        st.info("No A/B-tagged outreach yet. Save events in AI SDR.")
     else:
         st.dataframe(ab_df, use_container_width=True, hide_index=True)
         sig = build_ab_significance(ab_df, metric=positive_metric)
@@ -1224,7 +1368,7 @@ def render_analytics(user: Dict) -> None:
 
 
 def render_sdr_agent(user: Dict) -> None:
-    st.markdown("## AI 触达工作台")
+    st.markdown("## AI SDR")
     st.caption("Personalized outreach generation + auto triage + forced human handoff")
 
     leads = get_leads(_scoped_user_id(user))
@@ -1256,7 +1400,11 @@ def render_sdr_agent(user: Dict) -> None:
         c1, c2, c3 = st.columns(3)
         variant = c1.selectbox("Prompt variant", ["A", "B", "C"], key="sdr_variant")
         tone = c2.selectbox("Tone", ["professional", "direct", "warm", "consultative"], key="sdr_tone")
-        angle = c3.selectbox("Pain-point angle", ["timeline risk", "budget fit", "school selection", "essay quality", "visa uncertainty"], key="sdr_angle")
+        angle = c3.selectbox(
+            "Pain-point angle",
+            ["timeline risk", "budget fit", "school selection", "essay quality", "visa uncertainty"],
+            key="sdr_angle",
+        )
         cta = st.text_input("CTA", value="book a 10-min feasibility call", key="sdr_cta")
 
         if st.button("Generate personalized outreach", type="primary", use_container_width=True, key="sdr_gen"):
@@ -1357,21 +1505,6 @@ def main() -> None:
 
     user = get_current_user()
     if not user:
-        try:
-            qp = st.query_params
-            demo_flag = str(qp.get("demo", "1")).strip().lower()
-            auth_flag = str(qp.get("auth", "0")).strip().lower()
-        except Exception:
-            demo_flag = "1"
-            auth_flag = "0"
-
-        # Default behavior: auto-enter demo workspace.
-        # Use ?auth=1 when you need explicit login/register UI.
-        if auth_flag not in {"1", "true", "yes"} and demo_flag in {"1", "true", "yes"}:
-            _login_demo_user()
-            user = get_current_user()
-
-    if not user:
         render_login_register()
         st.stop()
 
@@ -1381,47 +1514,49 @@ def main() -> None:
         st.error(f"Checkout sync error: {exc}")
 
     user = refresh_subscription_in_session(get_current_user() or user)
-    _bootstrap_demo_leads_if_needed(user)
+    _bootstrap_user_leads_if_needed(user)
+
     st.markdown(
         f"""
 <div class="gs-topbar">
   <div>
-    <div class="gs-topbar-title">GuestSeek ? 留学赛道 AI 获客 SaaS</div>
-    <div class="gs-topbar-sub">Gemini 渐变 + 打字机 + 硅谷 AI 初创风</div>
+    <div class="gs-topbar-title">GuestSeek | AI Lead Gen SaaS</div>
+    <div class="gs-topbar-sub">Sell outcomes: lead request -> pipeline run -> CSV delivery</div>
   </div>
-  <div class="gs-topbar-meta">账号：{user.get('email', '-')}<br/>套餐：{(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
+  <div class="gs-topbar-meta">Account: {user.get('email', '-')}<br/>Plan: {(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
     page = st.radio(
-        "导航",
-        ["AI橱窗", "潜客采集", "AI触达", "数据归因", "线索池", "订阅", "退出登录"],
+        "Navigation",
+        ["Lead Pack", "Overview", "Acquisition", "AI SDR", "Analytics", "Leads", "Billing", "Logout"],
         horizontal=True,
         label_visibility="collapsed",
         key="workspace_nav_top",
     )
 
-    if page == "退出登录":
+    if page == "Logout":
         logout_user()
         st.rerun()
 
-    # Soft paywall: allow usage in trial mode, keep billing upgrade path.
-    if page in {"线索池", "潜客采集", "AI触达", "数据归因"} and not has_required_plan(user, minimum="pro"):
-        st.info("试用模式已开启。升级到 Pro 可使用完整自动化能力和更高配额。")
+    if page in {"Leads", "Acquisition", "AI SDR", "Analytics"} and not has_required_plan(user, minimum="pro"):
+        st.info("Trial mode active. Upgrade to Pro for full automation and higher quotas.")
 
-    if page == "AI橱窗":
+    if page == "Lead Pack":
+        render_lead_pack(user)
+    elif page == "Overview":
         render_overview(user)
-    elif page == "潜客采集":
+    elif page == "Acquisition":
         render_acquisition(user)
-    elif page == "AI触达":
+    elif page == "AI SDR":
         render_sdr_agent(user)
-    elif page == "数据归因":
+    elif page == "Analytics":
         render_analytics(user)
-    elif page == "线索池":
+    elif page == "Leads":
         render_leads(user)
-    elif page == "订阅":
+    elif page == "Billing":
         render_billing_page()
 
 
