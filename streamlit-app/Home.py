@@ -237,6 +237,26 @@ def _user_payload(user: Dict) -> Dict:
     }
 
 
+def _demo_user_payload() -> Dict:
+    return {
+        "id": "demo-user",
+        "email": "demo@guestseek.ai",
+        "name": "Demo User",
+        "company": "GuestSeek Demo",
+        "plan": "pro",
+        "subscription_status": "active",
+        "stripe_customer_id": "",
+        "stripe_subscription_id": "",
+        "current_period_end": None,
+    }
+
+
+def _login_demo_user() -> None:
+    demo = _demo_user_payload()
+    token = create_access_token({"sub": demo["id"], "email": demo["email"]})
+    login_user(demo, token)
+
+
 def _safe_str(row: Dict, keys: List[str]) -> str:
     for key in keys:
         val = row.get(key)
@@ -652,6 +672,13 @@ def _sync_openclaw_leads(
 def render_login_register() -> None:
     st.title("Study-Abroad AI Lead Gen SaaS")
     st.caption("OpenClaw for prospecting + SaaS for conversion and subscription")
+
+    with st.container(border=True):
+        st.markdown("### Quick Demo Access")
+        st.caption("Skip account creation and enter a ready-to-use demo workspace.")
+        if st.button("Enter Demo Workspace (No Login)", type="primary", use_container_width=True, key="demo_login_btn"):
+            _login_demo_user()
+            st.rerun()
 
     login_tab, register_tab = st.tabs(["Login", "Register"])
 
@@ -1253,6 +1280,17 @@ def main() -> None:
         st.stop()
 
     user = get_current_user()
+    if not user:
+        try:
+            qp = st.query_params
+            demo_flag = str(qp.get("demo", "0")).strip().lower()
+        except Exception:
+            demo_flag = "0"
+
+        if demo_flag in {"1", "true", "yes"}:
+            _login_demo_user()
+            user = get_current_user()
+
     if not user:
         render_login_register()
         st.stop()
