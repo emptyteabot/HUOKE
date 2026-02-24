@@ -553,6 +553,118 @@ def _load_external_sources() -> Tuple[pd.DataFrame, List[str]]:
     return pd.concat(frames, ignore_index=True), used_files
 
 
+def _parse_note_meta(notes: str) -> Dict[str, str]:
+    out: Dict[str, str] = {}
+    for line in str(notes or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        pieces = [x.strip() for x in line.split("|") if x.strip()] if "|" in line else [line]
+        for piece in pieces:
+            if "=" not in piece:
+                continue
+            k, v = piece.split("=", 1)
+            out[k.strip().lower()] = v.strip()
+    return out
+
+
+def _extract_note_content(notes: str, meta_keys: Optional[set] = None) -> str:
+    meta_keys = meta_keys or set()
+    body: List[str] = []
+    for line in str(notes or "").splitlines():
+        raw = line.strip()
+        if not raw:
+            continue
+
+        parsed_meta = False
+        pieces = [x.strip() for x in raw.split("|") if x.strip()] if "|" in raw else [raw]
+        for piece in pieces:
+            if "=" not in piece:
+                continue
+            k = piece.split("=", 1)[0].strip().lower()
+            if k in meta_keys:
+                parsed_meta = True
+
+        if not parsed_meta and "=" not in raw:
+            body.append(raw)
+
+    return " ".join(body).strip()
+
+
+def _load_remote_openclaw_sources(user_id: Optional[str]) -> Tuple[pd.DataFrame, List[str]]:
+    if not user_id:
+        return pd.DataFrame(), []
+
+    try:
+        leads = get_leads(user_id)
+    except Exception:
+        return pd.DataFrame(), []
+
+    if not leads:
+        return pd.DataFrame(), []
+
+    meta_keys = {
+        "source",
+        "platform",
+        "score",
+        "intent",
+        "keyword",
+        "dm_ready",
+        "access_hint",
+        "post_url",
+        "author_url",
+        "source_url",
+        "collected_at",
+        "external_id",
+        "openclaw_sync",
+    }
+
+    rows: List[Dict] = []
+    for lead in leads:
+        notes = str(lead.get("notes", "") or "")
+        if not notes:
+            continue
+
+        meta = _parse_note_meta(notes)
+        if not (
+            meta.get("openclaw_sync") == "1"
+            or meta.get("external_id")
+            or meta.get("post_url")
+            or meta.get("author_url")
+        ):
+            continue
+
+        content = _extract_note_content(notes, meta_keys=meta_keys)
+        if not content:
+            content = notes[-280:]
+
+        rows.append(
+            {
+                "platform": meta.get("source") or meta.get("platform") or "xhs",
+                "keyword": meta.get("keyword", ""),
+                "author": str(lead.get("name", "Unknown") or "Unknown"),
+                "author_url": meta.get("author_url", ""),
+                "content": content,
+                "evidence_text": "",
+                "post_url": meta.get("post_url", ""),
+                "source_url": meta.get("source_url", ""),
+                "contact": str(lead.get("phone", "") or ""),
+                "score": _safe_int(meta.get("score"), default=70),
+                "confidence": _safe_int(meta.get("score"), default=70),
+                "grade": "",
+                "collected_at": meta.get("collected_at") or str(lead.get("created_at", "") or ""),
+                "access_hint": meta.get("access_hint", ""),
+                "external_id": meta.get("external_id", ""),
+                "__source_file": "supabase_synced",
+            }
+        )
+
+    if not rows:
+        return pd.DataFrame(), []
+
+    return pd.DataFrame(rows).fillna(""), ["supabase_synced"]
+
+
 def _normalize_external_df(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
@@ -731,59 +843,59 @@ def _sync_openclaw_leads(
     }
 
 def render_login_register() -> None:
-    st.title("GuestSeek AI ????")
-    st.caption("?????????? + ???? + AI?? + ????")
+    st.title("GuestSeek AI Lead Gen")
+    st.caption("Production workspace: auth + acquisition + outreach + billing")
 
-    login_tab, register_tab = st.tabs(["??", "??"])
+    login_tab, register_tab = st.tabs(["Login", "Register"])
 
     with login_tab:
         with st.form("login_form", clear_on_submit=False):
-            email = st.text_input("??", key="login_email", placeholder="you@company.com")
-            password = st.text_input("??", type="password", key="login_password")
-            submitted = st.form_submit_button("??", use_container_width=True, type="primary")
+            email = st.text_input("Email", key="login_email", placeholder="you@company.com")
+            password = st.text_input("Password", type="password", key="login_password")
+            submitted = st.form_submit_button("Sign in", use_container_width=True, type="primary")
 
         if submitted:
             if not email or not password:
-                st.error("??????????")
+                st.error("Email and password are required.")
                 return
 
             user = get_user_by_email(email.strip().lower())
             if not user:
-                st.error("???????????")
+                st.error("Account not found. Please register first.")
                 return
             if not verify_password(password, user.get("password_hash", "")):
-                st.error("?????")
+                st.error("Invalid password.")
                 return
 
             token = create_access_token({"sub": user["id"], "email": user["email"]})
             login_user(_user_payload(user), token)
-            st.success("?????")
+            st.success("Signed in.")
             st.rerun()
 
     with register_tab:
         with st.form("register_form", clear_on_submit=False):
-            name = st.text_input("??", key="reg_name")
-            company = st.text_input("??/??", key="reg_company")
-            email = st.text_input("??", key="reg_email")
-            password = st.text_input("??", type="password", key="reg_password")
-            password_confirm = st.text_input("????", type="password", key="reg_password_confirm")
-            submitted = st.form_submit_button("????", use_container_width=True)
+            name = st.text_input("Name", key="reg_name")
+            company = st.text_input("Company", key="reg_company")
+            email = st.text_input("Email", key="reg_email")
+            password = st.text_input("Password", type="password", key="reg_password")
+            password_confirm = st.text_input("Confirm password", type="password", key="reg_password_confirm")
+            submitted = st.form_submit_button("Create account", use_container_width=True)
 
         if submitted:
             if not all([name, company, email, password, password_confirm]):
-                st.error("??????????")
+                st.error("All fields are required.")
                 return
             if password != password_confirm:
-                st.error("????????")
+                st.error("Passwords do not match.")
                 return
             if len(password) < 8:
-                st.error("???? 8 ??")
+                st.error("Password must be at least 8 characters.")
                 return
 
             email_norm = email.strip().lower()
             existing = get_user_by_email(email_norm)
             if existing:
-                st.error("????????????")
+                st.error("Email already registered. Please sign in.")
                 return
 
             user_id = create_user(
@@ -810,7 +922,7 @@ def render_login_register() -> None:
             }
             token = create_access_token({"sub": user["id"], "email": user["email"]})
             login_user(_user_payload(user), token)
-            st.success("???????????")
+            st.success("Account created and signed in.")
             st.rerun()
 
 
@@ -1069,11 +1181,14 @@ def render_acquisition(user: Dict) -> None:
     )
 
     raw_df, source_files = _load_external_sources()
+    remote_df, remote_files = _load_remote_openclaw_sources(_scoped_user_id(user))
     upload_df, upload_files = _parse_uploaded_lead_files(uploaded_files)
 
     frames: List[pd.DataFrame] = []
     if not raw_df.empty:
         frames.append(raw_df)
+    if not remote_df.empty:
+        frames.append(remote_df)
     if not upload_df.empty:
         frames.append(upload_df)
 
@@ -1083,7 +1198,7 @@ def render_acquisition(user: Dict) -> None:
     else:
         norm_df = pd.DataFrame()
 
-    source_files = list(dict.fromkeys(source_files + upload_files))
+    source_files = list(dict.fromkeys(source_files + remote_files + upload_files))
 
     if norm_df.empty:
         st.warning("No lead data detected. Run OpenClaw first or upload files.")
@@ -1094,6 +1209,7 @@ def render_acquisition(user: Dict) -> None:
                 "data/exports/high_value_leads_latest.csv\n"
                 "data/exports/high_value_leads_latest.json"
             )
+        st.caption("For local-to-cloud realtime sync, run: python openclaw_realtime_sync.py --user-email YOUR_LOGIN_EMAIL --loop")
         return
 
     platform_options = sorted([p for p in norm_df["platform"].dropna().astype(str).unique().tolist() if p])
@@ -1520,43 +1636,43 @@ def main() -> None:
         f"""
 <div class="gs-topbar">
   <div>
-    <div class="gs-topbar-title">GuestSeek | AI?? SaaS</div>
-    <div class="gs-topbar-sub">???????? -> ???? -> CSV??</div>
+    <div class="gs-topbar-title">GuestSeek | AI Lead Gen SaaS</div>
+    <div class="gs-topbar-sub">Sell outcomes: lead request -> pipeline run -> CSV delivery</div>
   </div>
-  <div class="gs-topbar-meta">???{user.get('email', '-')}<br/>???{(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
+  <div class="gs-topbar-meta">Account: {user.get('email', '-')}<br/>Plan: {(user.get('plan') or 'free').upper()} / {user.get('subscription_status') or 'inactive'}</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
     page = st.radio(
-        "??",
-        ["???", "??", "????", "AI??", "????", "???", "??", "????"],
+        "Navigation",
+        ["Lead Pack", "Overview", "Acquisition", "AI SDR", "Analytics", "Leads", "Billing", "Logout"],
         horizontal=True,
         label_visibility="collapsed",
         key="workspace_nav_top",
     )
 
-    if page == "????":
+    if page == "Logout":
         logout_user()
         st.rerun()
 
-    if page in {"???", "????", "AI??", "????"} and not has_required_plan(user, minimum="pro"):
-        st.info("??????????? Pro ????????????????")
+    if page in {"Leads", "Acquisition", "AI SDR", "Analytics"} and not has_required_plan(user, minimum="pro"):
+        st.info("Trial mode active. Upgrade to Pro for full automation and higher quotas.")
 
-    if page == "???":
+    if page == "Lead Pack":
         render_lead_pack(user)
-    elif page == "??":
+    elif page == "Overview":
         render_overview(user)
-    elif page == "????":
+    elif page == "Acquisition":
         render_acquisition(user)
-    elif page == "AI??":
+    elif page == "AI SDR":
         render_sdr_agent(user)
-    elif page == "????":
+    elif page == "Analytics":
         render_analytics(user)
-    elif page == "???":
+    elif page == "Leads":
         render_leads(user)
-    elif page == "??":
+    elif page == "Billing":
         render_billing_page()
 
 

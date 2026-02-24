@@ -50,3 +50,11 @@ If the UI looks stale after push:
 2. Confirm app file path is exactly `streamlit-app/Home.py`.
 3. Trigger `Reboot app` / `Rerun from latest commit`.
 4. Verify latest commit hash matches GitHub.
+
+## Local OpenClaw -> Cloud Realtime Sync
+Run from project root:
+```bash
+python openclaw_realtime_sync.py --user-email your-login@email.com --loop --interval 20
+```
+This keeps pushing latest local OpenClaw artifacts into cloud leads, and the web `Acquisition` page can display `supabase_synced` data.
+
