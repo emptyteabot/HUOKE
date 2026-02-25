@@ -4,6 +4,14 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
+import {
+  exportCreditCost,
+  getWalletFromRequest,
+  isLinksUnlocked,
+  walletPublic,
+  walletSetCookieHeader,
+  walletTokenForResponse,
+} from "@/lib/lead_wallet";
 
 export const runtime = "nodejs";
 
@@ -11,7 +19,7 @@ type RunResult = { ok: boolean; stderr: string; stdout: string };
 
 type IntentLevel = "high" | "medium" | "low";
 
-type LeadRow = {
+export type LeadRow = {
   external_id: string;
   platform: string;
   author: string;
@@ -29,7 +37,7 @@ type LeadRow = {
   collected_at: string;
 };
 
-type LeadsPayload = {
+export type LeadsPayload = {
   generated_at: string;
   vertical: string;
   filters: {
@@ -280,6 +288,107 @@ function md5_16(text: string): string {
   return crypto.createHash("md5").update(String(text || ""), "utf8").digest("hex").slice(0, 16);
 }
 
+function canonicalPostUrl(url: string): string {
+  const raw = String(url || "").trim();
+  if (!raw) return "";
+  return raw.split("#", 1)[0].split("?", 1)[0];
+}
+
+function dedupeRows(rows: LeadRow[]): LeadRow[] {
+  const out: LeadRow[] = [];
+  const seen = new Set<string>();
+
+  for (const row of rows) {
+    const key = md5_16(
+      `${row.platform}|${String(row.author || "").toLowerCase()}|${canonicalPostUrl(row.post_url)}|${String(row.content || "").toLowerCase().slice(0, 140)}`,
+    );
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+
+  return out;
+}
+
+function mapOpenclawRecord(record: any, vertical: string): LeadRow | null {
+  const cfg = getVerticalConfig(vertical);
+
+  const platform = String(record?.platform || "xhs").trim().toLowerCase() || "xhs";
+  const author = String(record?.author || "Unknown").trim() || "Unknown";
+  const keyword = String(record?.keyword || "").trim();
+  const content = String(record?.content || "").trim();
+  const authorUrl = String(record?.author_url || "").trim();
+  const postUrl = String(record?.post_url || "").trim();
+  const sourceUrl = String(record?.source_url || "").trim();
+  const collectedAt = String(record?.collected_at || "").trim();
+
+  if (!content || content.length < 8) return null;
+
+  const textBlob = `${author} ${keyword} ${content}`;
+  const intentSig = scoreIntent(textBlob, cfg.intentKeywords);
+  const competitor = isCompetitor(author, textBlob, cfg.competitorKeywords);
+  const target = isTarget(textBlob, competitor, intentSig.level, cfg.targetHints);
+
+  const dmFromUrl = /\/user\/profile\//i.test(authorUrl) || /xiaohongshu\.com\/user/i.test(authorUrl);
+  const dmFromHint = /dm_ready|personal_profile_ready/i.test(String(record?.access_hint || ""));
+  const dmReady = dmFromUrl || dmFromHint;
+
+  const rawBase = parseIntSafe(String(record?.intent_confidence ?? record?.confidence ?? record?.score ?? 0), 0);
+  const normalizedBase = rawBase <= 12 ? clamp(30 + Math.trunc(rawBase * 5.5), 35, 88) : clamp(rawBase, 0, 100);
+  const demandBonus = containsAny(textBlob, DEMAND_TERMS) ? 14 : intentSig.question ? 6 : 0;
+  const score = clamp(normalizedBase + intentSig.bonus + demandBonus + (dmReady ? 8 : 0) - (competitor ? 18 : 0), 0, 100);
+
+  const externalId =
+    String(record?.external_id || "").trim() ||
+    md5_16(`${platform}|${author}|${canonicalPostUrl(postUrl)}|${content.slice(0, 80)}`);
+
+  return {
+    external_id: externalId,
+    platform,
+    author,
+    keyword,
+    score,
+    intent_level: intentSig.level,
+    is_target: target,
+    is_competitor: competitor,
+    dm_ready: dmReady,
+    author_url: authorUrl,
+    post_url: postUrl,
+    source_url: sourceUrl,
+    content,
+    contact: "",
+    collected_at: collectedAt,
+  };
+}
+
+function loadFromOpenclawLatest(maxFetch: number, vertical: string): { ok: true; rows: LeadRow[]; detail: string } | { ok: false; error: string; detail?: string } {
+  const candidates = [
+    path.join(path.resolve(process.cwd(), ".."), "data", "openclaw", "openclaw_leads_latest.json"),
+    path.join(process.cwd(), "data", "openclaw", "openclaw_leads_latest.json"),
+  ];
+
+  const file = candidates.find((p) => existsSync(p));
+  if (!file) {
+    return { ok: false, error: "openclaw_latest_missing", detail: candidates.join(" | ") };
+  }
+
+  try {
+    const raw = JSON.parse(readFileSync(file, "utf-8"));
+    const list = Array.isArray(raw?.leads) ? raw.leads : [];
+    const mapped = list.map((x: any) => mapOpenclawRecord(x, vertical)).filter((x: LeadRow | null): x is LeadRow => Boolean(x));
+    const rows = dedupeRows(mapped);
+
+    rows.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return String(b.collected_at || "").localeCompare(String(a.collected_at || ""));
+    });
+
+    return { ok: true, rows: rows.slice(0, clamp(maxFetch, 100, 5000)), detail: file };
+  } catch (error) {
+    return { ok: false, error: "openclaw_latest_parse_failed", detail: String(error) };
+  }
+}
+
 function mapSupabaseRecord(record: SupabaseLeadRecord, vertical: string): LeadRow | null {
   const notes = String(record.notes || "");
   if (!notes) return null;
@@ -354,7 +463,7 @@ function summarize(rows: LeadRow[]): LeadsPayload["summary"] {
   };
 }
 
-function buildPayload(rows: LeadRow[], params: { limit: number; minScore: number; onlyTarget: boolean; excludeCompetitors: boolean; vertical: string }): LeadsPayload {
+export function buildPayload(rows: LeadRow[], params: { limit: number; minScore: number; onlyTarget: boolean; excludeCompetitors: boolean; vertical: string }): LeadsPayload {
   let filtered = rows;
   if (params.excludeCompetitors) filtered = filtered.filter((x) => !x.is_competitor);
   if (params.onlyTarget) filtered = filtered.filter((x) => x.is_target);
@@ -379,7 +488,7 @@ function buildPayload(rows: LeadRow[], params: { limit: number; minScore: number
   };
 }
 
-async function loadLeadsFromSupabase(maxFetch: number, vertical: string): Promise<SupabaseLoadResult> {
+export async function loadLeadsFromSupabase(maxFetch: number, vertical: string): Promise<SupabaseLoadResult> {
   const supabaseUrl = String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   const supabaseKey = String(
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
@@ -458,7 +567,7 @@ function runExporter(scriptPath: string, args: string[], cwd: string): RunResult
   return { ok: false, stderr: "Python runtime not found", stdout: "" };
 }
 
-function loadFromLocalExporter(params: {
+export function loadFromLocalExporter(params: {
   minScore: number;
   limit: number;
   onlyTarget: boolean;
@@ -510,7 +619,7 @@ function loadFromLocalExporter(params: {
   }
 }
 
-function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string } | { ok: false; error: string; detail?: string } {
+export function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string } | { ok: false; error: string; detail?: string } {
   const snapshotPath = path.join(process.cwd(), "data", "leads_snapshot.json");
   if (!existsSync(snapshotPath)) {
     return { ok: false, error: "snapshot_missing", detail: snapshotPath };
@@ -560,6 +669,74 @@ function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string 
     return { ok: false, error: "snapshot_read_failed", detail: String(error) };
   }
 }
+
+export async function loadLeadRows(maxFetch: number, vertical: string): Promise<{
+  rows: LeadRow[];
+  source: "local_exporter" | "openclaw_json" | "supabase" | "bundled_snapshot" | "unavailable";
+  source_detail: string;
+  errors: Record<string, string>;
+}> {
+  const errors: Record<string, string> = {};
+
+  // Prefer local cleaned exporter first so web always reflects newest local OpenClaw results.
+  const local = loadFromLocalExporter({
+    minScore: 0,
+    limit: Math.max(1000, maxFetch),
+    onlyTarget: false,
+    excludeCompetitors: false,
+    vertical,
+  });
+  if (local.ok) {
+    return {
+      rows: local.payload.rows || [],
+      source: "local_exporter",
+      source_detail: "python_exporter",
+      errors,
+    };
+  }
+  errors.local_exporter = `${local.error}:${String(local.detail || "")}`;
+
+  const openclaw = loadFromOpenclawLatest(Math.max(500, maxFetch), vertical);
+  if (openclaw.ok) {
+    return {
+      rows: openclaw.rows,
+      source: "openclaw_json",
+      source_detail: openclaw.detail,
+      errors,
+    };
+  }
+  errors.openclaw_json = `${openclaw.error}:${String(openclaw.detail || "")}`;
+
+  const supabaseLoad = await loadLeadsFromSupabase(maxFetch, vertical);
+  if (supabaseLoad.status === "ok") {
+    return {
+      rows: supabaseLoad.rows,
+      source: "supabase",
+      source_detail: "supabase_rest",
+      errors,
+    };
+  }
+  errors.supabase = supabaseLoad.reason;
+
+  const snapshot = loadFromBundledSnapshot();
+  if (snapshot.ok) {
+    return {
+      rows: snapshot.rows,
+      source: "bundled_snapshot",
+      source_detail: snapshot.detail,
+      errors,
+    };
+  }
+  errors.snapshot = `${snapshot.error}:${String(snapshot.detail || "")}`;
+
+  return {
+    rows: [],
+    source: "unavailable",
+    source_detail: "no_source",
+    errors,
+  };
+}
+
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const minScore = clamp(parseIntSafe(url.searchParams.get("minScore"), 65), 0, 100);
@@ -568,19 +745,30 @@ export async function GET(req: NextRequest) {
   const excludeCompetitors = parseBool(url.searchParams.get("excludeCompetitors"), true);
   const vertical = normalizeVertical((url.searchParams.get("vertical") || DEFAULT_VERTICAL).trim());
 
-  const supabaseLoad = await loadLeadsFromSupabase(Math.max(600, limit * 6), vertical);
-  if (supabaseLoad.status === "ok") {
-    const payload = buildPayload(supabaseLoad.rows, {
-      minScore,
-      limit,
-      onlyTarget,
-      excludeCompetitors,
-      vertical,
-    });
-    return NextResponse.json(payload);
+  const userId = url.searchParams.get("userId") || undefined;
+  const wallet = getWalletFromRequest(req, userId);
+  const walletToken = walletTokenForResponse(wallet);
+  const linksUnlocked = isLinksUnlocked(wallet);
+
+  const loaded = await loadLeadRows(Math.max(600, limit * 6), vertical);
+  if (!loaded.rows.length && loaded.source === "unavailable") {
+    const errorRes = NextResponse.json(
+      {
+        error: "lead_source_unavailable",
+        source: loaded.source,
+        source_detail: loaded.source_detail,
+        errors: loaded.errors,
+        entitlements: walletPublic(wallet),
+        wallet_token: walletToken,
+      },
+      { status: 500 },
+    );
+    errorRes.headers.set("Set-Cookie", walletSetCookieHeader(wallet));
+    errorRes.headers.set("X-LeadPulse-Wallet-Token", walletToken);
+    return errorRes;
   }
 
-  const fallback = loadFromLocalExporter({
+  const payload = buildPayload(loaded.rows, {
     minScore,
     limit,
     onlyTarget,
@@ -588,37 +776,32 @@ export async function GET(req: NextRequest) {
     vertical,
   });
 
-  if (fallback.ok) {
-    return NextResponse.json(fallback.payload);
-  }
+  const rows = payload.rows.map((row) => {
+    if (linksUnlocked) return row;
+    if (!row.author_url && !row.post_url) return row;
+    return { ...row, author_url: "", post_url: "" };
+  });
 
-  const snapshot = loadFromBundledSnapshot();
-  if (snapshot.ok) {
-    const payload = buildPayload(snapshot.rows, {
-      minScore,
-      limit,
-      onlyTarget,
-      excludeCompetitors,
-      vertical,
-    });
+  const lockedLinkCount = payload.rows.reduce((acc, row) => {
+    if (row.author_url || row.post_url) return acc + 1;
+    return acc;
+  }, 0);
 
-    return NextResponse.json({
-      ...payload,
-      source: "bundled_snapshot",
-      source_detail: snapshot.detail,
-    });
-  }
-
-  return NextResponse.json(
-    {
-      error: "lead_source_unavailable",
-      supabase: supabaseLoad,
-      local: fallback,
-      snapshot,
+  const res = NextResponse.json({
+    ...payload,
+    rows,
+    source: loaded.source,
+    source_detail: loaded.source_detail,
+    locked_link_count: linksUnlocked ? 0 : lockedLinkCount,
+    entitlements: {
+      ...walletPublic(wallet),
+      links_unlocked: linksUnlocked,
+      export_credit_cost: exportCreditCost(),
     },
-    { status: 500 },
-  );
+    wallet_token: walletToken,
+  });
+
+  res.headers.set("Set-Cookie", walletSetCookieHeader(wallet));
+  res.headers.set("X-LeadPulse-Wallet-Token", walletToken);
+  return res;
 }
-
-
-

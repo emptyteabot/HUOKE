@@ -1,188 +1,313 @@
-'use client';
+﻿"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-import { Plus, Search, Mail, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import { getOrCreateClientUserId } from "@/lib/client_user";
 
-interface Lead {
-  id: string;
-  name: string;
-  email: string;
-  company: string;
-  jobTitle?: string;
-  status: string;
-  createdAt: string;
-}
+type LeadRow = {
+  external_id: string;
+  platform: string;
+  author: string;
+  keyword: string;
+  score: number;
+  intent_level: string;
+  is_target: boolean;
+  is_competitor: boolean;
+  dm_ready: boolean;
+  author_url: string;
+  post_url: string;
+  content: string;
+};
+
+type WalletInfo = {
+  user_id: string;
+  credits: number;
+  exports_count: number;
+  free_export_limit: number;
+  free_exports_used: number;
+  free_exports_remaining: number;
+  last_export_at: string;
+  links_unlocked: boolean;
+  links_unlocked_until: string;
+  export_credit_cost: number;
+  link_unlock_hours: number;
+};
+
+type LeadsPayload = {
+  wallet_token?: string;
+  generated_at: string;
+  source?: string;
+  source_detail?: string;
+  locked_link_count?: number;
+  entitlements?: WalletInfo;
+  summary: {
+    total_rows: number;
+    filtered_rows: number;
+    target_rows: number;
+    competitor_rows: number;
+    dm_ready_rows: number;
+    score_ge_65_rows: number;
+    platform_counts: Record<string, number>;
+  };
+  rows: LeadRow[];
+};
 
 export default function LeadsPage() {
-  const router = useRouter();
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [userId, setUserId] = useState("guest_demo");
+
+  const [data, setData] = useState<LeadsPayload | null>(null);
+  const [walletToken, setWalletToken] = useState("");
+  const [wallet, setWallet] = useState<WalletInfo | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const [minScore, setMinScore] = useState(65);
+  const [onlyTarget, setOnlyTarget] = useState(true);
+  const [excludeCompetitors, setExcludeCompetitors] = useState(true);
+  const [limit, setLimit] = useState(200);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/');
-      return;
-    }
-
-    fetchLeads(token);
+    setUserId(getOrCreateClientUserId());
   }, []);
 
-  const fetchLeads = async (token: string) => {
+  const query = useMemo(() => {
+    const q = new URLSearchParams();
+    q.set("minScore", String(minScore));
+    q.set("onlyTarget", onlyTarget ? "1" : "0");
+    q.set("excludeCompetitors", excludeCompetitors ? "1" : "0");
+    q.set("limit", String(limit));
+    q.set("userId", userId);
+    if (walletToken) q.set("walletToken", walletToken);
+    return q.toString();
+  }, [excludeCompetitors, limit, minScore, onlyTarget, userId, walletToken]);
+
+  const loadWallet = async (tokenOverride?: string): Promise<string> => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/leads`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setLeads(response.data.leads || []);
-    } catch (error) {
-      console.error('Failed to fetch leads:', error);
+      const q = new URLSearchParams();
+      q.set("userId", userId);
+      const token = tokenOverride || walletToken;
+      if (token) q.set("walletToken", token);
+
+      const res = await fetch(`/api/credits?${q.toString()}`, { cache: "no-store" });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || "wallet_load_failed");
+
+      setWallet(payload?.wallet || null);
+      const nextToken = String(payload?.wallet_token || token || "");
+      if (nextToken) setWalletToken(nextToken);
+      return nextToken;
+    } catch {
+      setWallet(null);
+      return tokenOverride || walletToken || "";
+    }
+  };
+
+  const run = async (tokenOverride?: string): Promise<string> => {
+    setLoading(true);
+    setError("");
+    try {
+      const q = new URLSearchParams(query);
+      const token = tokenOverride || walletToken;
+      if (token) q.set("walletToken", token);
+
+      const res = await fetch(`/api/leads?${q.toString()}`, { cache: "no-store" });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || "load_failed");
+
+      setData(payload);
+      if (payload?.entitlements) {
+        setWallet(payload.entitlements);
+      }
+
+      const nextToken = String(payload?.wallet_token || token || "");
+      if (nextToken) setWalletToken(nextToken);
+      return nextToken;
+    } catch (e) {
+      setError(String(e));
+      return tokenOverride || walletToken || "";
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredLeads = leads.filter(lead =>
-    lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const exportCsv = async () => {
+    setExporting(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const res = await fetch("/api/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          minScore,
+          limit,
+          onlyTarget,
+          excludeCompetitors,
+          vertical: "study_abroad",
+          walletToken,
+        }),
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        if (payload?.wallet) setWallet(payload.wallet);
+        if (payload?.wallet_token) setWalletToken(String(payload.wallet_token));
+        throw new Error(payload?.message || payload?.error || `export_failed_${res.status}`);
+      }
+
+      const freshToken = res.headers.get("X-LeadPulse-Wallet-Token") || "";
+      if (freshToken) setWalletToken(freshToken);
+
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const filenameMatch = disposition.match(/filename="?([^";]+)"?/i);
+      const filename = (filenameMatch?.[1] || "leadpack-export.csv").trim();
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      setNotice("导出成功：已扣积分并解锁主页链接。可直接私信触达。");
+      const tokenForRefresh = freshToken || walletToken;
+      await Promise.all([run(tokenForRefresh), loadWallet(tokenForRefresh)]);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const token = await loadWallet();
+      await run(token);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  const linksUnlocked = Boolean(wallet?.links_unlocked);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">LeadPulse</h1>
-            </div>
-            <nav className="flex items-center space-x-4">
-              <a href="/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md font-medium">
-                仪表盘
-              </a>
-              <a href="/dashboard/leads" className="text-blue-600 px-3 py-2 rounded-md font-medium border-b-2 border-blue-600">
-                潜在客户
-              </a>
-              <a href="/dashboard/emails" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md font-medium">
-                邮件
-              </a>
-              <a href="/dashboard/ai" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md font-medium">
-                AI生成
-              </a>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="flex justify-between items-center mb-6">
+    <div className="lp-grid" style={{ gap: 14 }}>
+      <section className="lp-card" style={{ padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">潜在客户</h2>
-            <p className="text-gray-600 mt-1">管理您的潜在客户列表</p>
-          </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            添加客户
-          </button>
-        </div>
-
-        {/* Search Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="搜索客户名称、邮箱或公司..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-
-        {/* Leads Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {loading ? (
-            <div className="text-center py-12 text-gray-600">加载中...</div>
-          ) : filteredLeads.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">暂无潜在客户</p>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="mt-4 text-blue-600 hover:underline"
-              >
-                添加第一个客户
-              </button>
+            <div style={{ fontWeight: 700 }}>积分导出权限</div>
+            <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>
+              免费导出剩余：<b>{wallet?.free_exports_remaining ?? "--"}</b>/<b>{wallet?.free_export_limit ?? 3}</b> 次 ｜ 当前积分：<b>{wallet?.credits ?? "--"}</b> ｜ 单次导出消耗：<b>{wallet?.export_credit_cost ?? 20}</b> 积分
             </div>
-          ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    姓名
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    邮箱
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    公司
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    职位
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    状态
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{lead.name}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">{lead.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">{lead.company}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">{lead.jobTitle || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                        {lead.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button className="text-blue-600 hover:text-blue-900 mr-3">
-                        <Mail className="w-4 h-4" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+            <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>
+              链接状态：{linksUnlocked ? "已解锁" : "未解锁（导出后可见私信主页链接）"}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <button className="lp-btn" onClick={exportCsv} disabled={exporting || loading}>
+              {exporting ? "导出中..." : "积分导出并解锁链接"}
+            </button>
+          </div>
         </div>
-      </main>
+        {notice ? <div style={{ color: "#0b6f3d", marginTop: 10 }}>{notice}</div> : null}
+      </section>
+
+      <section className="lp-card" style={{ padding: 16 }}>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>筛选器</div>
+        <div className="lp-grid lp-grid-4" style={{ alignItems: "end" }}>
+          <label>
+            <div style={{ fontSize: 12, color: "var(--lp-muted)", marginBottom: 6 }}>最低分</div>
+            <input className="lp-input" type="number" min={0} max={100} value={minScore} onChange={(e) => setMinScore(Number(e.target.value) || 0)} />
+          </label>
+          <label>
+            <div style={{ fontSize: 12, color: "var(--lp-muted)", marginBottom: 6 }}>返回数量</div>
+            <input className="lp-input" type="number" min={20} max={1000} value={limit} onChange={(e) => setLimit(Number(e.target.value) || 200)} />
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={onlyTarget} onChange={(e) => setOnlyTarget(e.target.checked)} />
+            仅目标客户
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={excludeCompetitors} onChange={(e) => setExcludeCompetitors(e.target.checked)} />
+            排除竞品/机构
+          </label>
+        </div>
+
+        <div style={{ marginTop: 12 }}>
+          <button className="lp-btn" onClick={() => run()} disabled={loading}>{loading ? "刷新中..." : "应用筛选"}</button>
+        </div>
+      </section>
+
+      <section className="lp-card" style={{ padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ fontWeight: 700 }}>线索结果</div>
+          <div style={{ color: "var(--lp-muted)", fontSize: 13 }}>
+            匹配 {data?.summary.filtered_rows ?? 0} / 总计 {data?.summary.total_rows ?? 0}
+            {typeof data?.locked_link_count === "number" && !linksUnlocked
+              ? ` ｜ 已锁定链接 ${data.locked_link_count}`
+              : ""}
+          </div>
+        </div>
+        <div style={{ color: "var(--lp-muted)", fontSize: 12, marginTop: 6 }}>
+          数据源：{data?.source || "unknown"}
+          {data?.source_detail ? ` ｜ ${data.source_detail}` : ""}
+        </div>
+
+        {error ? <div style={{ color: "#c62828", marginTop: 10 }}>加载失败：{error}</div> : null}
+
+        <div style={{ overflowX: "auto", marginTop: 8 }}>
+          <table className="lp-table">
+            <thead>
+              <tr>
+                <th>平台</th>
+                <th>作者</th>
+                <th>分数</th>
+                <th>意向</th>
+                <th>关键词</th>
+                <th>可私信</th>
+                <th>证据</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(data?.rows || []).map((row) => (
+                <tr key={row.external_id}>
+                  <td>{row.platform}</td>
+                  <td>{row.author}</td>
+                  <td>{row.score}</td>
+                  <td>{row.intent_level}</td>
+                  <td>{row.keyword || "-"}</td>
+                  <td>{row.dm_ready ? "是" : "否"}</td>
+                  <td style={{ minWidth: 420 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div>{row.content?.slice(0, 120) || "-"}</div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {row.author_url ? (
+                          <a href={row.author_url} target="_blank" rel="noreferrer" style={{ color: "#0d61cb" }}>
+                            主页
+                          </a>
+                        ) : row.dm_ready ? (
+                          <span style={{ color: "#b26a00" }}>已锁定（导出后可见）</span>
+                        ) : null}
+                        {row.post_url ? (
+                          <a href={row.post_url} target="_blank" rel="noreferrer" style={{ color: "#0d61cb" }}>
+                            帖子
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
