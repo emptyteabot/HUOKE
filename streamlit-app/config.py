@@ -68,9 +68,9 @@ APP_NAME = _read_setting("APP_NAME", "\u7559\u5b66\u83b7\u5ba2\u5f15\u64ce")
 APP_VERSION = _read_setting("APP_VERSION", "1.0.0")
 APP_BASE_URL = _read_setting("APP_BASE_URL", "https://ai-huoke.streamlit.app")
 APP_LOCALE = _read_setting("APP_LOCALE", "zh-CN")
-ENABLE_NEXT_REDIRECT = _read_bool("ENABLE_NEXT_REDIRECT", True)
-NEXT_APP_URL = _read_setting("NEXT_APP_URL", "https://frontend-b2b-nine.vercel.app")
-NEXT_APP_CN_URL = _read_setting("NEXT_APP_CN_URL", "https://frontend-b2b-nine.vercel.app")
+ENABLE_NEXT_REDIRECT = _read_bool("ENABLE_NEXT_REDIRECT", False)
+NEXT_APP_URL = _read_setting("NEXT_APP_URL", "")
+NEXT_APP_CN_URL = _read_setting("NEXT_APP_CN_URL", "")
 NEXT_REDIRECT_DELAY_MS = _read_int("NEXT_REDIRECT_DELAY_MS", 1200)
 
 # ==================== Access ====================

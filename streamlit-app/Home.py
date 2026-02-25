@@ -370,12 +370,10 @@ INSTITUTIONAL_AUTHOR_HINTS = [
     "机构",
     "顾问",
     "工作室",
-    "教育",
-    "老师",
     "留学咨询",
     "留学服务",
-    "官方",
-    "播报",
+    "申请服务",
+    "代办",
 ]
 DIRECT_SELL_HINTS = ["私信", "加v", "微信", "咨询", "报价", "套餐", "保录", "代办", "服务"]
 NOISE_AUTHORS = {"search_card", "unknown", "匿名", "none", "null"}
@@ -557,7 +555,8 @@ def _bootstrap_user_leads_if_needed(user: Optional[Dict]) -> None:
 
     try:
         existing = get_leads(user_id)
-        if len(existing) >= 1:
+        # Keep enriching until the account has enough leads for front-end display.
+        if len(existing) >= 120:
             st.session_state[guard_key] = True
             return
 
@@ -569,12 +568,12 @@ def _bootstrap_user_leads_if_needed(user: Optional[Dict]) -> None:
 
         _sync_openclaw_leads(
             user_id=user_id,
-            min_score=65,
+            min_score=35,
             exclude_competitors=True,
             limit=2000,
             normalized=norm,
             files=files,
-            only_target=True,
+            only_target=False,
             selected_platforms=[],
         )
     finally:
@@ -1884,11 +1883,11 @@ def render_acquisition(user: Dict) -> None:
     with st.container(border=True):
         c1, c2, c3, c4, c5, c6 = st.columns([1.4, 1, 1, 1, 1.1, 1.1])
         selected_platforms = c1.multiselect("平台", platform_options, default=default_platforms, key="oc_platforms")
-        min_score = c2.slider("最低意向分", 0, 100, 65, key="oc_min_score")
-        only_target = c3.checkbox("仅保留目标潜客", value=True, key="oc_only_target")
+        min_score = c2.slider("最低意向分", 0, 100, 45, key="oc_min_score")
+        only_target = c3.checkbox("仅保留目标潜客", value=False, key="oc_only_target")
         exclude_comp = c4.checkbox("排除机构/竞品", value=True, key="oc_exclude_comp")
-        use_vertical_filter = c5.checkbox("按赛道词过滤", value=True, key="oc_use_vertical_filter")
-        import_limit = c6.slider("单次同步上限", 20, 2000, 400, step=20, key="oc_import_limit")
+        use_vertical_filter = c5.checkbox("按赛道词过滤", value=False, key="oc_use_vertical_filter")
+        import_limit = c6.slider("单次同步上限", 20, 2000, 800, step=20, key="oc_import_limit")
         text_filter = st.text_input("关键词过滤(作者/内容/关键词)", key="oc_text_filter").strip().lower()
 
     view_df = norm_df.copy()
@@ -2310,7 +2309,10 @@ def render_sdr_agent(user: Dict) -> None:
 
 
 def main() -> None:
-    _render_next_gateway_if_enabled()
+    # Avoid forced redirect by default. Enable only with explicit query param.
+    next_redirect_flag = str(st.query_params.get("next_redirect", "0")).strip().lower()
+    if next_redirect_flag in {"1", "true", "yes"}:
+        _render_next_gateway_if_enabled()
     init_session_state()
 
     db_ok = _db_ready()
@@ -2320,11 +2322,8 @@ def main() -> None:
     user = get_current_user()
     if not user and _auto_login_guest_user():
         user = get_current_user()
-    if not user and ENABLE_GUEST_AUTOLOGIN:
-        user = _force_session_guest_login()
     if not user:
-        render_login_register()
-        st.stop()
+        user = _force_session_guest_login()
 
     try:
         process_checkout_query(user)
@@ -2352,15 +2351,11 @@ def main() -> None:
 
     page = st.radio(
         "导航",
-        ["作战中枢", "线索包", "总览", "获客", "AI销售", "数据分析", "线索池", "订阅", "退出登录"],
+        ["作战中枢", "线索包", "总览", "获客", "AI销售", "数据分析", "线索池", "订阅"],
         horizontal=True,
         label_visibility="collapsed",
         key="workspace_nav_top",
     )
-
-    if page == "退出登录":
-        logout_user()
-        st.rerun()
 
     if page in {"作战中枢", "线索池", "获客", "AI销售", "数据分析"} and not has_required_plan(user, minimum="pro"):
         st.info("当前为试用模式。升级 Pro 可开启完整自动化和更高额度。")

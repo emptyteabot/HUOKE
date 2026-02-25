@@ -1,4 +1,4 @@
-﻿# Product Architecture (GuestSeek)
+﻿# Product Architecture (AI获客增长引擎)
 
 ## Goal
 Build a web B2B SaaS for study-abroad agencies with an AI-first acquisition funnel.

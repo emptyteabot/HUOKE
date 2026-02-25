@@ -1,4 +1,4 @@
-﻿# GuestSeek (Streamlit SaaS)
+﻿# AI获客增长引擎 (Streamlit SaaS)
 
 Vertical B2B SaaS for study-abroad lead generation:
 - OpenClaw-first prospect discovery
@@ -9,8 +9,8 @@ Vertical B2B SaaS for study-abroad lead generation:
 ## App Entry
 - Main app: `streamlit-app/Home.py`
 - Streamlit config: `streamlit-app/.streamlit/config.toml`
-## Redirect Gateway (old domain -> Next.js)
-If you keep `ai-huoke.streamlit.app` as the entry but serve product on Next.js:
+## Redirect Gateway (optional, Streamlit -> Next.js)
+Default is disabled to avoid redirecting users to stale pages. Enable only when Next.js production is confirmed:
 
 ```toml
 ENABLE_NEXT_REDIRECT = true
