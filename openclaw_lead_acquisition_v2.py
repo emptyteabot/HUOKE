@@ -180,10 +180,10 @@ def leads_from_post(
 ) -> List[LeadV2]:
     comments = post_read.get("comments") or []
     preview = normalize_space(str(post_read.get("preview") or ""))
-    if not comments and preview:
+    platform = str(post.get("platform", "xhs") or "xhs")
+    if not comments and preview and platform != "xhs":
         comments = [{"author": "post_author", "author_url": "", "content": preview[:420]}]
 
-    platform = str(post.get("platform", "xhs") or "xhs")
     keyword = str(post.get("keyword", "") or "")
     post_url = str(post_read.get("url") or post.get("post_url", "") or "")
     source_url = str(post.get("search_url", "") or "")
@@ -192,17 +192,25 @@ def leads_from_post(
     for c in comments:
         if not isinstance(c, dict):
             continue
-        author = normalize_space(str(c.get("author", "unknown"))) or "unknown"
+        author = base.clean_author(str(c.get("author", "unknown"))) or "unknown"
         content = normalize_space(str(c.get("content", "")))
         author_url = normalize_space(str(c.get("author_url", "")))
+        if not author or author == "unknown":
+            author = base.clean_author(str(post.get("author_hint", ""))) or "unknown"
+        if not author_url:
+            author_url = normalize_space(str(post.get("author_url_hint", "")))
 
         if len(content) < 8:
+            continue
+        if platform == "xhs" and (author == "unknown" or "/user/profile/" not in author_url.lower()):
             continue
         if base.is_probable_agency(author, content):
             continue
 
         score = base.score_intent(content)
         if score < 4:
+            continue
+        if not base.has_buyer_signal(content) and score < 6:
             continue
 
         grade = base.grade_from_score(score)
@@ -251,7 +259,7 @@ def leads_from_post(
                 funnel_reason=funnel_reason[:180],
                 suggested_reply=suggested_reply[:420],
                 collected_at=now_iso(),
-                access_hint=f"openclaw_human_read|{post_read.get('status', 'unknown')}|funnel:{funnel_stage}",
+                access_hint=f"openclaw_human_read|{post_read.get('status', 'unknown')}|sort:{post.get('sort_mode', 'na')}|funnel:{funnel_stage}",
             )
         )
 
@@ -450,11 +458,91 @@ def write_outputs(out_dir: Path, posts: List[Dict], reads: List[Dict], leads: Li
     latest_json = out_dir / "openclaw_leads_latest.json"
     latest_csv = out_dir / "openclaw_leads_latest.csv"
     latest_md = out_dir / "openclaw_leads_latest.md"
-    # Keep last non-empty "latest" snapshot to avoid blanking the web UI on a temporary scrape miss.
+    # Keep and merge non-empty snapshots to avoid shrinking latest view when one cycle yields few rows.
     if leads:
-        latest_json.write_text(lead_json.read_text(encoding="utf-8"), encoding="utf-8")
-        latest_csv.write_text(lead_csv.read_text(encoding="utf-8"), encoding="utf-8")
-        latest_md.write_text(lead_md.read_text(encoding="utf-8"), encoding="utf-8")
+        merged_rows: List[Dict] = []
+        seen = set()
+
+        def _push(row: Dict) -> None:
+            post = str(row.get("post_url", "")).split("?", 1)[0]
+            key = hashlib.sha1(
+                f"{row.get('platform','')}|{post}|{row.get('author','')}|{str(row.get('content',''))[:140]}".encode(
+                    "utf-8", "ignore"
+                )
+            ).hexdigest()
+            if key in seen:
+                return
+            seen.add(key)
+            merged_rows.append(dict(row))
+
+        for row in [x.__dict__ for x in leads]:
+            _push(row)
+
+        if latest_json.exists():
+            try:
+                old_obj = json.loads(latest_json.read_text(encoding="utf-8", errors="ignore") or "{}")
+                old_rows = old_obj.get("leads", []) if isinstance(old_obj, dict) else []
+                for row in old_rows if isinstance(old_rows, list) else []:
+                    if isinstance(row, dict):
+                        _push(row)
+            except Exception:
+                pass
+
+        merged_rows.sort(key=lambda x: str(x.get("collected_at", "")), reverse=True)
+        merged_rows = merged_rows[:600]
+
+        latest_payload = {
+            "generated_at": now_iso(),
+            "lead_count": len(merged_rows),
+            "control_stats": control_stats,
+            "leads": merged_rows,
+        }
+        latest_json.write_text(json.dumps(latest_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        with latest_csv.open("w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=[
+                    "platform",
+                    "keyword",
+                    "post_url",
+                    "source_url",
+                    "author",
+                    "author_url",
+                    "content",
+                    "score",
+                    "grade",
+                    "confidence",
+                    "intent_confidence",
+                    "funnel_stage",
+                    "funnel_reason",
+                    "suggested_reply",
+                    "collected_at",
+                    "access_hint",
+                ],
+            )
+            writer.writeheader()
+            for row in merged_rows:
+                writer.writerow(row)
+
+        lines_latest = [
+            "# OpenClaw 获客线索报告(v2)-Latest",
+            "",
+            f"- 生成时间: {now_iso()}",
+            f"- Latest累计线索数: {len(merged_rows)}",
+            "",
+            "## Top 30 线索",
+            "|平台|关键词|作者|意向分|置信度|漏斗阶段|等级|内容片段|帖子链接|",
+            "|---|---|---|---:|---:|---|---|---|---|",
+        ]
+        for row in merged_rows[:30]:
+            snippet = str(row.get("content", "")).replace("|", " ")
+            if len(snippet) > 64:
+                snippet = snippet[:64] + "..."
+            lines_latest.append(
+                f"|{row.get('platform','')}|{row.get('keyword','')}|{row.get('author','')}|{row.get('score',0)}|{row.get('intent_confidence', row.get('confidence', 0))}|{row.get('funnel_stage','')}|{row.get('grade','')}|{snippet}|[打开]({row.get('post_url','')})|"
+            )
+        latest_md.write_text("\n".join(lines_latest), encoding="utf-8-sig")
 
     return {
         "raw": str(raw_path),
@@ -475,6 +563,7 @@ def main() -> int:
         help="Comma list: xhs,douyin,kuaishou,channels,tiktok,bilibili,weibo,zhihu,tieba",
     )
     parser.add_argument("--keywords", default=",".join(DEFAULT_KEYWORDS), help="Comma-separated keywords")
+    parser.add_argument("--xhs-sort-mode", default="both", help="XHS sort: latest|hot|both")
     parser.add_argument("--max-posts-per-keyword", type=int, default=6)
     parser.add_argument("--max-comments-per-post", type=int, default=24)
     parser.add_argument("--browser-profile", default="openclaw")
@@ -569,7 +658,13 @@ def main() -> int:
                 break
 
             try:
-                posts = base.collect_posts_for_keyword(browser, platform, kw, args.max_posts_per_keyword)
+                posts = base.collect_posts_for_keyword(
+                    browser,
+                    platform,
+                    kw,
+                    args.max_posts_per_keyword,
+                    xhs_sort_mode=args.xhs_sort_mode,
+                )
             except Exception as e:
                 print(f"[WARN] search failed platform={platform} kw={kw}: {e}")
                 continue

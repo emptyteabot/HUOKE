@@ -42,6 +42,18 @@ STUDY_HINTS = (
     "申请",
     "文书",
     "选校",
+    "中介",
+    "机构",
+    "英港",
+    "英国",
+    "香港",
+    "美国",
+    "澳洲",
+    "加拿大",
+    "新加坡",
+    "德国",
+    "专业",
+    "背景",
     "签证",
     "雅思",
     "托福",
@@ -60,8 +72,29 @@ INTENT_HINTS = (
     "预算",
     "费用",
     "避坑",
+    "避雷",
+    "推荐",
+    "蹲",
+    "求老师",
+    "找机构",
     "想去",
     "打算",
+)
+
+BUYER_HINTS = (
+    "求推荐",
+    "求助",
+    "请问",
+    "有没有",
+    "怎么选",
+    "怎么办",
+    "预算",
+    "费用",
+    "来不及",
+    "急",
+    "被拒",
+    "转学",
+    "申诉",
 )
 
 AGENCY_HINTS = (
@@ -72,6 +105,9 @@ AGENCY_HINTS = (
     "工作室",
     "团队",
     "教育",
+    "老师",
+    "学长",
+    "学姐",
     "留学服务",
     "留学中介",
     "新东方",
@@ -93,6 +129,11 @@ SOCIAL_PLATFORMS = {
     "douyin": lambda kw: f"https://www.douyin.com/search/{quote(kw)}?type=general",
     "bilibili": lambda kw: f"https://search.bilibili.com/all?keyword={quote(kw)}",
     "tieba": lambda kw: f"https://tieba.baidu.com/f/search/res?ie=utf-8&qw={quote(kw)}",
+}
+
+XHS_SORT_ALIASES = {
+    "latest": ("最新",),
+    "hot": ("最热",),
 }
 
 
@@ -334,12 +375,107 @@ def normalize_space(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").strip())
 
 
+def clean_author(author: str) -> str:
+    a = normalize_space(author)
+    if not a:
+        return ""
+    a = re.sub(r"\s+(19|20)\d{2}[-/.]\d{1,2}[-/.]\d{1,2}$", "", a).strip()
+    a = re.sub(r"\s+\d+\s*天前$", "", a).strip()
+    a = re.sub(r"\s+\d+\s*小时前$", "", a).strip()
+    return a
+
+
+def has_buyer_signal(content: str) -> bool:
+    t = normalize_space(content)
+    if len(t) < 8:
+        return False
+    t_low = t.lower()
+    study_hits = sum(1 for h in STUDY_HINTS if h in t or h in t_low)
+    buyer_hits = sum(1 for h in BUYER_HINTS if h in t)
+    question_like = any(x in t for x in ("?", "？", "请问", "有没有", "怎么", "如何"))
+    first_person = any(x in t for x in ("我", "本人", "孩子", "女儿", "儿子"))
+
+    if study_hits >= 1 and (buyer_hits >= 1 or question_like):
+        return True
+    if buyer_hits >= 2 and first_person:
+        return True
+    return False
+
+
+def parse_xhs_sort_modes(raw_mode: str) -> List[str]:
+    mode = normalize_space(raw_mode).lower()
+    if mode in {"latest", "new", "最新"}:
+        return ["latest"]
+    if mode in {"hot", "最热"}:
+        return ["hot"]
+    return ["hot", "latest"]
+
+
+def xhs_search_url_with_sort(base_url: str, sort_mode: str) -> str:
+    base = normalize_space(base_url).split("#", 1)[0]
+    if "source=" not in base:
+        sep = "&" if "?" in base else "?"
+        base = f"{base}{sep}source=web_search_result_notes"
+    mode = "latest" if sort_mode == "latest" else "hot"
+    return f"{base}#sort={mode}"
+
+
+def xhs_sort_switch_js(sort_mode: str) -> str:
+    labels = list(XHS_SORT_ALIASES.get(sort_mode, ()))
+    labels_js = json.dumps(labels, ensure_ascii=False)
+    return f"""() => {{
+  const labels = {labels_js};
+  if (!Array.isArray(labels) || labels.length === 0) {{
+    return {{clicked:false, label:'', reason:'no_label'}};
+  }}
+  const nodes = Array.from(document.querySelectorAll('span,button,a,div')).filter(n => {{
+    if (!n || !n.innerText) return false;
+    const txt = String(n.innerText || '').trim();
+    if (!txt || txt.length > 10) return false;
+    return labels.some(lb => txt === lb || txt.includes(lb));
+  }});
+  for (const n of nodes) {{
+    try {{
+      const txt = String(n.innerText || '').trim();
+      const rect = n.getBoundingClientRect();
+      if (!(rect.width > 0 && rect.height > 0)) continue;
+      n.dispatchEvent(new MouseEvent('mousemove', {{bubbles:true, cancelable:true, view:window}}));
+      n.dispatchEvent(new MouseEvent('mousedown', {{bubbles:true, cancelable:true, view:window}}));
+      n.click();
+      n.dispatchEvent(new MouseEvent('mouseup', {{bubbles:true, cancelable:true, view:window}}));
+      return {{clicked:true, label:txt}};
+    }} catch (e) {{}}
+  }}
+  return {{clicked:false, label:labels[0] || '', reason:'not_found'}};
+}}"""
+
+
 def is_probable_agency(author: str, content: str) -> bool:
-    a = normalize_space(author).lower()
+    a = clean_author(author).lower()
     c = normalize_space(content).lower()
+    if a in {"", "unknown", "匿名", "none", "null"}:
+        return True
     if any(h in a for h in AGENCY_HINTS):
         return True
-    if any(h in c for h in ("私信我", "联系我", "加v", "加微", "vx", "欢迎咨询", "全程服务", "背景提升", "文书润色")):
+    if any(
+        h in c
+        for h in (
+            "私信我",
+            "联系我",
+            "加v",
+            "加微",
+            "vx",
+            "欢迎咨询",
+            "全程服务",
+            "背景提升",
+            "文书润色",
+            "保录",
+            "套餐",
+            "报价",
+            "点击主页",
+            "咨询老师",
+        )
+    ):
         return True
     return False
 
@@ -385,13 +521,19 @@ def link_extractor_js(platform: str, max_posts: int) -> str:
         return f"""() => {{
   const out = [];
   const seen = new Set();
-  const push = (href, text) => {{
+  const push = (href, text, meta) => {{
     const h = (href || '').trim();
     if (!h) return;
     const key = h.split('#')[0];
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({{ href: h, text: ((text || '').replace(/\\s+/g, ' ').trim()).slice(0, 260) }});
+    const row = {{ href: h, text: ((text || '').replace(/\\s+/g, ' ').trim()).slice(0, 260) }};
+    if (meta && typeof meta === 'object') {{
+      for (const [k, v] of Object.entries(meta)) {{
+        row[k] = v;
+      }}
+    }}
+    out.push(row);
   }};
 
   // Preferred path for XHS: use SSR/initial state to keep xsec_token.
@@ -418,8 +560,25 @@ def link_extractor_js(platform: str, max_posts: int) -> str:
       const title = String(
         noteCard.displayTitle || noteCard.title || noteCard.desc || noteCard.description || noteCard.content || ''
       );
-      const nick = String((noteCard.user && (noteCard.user.nickname || noteCard.user.nickName)) || '');
-      push(href, `${{title}} ${{nick}}`);
+      const userObj = noteCard.user || {{}};
+      const nick = String(userObj.nickname || userObj.nickName || '');
+      const userId = String(userObj.userId || userObj.userid || '');
+      const userToken = String(userObj.xsecToken || userObj.xsec_token || '');
+      let authorUrl = '';
+      if (userId) {{
+        authorUrl = `https://www.xiaohongshu.com/user/profile/${{userId}}`;
+        if (userToken) {{
+          authorUrl += `?xsec_token=${{encodeURIComponent(userToken)}}&xsec_source=pc_search`;
+        }}
+      }}
+      const commentCount = Number(((noteCard.interactInfo || {{}}).commentCount || 0) || 0);
+      push(href, `${{title}} ${{nick}}`, {{
+        note_id: noteId,
+        xsec_token: token,
+        author: nick,
+        author_url: authorUrl,
+        comment_count: Number.isFinite(commentCount) ? commentCount : 0
+      }});
       if (out.length >= {max_posts * 6}) break;
     }}
   }} catch (e) {{}}
@@ -431,7 +590,7 @@ def link_extractor_js(platform: str, max_posts: int) -> str:
     for (const el of els) {{
       const href = (el.href || el.getAttribute('href') || '').trim();
       const text = (el.innerText || el.textContent || el.getAttribute('title') || el.getAttribute('aria-label') || '');
-      push(href, text);
+      push(href, text, null);
       if (out.length >= {max_posts * 6}) break;
     }}
   }}
@@ -470,8 +629,88 @@ def link_extractor_js(platform: str, max_posts: int) -> str:
 }}"""
 
 
-def comment_extractor_js(max_comments: int) -> str:
+def comment_extractor_js(platform: str, max_comments: int) -> str:
+    platform_js = json.dumps(str(platform or "").lower())
     return f"""() => {{
+  const platform = {platform_js};
+  const out = [];
+  const seen = new Set();
+  let xhsStructuredCount = 0;
+  const push = (author, authorUrl, txt) => {{
+    const content = String(txt || '').replace(/\\s+/g, ' ').trim();
+    if (!content || content.length < 8) return;
+    const a = String(author || '').replace(/\\s+/g, ' ').trim() || 'unknown';
+    if (a === 'unknown') {{
+      if (
+        /^共\\s*\\d+\\s*条评论/.test(content) ||
+        content.includes('置顶评论') ||
+        content.includes('展开') ||
+        content.includes('回复')
+      ) {{
+        return;
+      }}
+    }}
+    const u = String(authorUrl || '').trim();
+    const key = `${{a}}|${{u}}|${{content.slice(0, 120)}}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({{author: a, author_url: u, content: content.slice(0, 420)}});
+  }};
+
+  if (platform === 'xhs') {{
+    try {{
+      const st = window.__INITIAL_STATE__ || {{}};
+      const note = st.note || {{}};
+      const curRef = note.currentNoteId;
+      const cur = curRef && typeof curRef === 'object' && ('_value' in curRef) ? curRef._value : curRef;
+      const mapRef = note.noteDetailMap;
+      const map = mapRef && typeof mapRef === 'object' && ('_value' in mapRef) ? mapRef._value : mapRef;
+      const one = map && cur ? map[cur] : null;
+      const commentsRef = one && one.comments ? one.comments : null;
+      const commentsObj = commentsRef && typeof commentsRef === 'object' && ('_value' in commentsRef) ? commentsRef._value : commentsRef;
+      const list = Array.isArray(commentsObj)
+        ? commentsObj
+        : ((commentsObj && Array.isArray(commentsObj.list)) ? commentsObj.list : []);
+
+      const toProfileUrl = (uid, token) => {{
+        const id = String(uid || '').trim();
+        if (!id) return '';
+        let u = `https://www.xiaohongshu.com/user/profile/${{id}}`;
+        const t = String(token || '').trim();
+        if (t) {{
+          u += `?xsec_token=${{encodeURIComponent(t)}}&xsec_source=pc_comment`;
+        }}
+        return u;
+      }};
+
+      for (const c of list) {{
+        if (!c || typeof c !== 'object') continue;
+        const u = c.userInfo || c.user || {{}};
+        const nick = u.nickname || u.nickName || c.nickname || c.userName || '';
+        const uid = u.userId || u.userid || c.userId || c.user_id || '';
+        const tok = u.xsecToken || u.xsec_token || c.xsecToken || c.xsec_token || '';
+        push(nick, toProfileUrl(uid, tok), c.content || c.text || c.message || '');
+
+        const subs = Array.isArray(c.subComments)
+          ? c.subComments
+          : (Array.isArray(c.subCommentList) ? c.subCommentList : (Array.isArray(c.children) ? c.children : []));
+        for (const sc of subs) {{
+          if (!sc || typeof sc !== 'object') continue;
+          const su = sc.userInfo || sc.user || {{}};
+          const sn = su.nickname || su.nickName || sc.nickname || sc.userName || '';
+          const sid = su.userId || su.userid || sc.userId || sc.user_id || '';
+          const stok = su.xsecToken || su.xsec_token || sc.xsecToken || sc.xsec_token || '';
+          push(sn, toProfileUrl(sid, stok), sc.content || sc.text || sc.message || '');
+          if (out.length >= {max_comments}) break;
+        }}
+
+        if (out.length >= {max_comments}) break;
+      }}
+      xhsStructuredCount = out.length;
+    }} catch (e) {{}}
+  }}
+
+  if (out.length < {max_comments} && !(platform === 'xhs' && xhsStructuredCount > 0)) {{
   const selectors = [
     "[class*='comment']",
     "[class*='Comment']",
@@ -484,20 +723,17 @@ def comment_extractor_js(max_comments: int) -> str:
   for (const sel of selectors) {{
     document.querySelectorAll(sel).forEach(n => bucket.push(n));
   }}
-  const out = [];
-  const seen = new Set();
   for (const node of bucket) {{
     const txt = ((node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim());
     if (!txt || txt.length < 8) continue;
     const userEl = node.querySelector("a[href*='/user/'],a[href*='/profile/'],a[href*='/people/'],a[href*='/u/']");
-    const author = (userEl ? (userEl.innerText || userEl.textContent || '') : '').replace(/\\s+/g, ' ').trim() || 'unknown';
+    const author = (userEl ? (userEl.innerText || userEl.textContent || '') : '').replace(/\\s+/g, ' ').trim() || '';
     const authorUrl = userEl ? (userEl.getAttribute('href') || userEl.href || '') : '';
-    const key = `${{author}}|${{authorUrl}}|${{txt.slice(0, 120)}}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({{author, author_url: authorUrl, content: txt.slice(0, 420)}});
+    push(author, authorUrl, txt);
     if (out.length >= {max_comments}) break;
   }}
+  }}
+
   const preview = (document.body && document.body.innerText)
     ? document.body.innerText.replace(/\\s+/g, ' ').slice(0, 1200)
     : '';
@@ -532,28 +768,54 @@ def normalize_post_url(platform: str, href: str, base_url: str) -> str:
     return u
 
 
-def collect_posts_for_keyword(browser: OpenClawBrowser, platform: str, keyword: str, max_posts: int) -> List[Dict]:
+def collect_posts_for_keyword(
+    browser: OpenClawBrowser,
+    platform: str,
+    keyword: str,
+    max_posts: int,
+    xhs_sort_mode: str = "both",
+) -> List[Dict]:
     url_builder = SOCIAL_PLATFORMS.get(platform)
     if not url_builder:
         return []
     search_url = url_builder(keyword)
 
-    tab = browser.open(search_url)
-    target_id = tab.get("targetId", "")
-    if not target_id:
-        return []
+    raw_links_all: List[Dict] = []
+    sort_modes = parse_xhs_sort_modes(xhs_sort_mode) if platform == "xhs" else [""]
+    for idx, sort_mode in enumerate(sort_modes):
+        search_url_for_sort = (
+            xhs_search_url_with_sort(search_url, sort_mode) if platform == "xhs" else search_url
+        )
+        tab = browser.open(search_url_for_sort)
+        target_id = tab.get("targetId", "")
+        if not target_id:
+            continue
+        try:
+            browser.wait_load(target_id)
+            browser.wait_ms(target_id, random.randint(900, 1500))
+            if platform == "xhs":
+                human_scroll(browser, target_id, rounds=1)
+            elif idx == 0:
+                human_scroll(browser, target_id, rounds=2)
 
-    try:
-        browser.wait_load(target_id)
-        browser.wait_ms(target_id, random.randint(1200, 2200))
-        human_scroll(browser, target_id, rounds=3)
-        raw_links = browser.evaluate(target_id, link_extractor_js(platform, max_posts), timeout=45)
-    finally:
-        browser.close(target_id)
+            raw_links = browser.evaluate(target_id, link_extractor_js(platform, max_posts), timeout=45)
+            if platform == "xhs" and sort_mode == "latest" and not raw_links:
+                browser.wait_ms(target_id, random.randint(1200, 1800))
+                human_scroll(browser, target_id, rounds=1)
+                raw_links = browser.evaluate(target_id, link_extractor_js(platform, max_posts), timeout=45)
+
+            for item in raw_links if isinstance(raw_links, list) else []:
+                if isinstance(item, dict):
+                    item["sort_mode"] = sort_mode or ""
+                    item["_search_url"] = search_url_for_sort
+                    raw_links_all.append(item)
+        finally:
+            browser.close(target_id)
 
     out = []
-    seen = set()
-    for item in raw_links if isinstance(raw_links, list) else []:
+    max_total = max_posts * len(sort_modes) if (platform == "xhs" and len(sort_modes) > 1) else max_posts
+    seen: Dict[str, int] = {}
+    for item in raw_links_all:
         if not isinstance(item, dict):
             continue
         post_url = normalize_post_url(platform, str(item.get("href", "")), search_url)
@@ -567,18 +829,28 @@ def collect_posts_for_keyword(browser: OpenClawBrowser, platform: str, keyword: 
             continue
         key = post_url.split("#")[0]
         if key in seen:
+            idx = seen[key]
+            old_sort = normalize_space(str(out[idx].get("sort_mode", ""))).lower()
+            new_sort = normalize_space(str(item.get("sort_mode", ""))).lower()
+            if new_sort and new_sort not in old_sort.split("+"):
+                merged = "+".join([x for x in [old_sort, new_sort] if x]).strip("+")
+                out[idx]["sort_mode"] = merged
             continue
-        seen.add(key)
+        seen[key] = len(out)
         out.append(
             {
                 "platform": platform,
                 "keyword": keyword,
-                "search_url": search_url,
+                "search_url": normalize_space(str(item.get("_search_url", search_url))) or search_url,
                 "post_url": post_url,
                 "card_text": normalize_space(str(item.get("text", "")))[:260],
+                "author_hint": normalize_space(str(item.get("author", "")))[:80],
+                "author_url_hint": normalize_space(str(item.get("author_url", ""))),
+                "comment_count_hint": int(item.get("comment_count", 0) or 0),
+                "sort_mode": normalize_space(str(item.get("sort_mode", ""))).lower(),
             }
         )
-        if len(out) >= max_posts:
+        if len(out) >= max_total:
             break
     return out
 
@@ -591,12 +863,20 @@ def read_post_comments(browser: OpenClawBrowser, post: Dict, max_comments: int) 
 
     try:
         browser.wait_load(target_id)
-        browser.wait_ms(target_id, random.randint(1000, 1800))
-        human_scroll(browser, target_id, rounds=random.randint(2, 4))
-        data = browser.evaluate(target_id, comment_extractor_js(max_comments), timeout=60)
+        browser.wait_ms(target_id, random.randint(700, 1300))
+        data = browser.evaluate(target_id, comment_extractor_js(str(post.get("platform", "")), max_comments), timeout=60)
         if not isinstance(data, dict):
             data = {}
         comments = data.get("comments") if isinstance(data.get("comments"), list) else []
+        if not comments:
+            # Fallback once after a short scroll for lazy-loaded comment containers.
+            human_scroll(browser, target_id, rounds=1)
+            data2 = browser.evaluate(target_id, comment_extractor_js(str(post.get("platform", "")), max_comments), timeout=60)
+            if isinstance(data2, dict):
+                c2 = data2.get("comments") if isinstance(data2.get("comments"), list) else []
+                if len(c2) > len(comments):
+                    data = data2
+                    comments = c2
         status = "ok" if comments else "no_comments_visible"
         return {
             "title": normalize_space(str(data.get("title", ""))),
@@ -631,23 +911,35 @@ def parse_platforms(raw: str) -> List[str]:
 def leads_from_post(post: Dict, post_read: Dict) -> List[Lead]:
     comments = post_read.get("comments") or []
     preview = normalize_space(post_read.get("preview") or "")
-    if not comments and preview:
+    platform = str(post.get("platform", "") or "").lower()
+    if not comments and preview and platform != "xhs":
         comments = [{"author": "post_author", "author_url": "", "content": preview[:420]}]
 
     leads: List[Lead] = []
     for c in comments:
         if not isinstance(c, dict):
             continue
-        author = normalize_space(str(c.get("author", "unknown"))) or "unknown"
+        author = clean_author(str(c.get("author", "")))
         content = normalize_space(str(c.get("content", "")))
         author_url = normalize_space(str(c.get("author_url", "")))
+        if not author:
+            author = clean_author(str(post.get("author_hint", "")))
+        if not author:
+            author = "unknown"
+        if not author_url:
+            author_url = normalize_space(str(post.get("author_url_hint", "")))
         if len(content) < 8:
+            continue
+        if platform == "xhs" and (author == "unknown" or "/user/profile/" not in author_url.lower()):
+            # For XHS we keep DM-ready personal leads only.
             continue
         if is_probable_agency(author, content):
             continue
 
         score = score_intent(content)
         if score < 4:
+            continue
+        if not has_buyer_signal(content) and score < 6:
             continue
 
         grade = grade_from_score(score)
@@ -668,7 +960,7 @@ def leads_from_post(post: Dict, post_read: Dict) -> List[Lead]:
                 grade=grade,
                 confidence=confidence,
                 collected_at=now_iso(),
-                access_hint=f"openclaw_human_read|{post_read.get('status', 'unknown')}",
+                access_hint=f"openclaw_human_read|{post_read.get('status', 'unknown')}|sort:{post.get('sort_mode', 'na')}",
             )
         )
 
@@ -854,6 +1146,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="OpenClaw-first social lead acquisition")
     parser.add_argument("--platforms", default="xhs", help="Comma list: xhs,weibo,zhihu")
     parser.add_argument("--keywords", default=",".join(DEFAULT_KEYWORDS), help="Comma-separated keywords")
+    parser.add_argument("--xhs-sort-mode", default="both", help="XHS sort: latest|hot|both")
     parser.add_argument("--max-posts-per-keyword", type=int, default=6)
     parser.add_argument("--max-comments-per-post", type=int, default=24)
     parser.add_argument("--browser-profile", default="openclaw")
@@ -880,7 +1173,13 @@ def main() -> int:
     for platform in platforms:
         for kw in keywords:
             try:
-                posts = collect_posts_for_keyword(browser, platform, kw, args.max_posts_per_keyword)
+                posts = collect_posts_for_keyword(
+                    browser,
+                    platform,
+                    kw,
+                    args.max_posts_per_keyword,
+                    xhs_sort_mode=args.xhs_sort_mode,
+                )
             except Exception as e:
                 print(f"[WARN] search failed platform={platform} kw={kw}: {e}")
                 continue
