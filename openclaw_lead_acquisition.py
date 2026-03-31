@@ -182,15 +182,52 @@ def extract_json_payload(output: str):
 class OpenClawBrowser:
     def __init__(self, browser_profile: str = "openclaw", config_path: Optional[str] = None) -> None:
         self.browser_profile = browser_profile
-        self.config_path = config_path or str(Path.home() / ".openclaw" / "openclaw.json")
+        env_cfg = normalize_space(os.getenv("OPENCLAW_CONFIG_PATH", ""))
+        self.config_path = config_path or env_cfg or str(Path.home() / ".openclaw" / "openclaw.json")
+        self.openclaw_profile = normalize_space(os.getenv("OPENCLAW_PROFILE", ""))
+        self.gateway_url = normalize_space(os.getenv("OPENCLAW_GATEWAY_URL", ""))
+        self.gateway_token = normalize_space(os.getenv("OPENCLAW_GATEWAY_TOKEN", ""))
+        self.gateway_password = normalize_space(os.getenv("OPENCLAW_GATEWAY_PASSWORD", ""))
+
         self.openclaw_bin = self._resolve_openclaw_bin()
         self.openclaw_cmd = self._resolve_openclaw_cmd()
         self.trace = str(os.getenv("OPENCLAW_TRACE", "1")).strip().lower() not in {"0", "false", "off", "no"}
+        self._ensure_headless_config()
         if self.trace:
+            extra = ""
+            if self.openclaw_profile:
+                extra += f" profile_global={self.openclaw_profile}"
+            if self.gateway_url:
+                extra += f" gateway_url={self.gateway_url}"
             print(
                 "[OPENCLAW] engine=browser profile="
-                + f"{self.browser_profile} bin={self.openclaw_bin} cfg={self.config_path}"
+                + f"{self.browser_profile} bin={self.openclaw_bin} cfg={self.config_path}{extra}"
             )
+
+    def _ensure_headless_config(self) -> None:
+        cfg_path = Path(self.config_path)
+        try:
+            cfg_path.parent.mkdir(parents=True, exist_ok=True)
+            cfg = {}
+            if cfg_path.exists():
+                raw = cfg_path.read_text(encoding="utf-8")
+                loaded = json.loads(raw) if raw.strip() else {}
+                if isinstance(loaded, dict):
+                    cfg = loaded
+
+            browser_cfg = cfg.get("browser")
+            if not isinstance(browser_cfg, dict):
+                browser_cfg = {}
+                cfg["browser"] = browser_cfg
+
+            if browser_cfg.get("headless") is not True:
+                browser_cfg["headless"] = True
+                cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
+                if self.trace:
+                    print(f"[OPENCLAW] enforced browser.headless=true cfg={cfg_path}")
+        except Exception as exc:
+            if self.trace:
+                print(f"[WARN] failed to enforce headless config: {exc}")
 
     def _resolve_openclaw_bin(self) -> str:
         env_bin = normalize_space(os.getenv("OPENCLAW_BIN", ""))
@@ -236,7 +273,10 @@ class OpenClawBrowser:
         return [self.openclaw_bin]
 
     def _restart_gateway(self) -> None:
-        cmd = [*self.openclaw_cmd, "--no-color", "--log-level", "error", "gateway", "start"]
+        cmd = [*self.openclaw_cmd, "--no-color", "--log-level", "error"]
+        if self.openclaw_profile:
+            cmd.extend(["--profile", self.openclaw_profile])
+        cmd.extend(["gateway", "start"])
         env = os.environ.copy()
         env["OPENCLAW_CONFIG_PATH"] = self.config_path
         try:
@@ -265,10 +305,20 @@ class OpenClawBrowser:
             "--no-color",
             "--log-level",
             "error",
+        ]
+        if self.openclaw_profile:
+            cmd.extend(["--profile", self.openclaw_profile])
+        cmd.extend([
             "browser",
             "--browser-profile",
             self.browser_profile,
-        ]
+        ])
+        if self.gateway_url:
+            cmd.extend(["--url", self.gateway_url])
+        if self.gateway_token:
+            cmd.extend(["--token", self.gateway_token])
+        if self.gateway_password:
+            cmd.extend(["--password", self.gateway_password])
         if expect_json:
             cmd.append("--json")
         cmd.extend(args)
@@ -301,6 +351,11 @@ class OpenClawBrowser:
             if ("gateway closed" in out_low) or ("error: gateway" in out_low):
                 self._restart_gateway()
                 last_err = RuntimeError(f"OpenClaw [{op}] gateway unavailable; restarted gateway and retrying")
+                continue
+            if ("connectovercdp: timeout" in out_low) or ("timeout 9000ms exceeded" in out_low):
+                self._restart_gateway()
+                time.sleep(1.2)
+                last_err = RuntimeError(f"OpenClaw [{op}] cdp timeout; restarted gateway and retrying")
                 continue
 
             payload = None
@@ -527,7 +582,7 @@ def link_extractor_js(platform: str, max_posts: int) -> str:
     const key = h.split('#')[0];
     if (seen.has(key)) return;
     seen.add(key);
-    const row = {{ href: h, text: ((text || '').replace(/\\s+/g, ' ').trim()).slice(0, 260) }};
+    const row = {{ href: h, text: ((text || '').split('\\n').join(' ').split('\\r').join(' ').split('\\t').join(' ').trim()).slice(0, 260) }};
     if (meta && typeof meta === 'object') {{
       for (const [k, v] of Object.entries(meta)) {{
         row[k] = v;
@@ -607,6 +662,8 @@ def link_extractor_js(platform: str, max_posts: int) -> str:
         selector = "a[href*='bilibili.com/video/'],a[href*='b23.tv/']"
     elif platform == "tieba":
         selector = "a[href*='tieba.baidu.com/p/']"
+    elif platform == "reddit":
+        selector = "a[href*='/comments/'],a[data-testid='post-title-link'],shreddit-post a[href*='/comments/']"
     else:
         selector = "a[href]"
 
@@ -618,11 +675,11 @@ def link_extractor_js(platform: str, max_posts: int) -> str:
   for (const el of els) {{
     const href = (el.getAttribute('href') || el.href || '').trim();
     if (!href) continue;
-    const text = (((el.innerText || el.textContent || el.getAttribute('title') || el.getAttribute('aria-label') || '')).replace(/\\s+/g, ' ').trim()).slice(0, 260);
+    const text = (((el.innerText || el.textContent || el.getAttribute('title') || el.getAttribute('aria-label') || '')).split('\\n').join(' ').split('\\r').join(' ').split('\\t').join(' ').trim()).slice(0, 260);
     const key = href.split('#')[0];
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({{href, text}});
+    out.push({{href: href, text: text}});
     if (out.length >= {max_posts * 5}) break;
   }}
   return out;
@@ -637,9 +694,9 @@ def comment_extractor_js(platform: str, max_comments: int) -> str:
   const seen = new Set();
   let xhsStructuredCount = 0;
   const push = (author, authorUrl, txt) => {{
-    const content = String(txt || '').replace(/\\s+/g, ' ').trim();
+    const content = String(txt || '').split('\\n').join(' ').split('\\r').join(' ').split('\\t').join(' ').trim();
     if (!content || content.length < 8) return;
-    const a = String(author || '').replace(/\\s+/g, ' ').trim() || 'unknown';
+    const a = String(author || '').split('\\n').join(' ').split('\\r').join(' ').split('\\t').join(' ').trim() || 'unknown';
     if (a === 'unknown') {{
       if (
         /^共\\s*\\d+\\s*条评论/.test(content) ||
@@ -724,10 +781,10 @@ def comment_extractor_js(platform: str, max_comments: int) -> str:
     document.querySelectorAll(sel).forEach(n => bucket.push(n));
   }}
   for (const node of bucket) {{
-    const txt = ((node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim());
+    const txt = ((node.innerText || node.textContent || '').split('\\n').join(' ').split('\\r').join(' ').split('\\t').join(' ').trim());
     if (!txt || txt.length < 8) continue;
     const userEl = node.querySelector("a[href*='/user/'],a[href*='/profile/'],a[href*='/people/'],a[href*='/u/']");
-    const author = (userEl ? (userEl.innerText || userEl.textContent || '') : '').replace(/\\s+/g, ' ').trim() || '';
+    const author = (userEl ? (userEl.innerText || userEl.textContent || '') : '').split('\\n').join(' ').split('\\r').join(' ').split('\\t').join(' ').trim() || '';
     const authorUrl = userEl ? (userEl.getAttribute('href') || userEl.href || '') : '';
     push(author, authorUrl, txt);
     if (out.length >= {max_comments}) break;
@@ -735,7 +792,7 @@ def comment_extractor_js(platform: str, max_comments: int) -> str:
   }}
 
   const preview = (document.body && document.body.innerText)
-    ? document.body.innerText.replace(/\\s+/g, ' ').slice(0, 1200)
+    ? document.body.innerText.split('\\n').join(' ').split('\\r').join(' ').split('\\t').join(' ').slice(0, 1200)
     : '';
   return {{
     url: location.href,
@@ -1226,3 +1283,11 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+
+
+
+
+
+

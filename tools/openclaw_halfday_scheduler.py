@@ -17,19 +17,34 @@ import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-HEARTBEAT_PATH = PROJECT_ROOT / "data" / "openclaw" / "openclaw_scheduler_heartbeat.json"
+DEFAULT_HEARTBEAT_PATH = PROJECT_ROOT / "data" / "openclaw" / "openclaw_scheduler_heartbeat.json"
 
 DEFAULT_PLATFORMS = "xhs"
 DEFAULT_KEYWORDS = [
-    "留学中介推荐",
-    "英国留学申请",
-    "美国研究生",
-    "留学文书求助",
-    "留学预算费用",
+    "求职",
+    "简历优化",
+    "面试准备",
+    "内推",
+    "找工作",
+    "招聘信息",
+    "实习投递",
+    "跳槽机会",
+    "秋招",
+    "春招",
+    "社招",
+    "转行求职",
+    "产品经理求职",
+    "前端求职",
+    "数据分析求职",
+    "运营求职",
+    "远程工作",
+    "海外远程工作",
+    "实习内推",
+    "校招内推",
 ]
 
 
@@ -37,18 +52,22 @@ def now_iso() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
 
-def write_heartbeat(payload: Dict) -> None:
-    HEARTBEAT_PATH.parent.mkdir(parents=True, exist_ok=True)
+def write_heartbeat(path: Path, payload: Dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     merged = {
         "updated_at": now_iso(),
         **dict(payload or {}),
     }
-    HEARTBEAT_PATH.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def run_cmd(cmd: List[str], timeout: int) -> Dict:
+def run_cmd(cmd: List[str], timeout: int, env_overrides: Optional[Dict[str, str]] = None) -> Dict:
     started = now_iso()
     try:
+        env = os.environ.copy()
+        for key, value in (env_overrides or {}).items():
+            if value:
+                env[str(key)] = str(value)
         proc = subprocess.run(
             cmd,
             cwd=str(PROJECT_ROOT),
@@ -57,6 +76,7 @@ def run_cmd(cmd: List[str], timeout: int) -> Dict:
             encoding="utf-8",
             errors="ignore",
             timeout=timeout,
+            env=env,
         )
         ok = proc.returncode == 0
         return {
@@ -95,6 +115,8 @@ def build_acquire_cmd(args) -> List[str]:
         str(args.max_posts_per_keyword),
         "--max-comments-per-post",
         str(args.max_comments_per_post),
+        "--profile-checks-per-post",
+        str(args.profile_checks_per_post),
         "--browser-profile",
         args.browser_profile,
         "--db",
@@ -161,9 +183,54 @@ def build_sync_cmd(args) -> List[str]:
 
     return cmd
 
+def build_growth_candidates_cmd(args) -> List[str]:
+    return [
+        sys.executable,
+        str(PROJECT_ROOT / "tools" / "build_dual_products_growth_candidates.py"),
+        "--input",
+        args.growth_input_csv,
+        "--out-dir",
+        args.growth_out_dir,
+        "--suffix",
+        args.growth_suffix,
+    ]
+
+
+def build_openclaw_env(args) -> Dict[str, str]:
+    env = {
+        "PW_HEADLESS": "1",
+        "PLAYWRIGHT_HEADLESS": "1",
+    }
+    if args.openclaw_profile:
+        env["OPENCLAW_PROFILE"] = args.openclaw_profile
+    if args.openclaw_gateway_url:
+        env["OPENCLAW_GATEWAY_URL"] = args.openclaw_gateway_url
+    if args.openclaw_gateway_token:
+        env["OPENCLAW_GATEWAY_TOKEN"] = args.openclaw_gateway_token
+    if args.openclaw_config_path:
+        env["OPENCLAW_CONFIG_PATH"] = args.openclaw_config_path
+    return env
+
 
 def run_once(args) -> Dict:
-    acquire = run_cmd(build_acquire_cmd(args), timeout=max(300, int(args.acquire_timeout_sec)))
+    openclaw_env = build_openclaw_env(args)
+    acquire = run_cmd(
+        build_acquire_cmd(args),
+        timeout=max(300, int(args.acquire_timeout_sec)),
+        env_overrides=openclaw_env,
+    )
+
+    growth = {
+        "ok": False,
+        "skipped": True,
+        "reason": "growth_builder_disabled",
+    }
+    if args.run_growth_builder:
+        growth = run_cmd(
+            build_growth_candidates_cmd(args),
+            timeout=max(30, int(args.growth_timeout_sec)),
+            env_overrides=openclaw_env,
+        )
 
     report = {
         "ok": False,
@@ -171,7 +238,11 @@ def run_once(args) -> Dict:
         "reason": "report_disabled",
     }
     if args.run_report:
-        report = run_cmd(build_report_cmd(args), timeout=max(60, int(args.report_timeout_sec)))
+        report = run_cmd(
+            build_report_cmd(args),
+            timeout=max(60, int(args.report_timeout_sec)),
+            env_overrides=openclaw_env,
+        )
 
     sync = {
         "ok": False,
@@ -179,12 +250,17 @@ def run_once(args) -> Dict:
         "reason": "sync_disabled",
     }
     if args.enable_sync:
-        sync = run_cmd(build_sync_cmd(args), timeout=max(120, int(args.sync_timeout_sec)))
+        sync = run_cmd(
+            build_sync_cmd(args),
+            timeout=max(120, int(args.sync_timeout_sec)),
+            env_overrides=openclaw_env,
+        )
 
-    status = "ok" if acquire.get("ok") and (not args.run_report or report.get("ok")) and (not args.enable_sync or sync.get("ok")) else "error"
+    status = "ok" if acquire.get("ok") and (not args.run_growth_builder or growth.get("ok")) and (not args.run_report or report.get("ok")) and (not args.enable_sync or sync.get("ok")) else "error"
     return {
         "status": status,
         "acquire": acquire,
+        "growth": growth,
         "report": report,
         "sync": sync,
     }
@@ -197,6 +273,7 @@ def parse_args():
     parser.add_argument("--xhs-sort-mode", default="both", choices=["latest", "hot", "both"])
     parser.add_argument("--max-posts-per-keyword", type=int, default=6)
     parser.add_argument("--max-comments-per-post", type=int, default=30)
+    parser.add_argument("--profile-checks-per-post", type=int, default=1)
     parser.add_argument("--browser-profile", default="openclaw")
     parser.add_argument("--db", default="leads.db")
     parser.add_argument("--out-dir", default="data/openclaw")
@@ -225,11 +302,23 @@ def parse_args():
     parser.add_argument("--sync-min-score", type=int, default=60)
     parser.add_argument("--sync-max-rows", type=int, default=900)
 
+    parser.add_argument("--run-growth-builder", dest="run_growth_builder", action="store_true", default=True)
+    parser.add_argument("--no-growth-builder", dest="run_growth_builder", action="store_false")
+    parser.add_argument("--growth-input-csv", default="data/openclaw/openclaw_leads_latest.csv")
+    parser.add_argument("--growth-out-dir", default="data/dispatch")
+    parser.add_argument("--growth-suffix", default="growth")
+    parser.add_argument("--growth-timeout-sec", type=int, default=120)
+    parser.add_argument("--openclaw-profile", default=os.getenv("OPENCLAW_PROFILE", ""))
+    parser.add_argument("--openclaw-gateway-url", default=os.getenv("OPENCLAW_GATEWAY_URL", ""))
+    parser.add_argument("--openclaw-gateway-token", default=os.getenv("OPENCLAW_GATEWAY_TOKEN", ""))
+    parser.add_argument("--openclaw-config-path", default=os.getenv("OPENCLAW_CONFIG_PATH", ""))
+
     parser.add_argument("--acquire-timeout-sec", type=int, default=3600)
     parser.add_argument("--report-timeout-sec", type=int, default=180)
     parser.add_argument("--sync-timeout-sec", type=int, default=300)
 
     parser.add_argument("--interval-hours", type=float, default=12.0)
+    parser.add_argument("--heartbeat-path", default=str(DEFAULT_HEARTBEAT_PATH))
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--once", action="store_true")
     return parser.parse_args()
@@ -245,8 +334,10 @@ def main() -> int:
 
     cycle = 0
     interval_sec = max(300, int(float(args.interval_hours) * 3600))
+    heartbeat_path = Path(args.heartbeat_path)
 
     write_heartbeat(
+        heartbeat_path,
         {
             "status": "booting",
             "interval_hours": float(args.interval_hours),
@@ -272,7 +363,7 @@ def main() -> int:
             "next_run_at": next_run.isoformat(timespec="seconds"),
             "last_result": result,
         }
-        write_heartbeat(hb)
+        write_heartbeat(heartbeat_path, hb)
 
         print(json.dumps(hb, ensure_ascii=False, indent=2))
 
@@ -285,3 +376,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+

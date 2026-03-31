@@ -1,13 +1,24 @@
 ﻿import base64
 import hashlib
 import hmac
+import json
 import os
 import secrets
-from datetime import datetime, timedelta
+import time
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
 
 import streamlit as st
-from jose import JWTError, jwt
+
+try:
+    from jose import JWTError, jwt
+    _JWT_BACKEND = "jose"
+except Exception:  # pragma: no cover
+    class JWTError(Exception):
+        pass
+
+    jwt = None
+    _JWT_BACKEND = "fallback"
 
 try:
     from config import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET
@@ -83,22 +94,80 @@ def get_password_hash(password: str) -> str:
     return _hash_with_pbkdf2(password)
 
 
+def _b64url_encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def _b64url_decode(text: str) -> bytes:
+    padding = "=" * (-len(text) % 4)
+    return base64.urlsafe_b64decode((text + padding).encode("ascii"))
+
+
+def _fallback_sign(payload_b64: str) -> str:
+    sig = hmac.new(
+        SECRET_KEY.encode("utf-8"),
+        payload_b64.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    return _b64url_encode(sig)
+
+
+def _fallback_encode_token(payload: Dict) -> str:
+    payload_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    payload_b64 = _b64url_encode(payload_json.encode("utf-8"))
+    sig_b64 = _fallback_sign(payload_b64)
+    return f"fallback.{payload_b64}.{sig_b64}"
+
+
+def _fallback_decode_token(token: str) -> Optional[Dict]:
+    try:
+        parts = str(token or "").split(".")
+        if len(parts) != 3 or parts[0] != "fallback":
+            return None
+
+        payload_b64 = parts[1]
+        sig_b64 = parts[2]
+        expected_sig = _fallback_sign(payload_b64)
+        if not hmac.compare_digest(expected_sig, sig_b64):
+            return None
+
+        payload = json.loads(_b64url_decode(payload_b64).decode("utf-8"))
+        if not isinstance(payload, dict):
+            return None
+
+        exp = payload.get("exp")
+        if exp is not None and float(exp) < time.time():
+            return None
+        return payload
+    except Exception:
+        return None
+
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    if _JWT_BACKEND == "jose" and jwt is not None:
+        payload = dict(to_encode)
+        payload.update({"exp": expire})
+        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+    payload = dict(to_encode)
+    payload.update({"exp": int(expire.timestamp())})
+    return _fallback_encode_token(payload)
 
 
 def decode_access_token(token: str) -> Optional[Dict]:
-    try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
-        return None
+    if _JWT_BACKEND == "jose" and jwt is not None:
+        try:
+            return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        except JWTError:
+            return None
+
+    return _fallback_decode_token(token)
 
 
 def init_session_state() -> None:

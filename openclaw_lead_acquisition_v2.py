@@ -15,6 +15,7 @@ import csv
 import hashlib
 import json
 import random
+import re
 import sqlite3
 import sys
 import time
@@ -44,6 +45,9 @@ EXTRA_SOCIAL_PLATFORMS = {
     "kuaishou": lambda kw: f"https://www.kuaishou.com/search/video?searchKey={quote(kw)}",
     "channels": lambda kw: f"https://channels.weixin.qq.com/platform/search?keyword={quote(kw)}",
     "tiktok": lambda kw: f"https://www.tiktok.com/search?q={quote(kw)}",
+    "reddit": lambda kw: build_reddit_search_url(kw),
+    "x": lambda kw: f"https://x.com/search?q={quote(kw)}&src=typed_query&f=live",
+    "linkedin": lambda kw: f"https://www.linkedin.com/search/results/content/?keywords={quote(kw)}",
 }
 
 PLATFORM_ALIASES = {
@@ -56,6 +60,92 @@ PLATFORM_ALIASES = {
     "wechat_channels": "channels",
     "wechat-channels": "channels",
     "b站": "bilibili",
+    "twitter": "x",
+    "x.com": "x",
+    "领英": "linkedin",
+}
+
+EN_INTENT_HINTS = (
+    "how",
+    "help",
+    "advice",
+    "looking for",
+    "need",
+    "anyone",
+    "recommend",
+    "alternative",
+    "best way",
+    "workflow",
+    "stack",
+    "tooling",
+)
+
+EN_PAIN_HINTS = (
+    "bad lead",
+    "unqualified",
+    "low quality lead",
+    "tire kicker",
+    "waste",
+    "wasted call",
+    "booked call no show",
+    "discovery call",
+    "lead qualification",
+    "client intake",
+    "form spam",
+    "spam lead",
+    "dom selector",
+    "playwright",
+    "brittle",
+    "automation failed",
+    "typeform",
+    "form api",
+    "cli form",
+    "agent workflow",
+)
+
+EN_BUYER_HINTS = (
+    "pricing",
+    "budget",
+    "paying",
+    "paid",
+    "demo",
+    "trial",
+    "buy",
+    "purchase",
+    "contract",
+    "close rate",
+    "conversion",
+    "lead gen",
+    "pipeline",
+)
+
+EN_STOPWORDS = {
+    "the",
+    "and",
+    "for",
+    "with",
+    "from",
+    "that",
+    "this",
+    "have",
+    "has",
+    "are",
+    "was",
+    "were",
+    "your",
+    "our",
+    "you",
+    "about",
+    "into",
+    "to",
+    "in",
+    "on",
+    "of",
+    "a",
+    "an",
+    "is",
+    "it",
+    "at",
 }
 
 
@@ -101,6 +191,96 @@ def stage_from_confidence(confidence: int) -> str:
     return "cold"
 
 
+def extract_subreddit(keyword: str) -> str:
+    m = re.search(r"subreddit:([A-Za-z0-9_]+)", str(keyword or ""), flags=re.I)
+    return (m.group(1) if m else "").lower()
+
+
+def keyword_terms(keyword: str) -> List[str]:
+    low = normalize_space(str(keyword or "")).lower()
+    low = re.sub(r"subreddit:[a-z0-9_]+", " ", low)
+    low = re.sub(r"\br/[a-z0-9_]+\b", " ", low)
+    toks = [t for t in re.split(r"[^a-z0-9_]+", low) if t and len(t) >= 3 and t not in EN_STOPWORDS]
+    return toks[:10]
+
+
+def extract_subreddit_query(keyword: str) -> str:
+    kw = normalize_space(str(keyword or ""))
+    kw = re.sub(r"subreddit:[A-Za-z0-9_]+", " ", kw, flags=re.I)
+    kw = re.sub(r"\br/[A-Za-z0-9_]+\b", " ", kw, flags=re.I)
+    kw = normalize_space(kw)
+    if not kw:
+        return ""
+    terms = keyword_terms(kw)
+    if not terms:
+        return kw
+    return " ".join(terms[:6])
+
+
+def build_reddit_search_url(keyword: str) -> str:
+    sr = extract_subreddit(keyword)
+    query = extract_subreddit_query(keyword)
+    if sr and query:
+        return (
+            f"https://www.reddit.com/r/{quote(sr)}/search/"
+            f"?q={quote(query)}&restrict_sr=1&sort=new&t=month"
+        )
+    if sr:
+        return f"https://www.reddit.com/r/{quote(sr)}/new/"
+    q = quote(normalize_space(str(keyword or "")))
+    if q:
+        return f"https://www.reddit.com/search/?q={q}&sort=new&t=month"
+    return "https://www.reddit.com/"
+
+
+def is_topic_relevant(post: Dict, content: str, title: str, keyword: str) -> bool:
+    post_url = normalize_space(str(post.get("post_url", ""))).lower()
+    search_url = normalize_space(str(post.get("search_url", ""))).lower()
+    card = normalize_space(str(post.get("card_text", ""))).lower()
+    bag = f"{normalize_space(content).lower()} {normalize_space(title).lower()} {card} {post_url} {search_url}"
+
+    sr = extract_subreddit(keyword)
+    if sr:
+        return f"/r/{sr}/" in post_url or f"subreddit:{sr}" in search_url
+
+    terms = keyword_terms(keyword)
+    if not terms:
+        return True
+    return any(t in bag for t in terms)
+
+
+def english_intent_score(content: str, keyword: str, post: Dict, title: str) -> int:
+    text = normalize_space(content)
+    low = text.lower()
+    bag = f"{low} {normalize_space(title).lower()} {normalize_space(str(post.get('card_text', ''))).lower()} {normalize_space(keyword).lower()}"
+
+    score = 0
+    score += sum(2 for k in EN_PAIN_HINTS if k in bag)
+    score += sum(1 for k in EN_INTENT_HINTS if k in bag)
+    score += sum(1 for k in EN_BUYER_HINTS if k in bag)
+    score += sum(1 for t in keyword_terms(keyword) if t and t in bag)
+
+    if "?" in text or "？" in text:
+        score += 1
+    if extract_subreddit(keyword):
+        score += 1
+
+    return min(score, 12)
+
+
+def english_buyer_signal(content: str, keyword: str, post: Dict, title: str) -> bool:
+    low = (
+        f"{normalize_space(content).lower()} "
+        f"{normalize_space(title).lower()} "
+        f"{normalize_space(str(post.get('card_text', ''))).lower()} "
+        f"{normalize_space(keyword).lower()}"
+    )
+    hits = sum(1 for k in EN_BUYER_HINTS if k in low)
+    pain = sum(1 for k in EN_PAIN_HINTS if k in low)
+    question_like = ("?" in low) or ("how" in low) or ("help" in low) or ("anyone" in low)
+    return hits >= 1 or pain >= 2 or (pain >= 1 and question_like)
+
+
 def extend_platform_map() -> None:
     for key, fn in EXTRA_SOCIAL_PLATFORMS.items():
         base.SOCIAL_PLATFORMS[key] = fn
@@ -135,6 +315,12 @@ def filter_post_url(platform: str, url: str) -> bool:
         return "channels.weixin.qq.com" in u or "finder/video" in u
     if platform == "tiktok":
         return "/video/" in u and "tiktok.com" in u
+    if platform == "reddit":
+        return ("reddit.com/r/" in u and "/comments/" in u) or ("reddit.com/comments/" in u)
+    if platform == "x":
+        return ("/status/" in u) and ("x.com/" in u or "twitter.com/" in u)
+    if platform == "linkedin":
+        return "linkedin.com/" in u and ("/posts/" in u or "/feed/update/" in u or "/pulse/" in u)
     if platform == "bilibili":
         return "video" in u or "b23.tv" in u
     if platform == "tieba":
@@ -172,6 +358,65 @@ def is_blocked_page(read_payload: Dict) -> bool:
     return any(tok in text for tok in tokens)
 
 
+
+def profile_snapshot_js() -> str:
+    return """() => {
+  const links = Array.from(document.querySelectorAll('a[href]'))
+    .map(a => (a.getAttribute('href') || a.href || '').trim())
+    .filter(Boolean)
+    .slice(0, 16);
+  const preview = (document.body && document.body.innerText)
+    ? document.body.innerText.replace(/\\s+/g, ' ').slice(0, 1200)
+    : '';
+  return {
+    url: location.href,
+    title: document.title || '',
+    preview,
+    links,
+  };
+}"""
+
+
+def inspect_profile_page(browser: base.OpenClawBrowser, profile_url: str) -> Dict[str, str]:
+    url = normalize_space(str(profile_url or ""))
+    if not url:
+        return {"status": "skip_no_profile", "url": "", "title": "", "preview": ""}
+
+    tab = browser.open(url)
+    target_id = str(tab.get("targetId", "") or "")
+    if not target_id:
+        return {"status": "open_failed", "url": url, "title": "", "preview": ""}
+
+    try:
+        browser.wait_load(target_id)
+        browser.wait_ms(target_id, random.randint(700, 1300))
+        try:
+            base.human_scroll(browser, target_id, rounds=1)
+        except Exception:
+            pass
+
+        payload = browser.evaluate(target_id, profile_snapshot_js(), timeout=45)
+        if not isinstance(payload, dict):
+            payload = {}
+
+        title = normalize_space(str(payload.get("title", "")))
+        preview = normalize_space(str(payload.get("preview", "")))
+        status = "ok" if (title or preview) else "empty"
+        return {
+            "status": status,
+            "url": normalize_space(str(payload.get("url", url))) or url,
+            "title": title,
+            "preview": preview,
+        }
+    except Exception as exc:
+        return {
+            "status": f"inspect_failed:{exc.__class__.__name__}",
+            "url": url,
+            "title": "",
+            "preview": "",
+        }
+    finally:
+        browser.close(target_id)
 def leads_from_post(
     post: Dict,
     post_read: Dict,
@@ -180,13 +425,23 @@ def leads_from_post(
 ) -> List[LeadV2]:
     comments = post_read.get("comments") or []
     preview = normalize_space(str(post_read.get("preview") or ""))
+    title = normalize_space(str(post_read.get("title") or ""))
+    card_text = normalize_space(str(post.get("card_text") or ""))
     platform = str(post.get("platform", "xhs") or "xhs")
-    if not comments and preview and platform != "xhs":
-        comments = [{"author": "post_author", "author_url": "", "content": preview[:420]}]
 
     keyword = str(post.get("keyword", "") or "")
     post_url = str(post_read.get("url") or post.get("post_url", "") or "")
     source_url = str(post.get("search_url", "") or "")
+    fallback_author = base.clean_author(str(post.get("author_hint", ""))) or f"op_{hashlib.sha1(post_url.encode('utf-8', 'ignore')).hexdigest()[:8]}"
+    fallback_author_url = normalize_space(str(post.get("author_url_hint", "")))
+
+    if not comments and platform != "xhs":
+        # When comment blocks are hidden, use thread-level intent text to keep recall.
+        seed = " ".join(x for x in [title, card_text, keyword] if x)
+        if len(seed) < 18 and preview:
+            seed = preview[:420]
+        if seed:
+            comments = [{"author": fallback_author, "author_url": fallback_author_url, "content": seed[:420]}]
 
     out: List[LeadV2] = []
     for c in comments:
@@ -204,13 +459,28 @@ def leads_from_post(
             continue
         if platform == "xhs" and (author == "unknown" or "/user/profile/" not in author_url.lower()):
             continue
+        if not is_topic_relevant(post=post, content=content, title=title, keyword=keyword):
+            continue
         if base.is_probable_agency(author, content):
             continue
 
-        score = base.score_intent(content)
+        score = max(base.score_intent(content), english_intent_score(content=content, keyword=keyword, post=post, title=title))
+        reddit_target = platform.lower() == "reddit" and bool(extract_subreddit(keyword))
+        subreddit_query = extract_subreddit_query(keyword) if reddit_target else ""
         if score < 4:
-            continue
-        if not base.has_buyer_signal(content) and score < 6:
+            if reddit_target and len(content) >= 24:
+                score = 4
+            else:
+                continue
+        buyer_signal = base.has_buyer_signal(content) or english_buyer_signal(content=content, keyword=keyword, post=post, title=title)
+        if not buyer_signal and score < 5:
+            if reddit_target and len(content) >= 30:
+                score = max(score, 5)
+            else:
+                continue
+        if reddit_target and not subreddit_query:
+            score = max(score, 5)
+        if not buyer_signal and score < 5:
             continue
 
         grade = base.grade_from_score(score)
@@ -458,91 +728,91 @@ def write_outputs(out_dir: Path, posts: List[Dict], reads: List[Dict], leads: Li
     latest_json = out_dir / "openclaw_leads_latest.json"
     latest_csv = out_dir / "openclaw_leads_latest.csv"
     latest_md = out_dir / "openclaw_leads_latest.md"
-    # Keep and merge non-empty snapshots to avoid shrinking latest view when one cycle yields few rows.
-    if leads:
-        merged_rows: List[Dict] = []
-        seen = set()
+    # Keep and merge snapshots to avoid shrinking latest view when one cycle yields few rows.
+    merged_rows: List[Dict] = []
+    seen = set()
 
-        def _push(row: Dict) -> None:
-            post = str(row.get("post_url", "")).split("?", 1)[0]
-            key = hashlib.sha1(
-                f"{row.get('platform','')}|{post}|{row.get('author','')}|{str(row.get('content',''))[:140]}".encode(
-                    "utf-8", "ignore"
-                )
-            ).hexdigest()
-            if key in seen:
-                return
-            seen.add(key)
-            merged_rows.append(dict(row))
-
-        for row in [x.__dict__ for x in leads]:
-            _push(row)
-
-        if latest_json.exists():
-            try:
-                old_obj = json.loads(latest_json.read_text(encoding="utf-8", errors="ignore") or "{}")
-                old_rows = old_obj.get("leads", []) if isinstance(old_obj, dict) else []
-                for row in old_rows if isinstance(old_rows, list) else []:
-                    if isinstance(row, dict):
-                        _push(row)
-            except Exception:
-                pass
-
-        merged_rows.sort(key=lambda x: str(x.get("collected_at", "")), reverse=True)
-        merged_rows = merged_rows[:600]
-
-        latest_payload = {
-            "generated_at": now_iso(),
-            "lead_count": len(merged_rows),
-            "control_stats": control_stats,
-            "leads": merged_rows,
-        }
-        latest_json.write_text(json.dumps(latest_payload, ensure_ascii=False, indent=2), encoding="utf-8")
-
-        with latest_csv.open("w", newline="", encoding="utf-8-sig") as f:
-            writer = csv.DictWriter(
-                f,
-                fieldnames=[
-                    "platform",
-                    "keyword",
-                    "post_url",
-                    "source_url",
-                    "author",
-                    "author_url",
-                    "content",
-                    "score",
-                    "grade",
-                    "confidence",
-                    "intent_confidence",
-                    "funnel_stage",
-                    "funnel_reason",
-                    "suggested_reply",
-                    "collected_at",
-                    "access_hint",
-                ],
+    def _push(row: Dict) -> None:
+        post = str(row.get("post_url", "")).split("?", 1)[0]
+        key = hashlib.sha1(
+            f"{row.get('platform','')}|{post}|{row.get('author','')}|{str(row.get('content',''))[:140]}".encode(
+                "utf-8", "ignore"
             )
-            writer.writeheader()
-            for row in merged_rows:
-                writer.writerow(row)
+        )
+        key = key.hexdigest()
+        if key in seen:
+            return
+        seen.add(key)
+        merged_rows.append(dict(row))
 
-        lines_latest = [
-            "# OpenClaw 获客线索报告(v2)-Latest",
-            "",
-            f"- 生成时间: {now_iso()}",
-            f"- Latest累计线索数: {len(merged_rows)}",
-            "",
-            "## Top 30 线索",
-            "|平台|关键词|作者|意向分|置信度|漏斗阶段|等级|内容片段|帖子链接|",
-            "|---|---|---|---:|---:|---|---|---|---|",
-        ]
-        for row in merged_rows[:30]:
-            snippet = str(row.get("content", "")).replace("|", " ")
-            if len(snippet) > 64:
-                snippet = snippet[:64] + "..."
-            lines_latest.append(
-                f"|{row.get('platform','')}|{row.get('keyword','')}|{row.get('author','')}|{row.get('score',0)}|{row.get('intent_confidence', row.get('confidence', 0))}|{row.get('funnel_stage','')}|{row.get('grade','')}|{snippet}|[打开]({row.get('post_url','')})|"
-            )
-        latest_md.write_text("\n".join(lines_latest), encoding="utf-8-sig")
+    for row in [x.__dict__ for x in leads]:
+        _push(row)
+
+    if latest_json.exists():
+        try:
+            old_obj = json.loads(latest_json.read_text(encoding="utf-8", errors="ignore") or "{}")
+            old_rows = old_obj.get("leads", []) if isinstance(old_obj, dict) else []
+            for row in old_rows if isinstance(old_rows, list) else []:
+                if isinstance(row, dict):
+                    _push(row)
+        except Exception:
+            pass
+
+    merged_rows.sort(key=lambda x: str(x.get("collected_at", "")), reverse=True)
+    merged_rows = merged_rows[:2500]
+
+    latest_payload = {
+        "generated_at": now_iso(),
+        "lead_count": len(merged_rows),
+        "control_stats": control_stats,
+        "leads": merged_rows,
+    }
+    latest_json.write_text(json.dumps(latest_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    with latest_csv.open("w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "platform",
+                "keyword",
+                "post_url",
+                "source_url",
+                "author",
+                "author_url",
+                "content",
+                "score",
+                "grade",
+                "confidence",
+                "intent_confidence",
+                "funnel_stage",
+                "funnel_reason",
+                "suggested_reply",
+                "collected_at",
+                "access_hint",
+            ],
+        )
+        writer.writeheader()
+        for row in merged_rows:
+            writer.writerow(row)
+
+    lines_latest = [
+        "# OpenClaw 获客线索报告(v2)-Latest",
+        "",
+        f"- 生成时间: {now_iso()}",
+        f"- Latest累计线索数: {len(merged_rows)}",
+        "",
+        "## Top 30 线索",
+        "|平台|关键词|作者|意向分|置信度|漏斗阶段|等级|内容片段|帖子链接|",
+        "|---|---|---|---:|---:|---|---|---|---|",
+    ]
+    for row in merged_rows[:30]:
+        snippet = str(row.get("content", "")).replace("|", " ")
+        if len(snippet) > 64:
+            snippet = snippet[:64] + "..."
+        lines_latest.append(
+            f"|{row.get('platform','')}|{row.get('keyword','')}|{row.get('author','')}|{row.get('score',0)}|{row.get('intent_confidence', row.get('confidence', 0))}|{row.get('funnel_stage','')}|{row.get('grade','')}|{snippet}|[打开]({row.get('post_url','')})|"
+        )
+    latest_md.write_text("\n".join(lines_latest), encoding="utf-8-sig")
 
     return {
         "raw": str(raw_path),
@@ -560,12 +830,13 @@ def main() -> int:
     parser.add_argument(
         "--platforms",
         default="xhs,douyin,kuaishou,channels,tiktok,bilibili,weibo,zhihu,tieba",
-        help="Comma list: xhs,douyin,kuaishou,channels,tiktok,bilibili,weibo,zhihu,tieba",
+        help="Comma list: xhs,douyin,kuaishou,channels,tiktok,bilibili,weibo,zhihu,tieba,reddit,x,linkedin",
     )
     parser.add_argument("--keywords", default=",".join(DEFAULT_KEYWORDS), help="Comma-separated keywords")
     parser.add_argument("--xhs-sort-mode", default="both", help="XHS sort: latest|hot|both")
     parser.add_argument("--max-posts-per-keyword", type=int, default=6)
     parser.add_argument("--max-comments-per-post", type=int, default=24)
+    parser.add_argument("--profile-checks-per-post", type=int, default=1)
     parser.add_argument("--browser-profile", default="openclaw")
     parser.add_argument("--db", default="leads.db")
     parser.add_argument("--out-dir", default="data/openclaw")
@@ -632,6 +903,9 @@ def main() -> int:
     skipped_platform_timeout = 0
     skipped_global_timeout = 0
     blocked_pages = 0
+    profile_checked = 0
+    profile_inspect_failed = 0
+    seen_profile_urls = set()
 
     run_started = time.monotonic()
     global_soft_timeout = max(120, int(args.global_timeout_sec))
@@ -713,18 +987,42 @@ def main() -> int:
                     min_confidence=args.funnel_min_confidence if funnel_engine is not None else 0,
                 )
 
+                accepted_leads: List[LeadV2] = []
                 if access_ctrl is not None:
                     for lead in leads:
                         ok_user, _ = access_ctrl.should_touch_user(lead.platform, lead.author, lead.author_url)
                         if not ok_user:
                             skipped_user_cd += 1
                             continue
-                        all_leads.append(lead)
+                        accepted_leads.append(lead)
                 else:
-                    all_leads.extend(leads)
+                    accepted_leads = leads
+
+                profile_budget = max(0, int(args.profile_checks_per_post))
+                profile_checked_this_post = 0
+                for lead in accepted_leads:
+                    if profile_checked_this_post >= profile_budget:
+                        break
+                    profile_url = normalize_space(str(lead.author_url or ""))
+                    if not profile_url:
+                        continue
+                    profile_key = profile_url.split("?", 1)[0].lower()
+                    if not profile_key or profile_key in seen_profile_urls:
+                        continue
+                    seen_profile_urls.add(profile_key)
+
+                    profile_info = inspect_profile_page(browser, profile_url)
+                    profile_status = normalize_space(str(profile_info.get("status", "unknown")))
+                    lead.access_hint = f"{lead.access_hint}|profile:{profile_status}"
+                    profile_checked += 1
+                    profile_checked_this_post += 1
+                    if not profile_status.startswith("ok"):
+                        profile_inspect_failed += 1
+                    time.sleep(random.uniform(0.3, 0.9))
+
+                all_leads.extend(accepted_leads)
 
                 time.sleep(random.uniform(0.5, 1.3))
-
             if stop_all:
                 break
         if stop_all:
@@ -738,6 +1036,8 @@ def main() -> int:
     control_stats["skipped_platform_timeout"] = skipped_platform_timeout
     control_stats["skipped_global_timeout"] = skipped_global_timeout
     control_stats["blocked_pages"] = blocked_pages
+    control_stats["profile_checked"] = profile_checked
+    control_stats["profile_inspect_failed"] = profile_inspect_failed
     control_stats["global_timeout_sec"] = global_soft_timeout
     control_stats["platform_timeout_sec"] = platform_soft_timeout
 
@@ -765,6 +1065,8 @@ def main() -> int:
     print(f"  skipped(platform_timeout): {skipped_platform_timeout}")
     print(f"  skipped(global_timeout)  : {skipped_global_timeout}")
     print(f"  blocked_pages      : {blocked_pages}")
+    print(f"  profile_checked    : {profile_checked}")
+    print(f"  profile_failures   : {profile_inspect_failed}")
     print(f"  funnel_agent      : {'on' if funnel_engine is not None else 'off'}")
     print(f"  db_inserted       : {inserted}")
     print(f"  artifacts         : {artifacts['json']} | {artifacts['csv']} | {artifacts['md']}")
@@ -775,3 +1077,15 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+
+
+
+
+
+
+
+
+
+
