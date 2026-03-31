@@ -1,23 +1,23 @@
-{
-  "services": [
-    {
-      "type": "web",
-      "name": "leadpulse-backend",
-      "env": "node",
-      "region": "singapore",
-      "plan": "free",
-      "buildCommand": "cd backend && npm install && npx prisma generate && npm run build",
-      "startCommand": "cd backend && npm run start",
-      "envVars": [
-        {
-          "key": "NODE_ENV",
-          "value": "production"
-        },
-        {
-          "key": "PORT",
-          "value": "3000"
-        }
-      ]
-    }
-  ]
-}
+services:
+  - type: web
+    name: leadpulse-growth
+    runtime: node
+    rootDir: frontend-b2b
+    plan: free
+    autoDeploy: false
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: NEXT_PUBLIC_BOOKING_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPPORT_EMAIL
+        value: hello@leadpulse.ai
+      - key: LEADPULSE_INTAKE_WEBHOOK_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

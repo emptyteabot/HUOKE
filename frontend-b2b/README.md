@@ -1,68 +1,99 @@
-﻿# LeadPulse Web SaaS (Next.js)
+# LeadPulse Growth Frontend
 
-留学赛道 AI 获客 SaaS 前端（生产版）。
+这是 `LeadPulse` 当前最适合直接开卖的前台站点。
 
-## 当前能力
+它现在不是单纯的登录页，而是一个可上线的设计伙伴 + 实验页 + 经营看板站点，负责：
 
-- 全中文 B2B SaaS 前台
-- 线索池看板（筛选、评分、竞品排除、私信可达）
-- AI 触达文案生成 API
-- 生产 API：优先读取 Supabase（云端 24h），本地 Python 仅兜底
+- 解释 LeadPulse 卖什么
+- 展示自用自增长 proof
+- 提供免费获客体检工具
+- 承接 3 个垂直测试页
+- 接收设计伙伴申请
+- 把申请写入本地 intake 或转发到 webhook
+- 展示经营看板、广告素材库、合规词库
+- 保留 `/login` 作为旧后台入口
 
-## 本地开发
+## 页面结构
+
+- `/`：设计伙伴销售页
+- `/book`：预约页
+- `/pay`：付款页
+- `/experiments`：实验页列表
+- `/experiments/[slug]`：垂直测试页
+- `/ops`：经营看板
+- `/register`：独立申请页
+- `/login`：后台登录页
+- `/dashboard`：原有后台
+
+## 本地启动
 
 ```bash
-cd frontend-b2b
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-访问：`http://localhost:3000`
+访问 `http://localhost:3000`
 
-## 生产部署（Vercel）
-
-1. 在 Vercel 导入仓库。
-2. Root Directory 选择：`frontend-b2b`
-3. Build Command：`npm run build`
-4. Output：默认（Next.js）
-5. 配置环境变量（Production/Preview 都配）
+## 关键环境变量
 
 ```env
-SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=...
-# 兼容项（二选一）
-# SUPABASE_KEY=...
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_BOOKING_URL=https://cal.com/your-handle/leadpulse
+NEXT_PUBLIC_SUPPORT_EMAIL=hello@leadpulse.ai
+NEXT_PUBLIC_TRIAL_PAYMENT_URL=
+NEXT_PUBLIC_STANDARD_PAYMENT_URL=
+NEXT_PUBLIC_DFY_PAYMENT_URL=
+LEADPULSE_INTAKE_WEBHOOK_URL=
+LEADPULSE_SLACK_WEBHOOK_URL=
+LEADPULSE_FEISHU_WEBHOOK_URL=
+LEADPULSE_GOOGLE_APPS_SCRIPT_URL=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 ```
 
-说明：
-- `/api/leads` 会优先走 Supabase REST API（适合 Vercel 24h）。
-- 若 Supabase 未配置，才会尝试本地 Python 导出脚本（仅本地联调可用）。
+## 设计伙伴申请写到哪里
 
-## API 路由
+- 本地开发：`../data/intake/design_partner_applications.json`
+- 生产环境：推荐至少配置一个 webhook，把申请转发到你的通知或 CRM
 
-- `GET /api/health`：健康检查
-- `GET /api/leads`：线索读取与筛选
-- `POST /api/ai/draft`：生成触达文案
+## 支持的通知扇出
 
-## 关键查询参数（/api/leads）
+- `LEADPULSE_INTAKE_WEBHOOK_URL`：通用 JSON webhook
+- `LEADPULSE_SLACK_WEBHOOK_URL`：Slack Incoming Webhook
+- `LEADPULSE_FEISHU_WEBHOOK_URL`：飞书机器人 webhook
+- `LEADPULSE_GOOGLE_APPS_SCRIPT_URL`：Google Apps Script Web App
 
-- `minScore`：最低分，默认 `65`
-- `onlyTarget`：是否只看目标客户，默认 `1`
-- `excludeCompetitors`：是否排除机构/竞品，默认 `1`
-- `limit`：返回数量，默认 `200`
-- `vertical`：垂直领域，默认 `study_abroad`
+## 自动支付
 
-## 与旧域名联动
+- `/pay` 现在会先记录购买信息，再跳转到 Stripe Checkout
+- 支付成功后，Stripe webhook 会自动把状态推进到已收款，并生成启动交付包
+- 生产环境至少要配置：
+  - `STRIPE_SECRET_KEY`
+  - `STRIPE_WEBHOOK_SECRET`
+  - `NEXT_PUBLIC_SITE_URL`
 
-如果继续保留 `ai-huoke.streamlit.app` 作为入口：
+## 支持的收款入口
 
-在 Streamlit secrets 或环境变量中配置：
+- `NEXT_PUBLIC_TRIAL_PAYMENT_URL`
+- `NEXT_PUBLIC_STANDARD_PAYMENT_URL`
+- `NEXT_PUBLIC_DFY_PAYMENT_URL`
 
-```toml
-ENABLE_NEXT_REDIRECT = true
-NEXT_APP_URL = "https://your-vercel-domain.vercel.app"
-NEXT_APP_CN_URL = "https://cn.your-domain.com"
-NEXT_REDIRECT_DELAY_MS = 1200
+这些链接会直接显示在价格卡和申请成功状态里。
+
+## Render 部署
+
+仓库根目录已经提供 `render.yaml`，默认会把 `frontend-b2b` 作为一个 Node Web Service 部署。
+
+部署前至少填：
+
+- `NEXT_PUBLIC_BOOKING_URL`
+- `NEXT_PUBLIC_TRIAL_PAYMENT_URL`
+- `LEADPULSE_SLACK_WEBHOOK_URL` 或 `LEADPULSE_FEISHU_WEBHOOK_URL`
+
+## 构建
+
+```bash
+npm run build
+npm run start
 ```
-
-配置后，旧 Streamlit 域名会自动跳转到 Next.js 新站。
