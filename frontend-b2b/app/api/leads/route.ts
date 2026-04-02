@@ -19,7 +19,7 @@ type RunResult = { ok: boolean; stderr: string; stdout: string };
 
 type IntentLevel = "high" | "medium" | "low";
 
-export type LeadRow = {
+type LeadRow = {
   external_id: string;
   platform: string;
   author: string;
@@ -37,7 +37,7 @@ export type LeadRow = {
   collected_at: string;
 };
 
-export type LeadsPayload = {
+type LeadsPayload = {
   generated_at: string;
   vertical: string;
   filters: {
@@ -463,7 +463,7 @@ function summarize(rows: LeadRow[]): LeadsPayload["summary"] {
   };
 }
 
-export function buildPayload(rows: LeadRow[], params: { limit: number; minScore: number; onlyTarget: boolean; excludeCompetitors: boolean; vertical: string }): LeadsPayload {
+function buildPayload(rows: LeadRow[], params: { limit: number; minScore: number; onlyTarget: boolean; excludeCompetitors: boolean; vertical: string }): LeadsPayload {
   let filtered = rows;
   if (params.excludeCompetitors) filtered = filtered.filter((x) => !x.is_competitor);
   if (params.onlyTarget) filtered = filtered.filter((x) => x.is_target);
@@ -488,7 +488,7 @@ export function buildPayload(rows: LeadRow[], params: { limit: number; minScore:
   };
 }
 
-export async function loadLeadsFromSupabase(maxFetch: number, vertical: string): Promise<SupabaseLoadResult> {
+async function loadLeadsFromSupabase(maxFetch: number, vertical: string): Promise<SupabaseLoadResult> {
   const supabaseUrl = String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   const supabaseKey = String(
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
@@ -567,7 +567,7 @@ function runExporter(scriptPath: string, args: string[], cwd: string): RunResult
   return { ok: false, stderr: "Python runtime not found", stdout: "" };
 }
 
-export function loadFromLocalExporter(params: {
+function loadFromLocalExporter(params: {
   minScore: number;
   limit: number;
   onlyTarget: boolean;
@@ -619,7 +619,7 @@ export function loadFromLocalExporter(params: {
   }
 }
 
-export function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string } | { ok: false; error: string; detail?: string } {
+function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string } | { ok: false; error: string; detail?: string } {
   const snapshotPath = path.join(process.cwd(), "data", "leads_snapshot.json");
   if (!existsSync(snapshotPath)) {
     return { ok: false, error: "snapshot_missing", detail: snapshotPath };
@@ -670,7 +670,7 @@ export function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: 
   }
 }
 
-export async function loadLeadRows(maxFetch: number, vertical: string): Promise<{
+async function loadLeadRows(maxFetch: number, vertical: string): Promise<{
   rows: LeadRow[];
   source: "local_exporter" | "openclaw_json" | "supabase" | "bundled_snapshot" | "unavailable";
   source_detail: string;

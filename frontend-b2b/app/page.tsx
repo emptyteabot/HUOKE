@@ -51,7 +51,7 @@ export default function HomePage() {
     <div className="lp-shell">
       <section className="lp-card" style={{ padding: 24, marginBottom: 16 }}>
         <div className="lp-badge" style={{ marginBottom: 10 }}>留学赛道 · AI 获客 SaaS</div>
-        <h1 style={{ fontSize: 34, margin: "4px 0 10px", lineHeight: 1.2 }}>线索Pulse 作战台</h1>
+        <h1 style={{ fontSize: 34, margin: "4px 0 10px", lineHeight: 1.2 }}>LeadPulse Revenue OS</h1>
         <p style={{ margin: 0, color: "var(--lp-muted)", fontSize: 15 }}>
           <span className="lp-typewriter">目标输入 → 自动筛选 → 积分导出 → 私信触达</span>
         </p>
