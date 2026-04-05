@@ -53,7 +53,7 @@ function normalizePayload(payload: PaymentPayload) {
     plan: normalizedPlan,
     amount: String(plan.price).trim(),
     reportedAmount: String(payload.amount || '').trim(),
-    paymentMethod: String(payload.paymentMethod || '微信支付').trim(),
+    paymentMethod: String(payload.paymentMethod || '线下付款 / 启动码').trim(),
     notes: String(payload.notes || '').trim(),
   };
 }
@@ -151,16 +151,17 @@ export async function POST(request: Request) {
     const paymentProvider = String(process.env.LEADPULSE_PAYMENT_PROVIDER || 'wechat').trim().toLowerCase();
     if (paymentProvider !== 'stripe') {
       await updateSourceStage('payment_intent', record.id, {
-        paymentStatus: 'pending_verification',
-        deliveryStatus: 'pending_payment_verification',
+        paymentStatus: 'code_purchase_pending',
+        deliveryStatus: 'awaiting_code_issue',
       });
 
       return Response.json({
         ok: true,
-        message: '付款确认已记录。我们会先核验微信到账，再开通方案并发送启动交付包。',
+        message: '购买需求已记录。付款确认后，我们会发送启动码；拿到启动码后去兑换页开通。',
         bookingUrl: `${SITE_URL}/book`,
         proofUrl: `${SITE_URL}/product`,
         messagesUrl: `${SITE_URL}/dashboard/messages`,
+        redeemUrl: `${SITE_URL}/redeem`,
       });
     }
 
