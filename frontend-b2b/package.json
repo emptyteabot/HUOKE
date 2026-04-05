@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "storage:check": "node scripts/storage-health-check.mjs"
+    "storage:check": "node scripts/storage-health-check.mjs",
+    "redeem:code": "node scripts/create-redeem-code.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.64.2",

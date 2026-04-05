@@ -2,7 +2,11 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Clock3, FileCheck2, Sparkles } from 'lucide-react';
 
 import { CopyTextButton } from '../../components/copy-text-button';
-import { getFulfillmentPackage, getFulfillmentPackageBySourceId } from '../../lib/fulfillment';
+import {
+  getFulfillmentPackage,
+  getFulfillmentPackageByAccessCode,
+  getFulfillmentPackageBySourceId,
+} from '../../lib/fulfillment';
 import { SiteFooter } from '../../components/site-footer';
 import { SiteHeader } from '../../components/site-header';
 import { buildOnboardingIntakeTemplate, getOnboardingTrack } from '../../lib/onboarding';
@@ -13,7 +17,9 @@ type SearchParams = Promise<{
   email?: string;
   delivery?: string;
   sourceId?: string;
+  code?: string;
   checkout?: string;
+  redeem?: string;
 }>;
 
 export const dynamic = 'force-dynamic';
@@ -22,16 +28,19 @@ export default async function StartPage({ searchParams }: { searchParams: Search
   const resolved = await searchParams;
   const company = String(resolved.company || '').trim();
   const email = String(resolved.email || '').trim();
+  const launchCode = String(resolved.code || '').trim().toUpperCase();
   const track = getOnboardingTrack(resolved.plan);
   const deliveryPackage =
     (await getFulfillmentPackage(String(resolved.delivery || ''))) ||
-    (await getFulfillmentPackageBySourceId(String(resolved.sourceId || '')));
+    (await getFulfillmentPackageBySourceId(String(resolved.sourceId || ''))) ||
+    (await getFulfillmentPackageByAccessCode(launchCode));
   const intakeTemplate = buildOnboardingIntakeTemplate({
     plan: resolved.plan,
     company,
     email,
   });
   const checkoutSuccess = String(resolved.checkout || '').trim() === 'success';
+  const redeemSuccess = String(resolved.redeem || '').trim() === 'success';
 
   return (
     <main className="min-h-screen bg-[#f5f5ef] text-slate-900">
@@ -47,6 +56,12 @@ export default async function StartPage({ searchParams }: { searchParams: Search
             这不是欢迎页，而是交付页。目标只有一个：让你尽快把上线、支付、实验页、触达和首周复盘接起来。
           </p>
         </div>
+
+        {redeemSuccess && deliveryPackage ? (
+          <div className="mt-8 rounded-[2rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
+            兑换码已经验证成功，交付包也已经生成。现在别继续猜流程，直接按下面的启动动作往前推。
+          </div>
+        ) : null}
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <article className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
@@ -79,6 +94,12 @@ export default async function StartPage({ searchParams }: { searchParams: Search
         {checkoutSuccess && !deliveryPackage ? (
           <div className="mt-8 rounded-[2rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
             支付已经成功返回，系统正在自动开通并生成交付包。通常几秒内完成；如果还没显示，刷新一次这个页面。
+          </div>
+        ) : null}
+
+        {launchCode && !deliveryPackage ? (
+          <div className="mt-8 rounded-[2rem] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+            没找到这个启动码对应的交付包。确认你拿到的是最新启动码；如果是刚付款后新发的码，稍等片刻再刷新。
           </div>
         ) : null}
 

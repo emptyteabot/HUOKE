@@ -64,13 +64,12 @@ STRIPE_WEBHOOK_SECRET=
 - `LEADPULSE_FEISHU_WEBHOOK_URL`：飞书机器人 webhook
 - `LEADPULSE_GOOGLE_APPS_SCRIPT_URL`：Google Apps Script Web App
 
-## 自动支付
+## 启动码开通
 
-- `/pay` 现在会先记录购买信息，再跳转到 Stripe Checkout
-- 支付成功后，Stripe webhook 会自动把状态推进到已收款，并生成启动交付包
+- `/pay` 现在展示收款码和站内兑换入口，不再伪装成自动 Stripe 收款
+- 用户付款后获取对应方案的启动码，再去 `/redeem` 或直接在 `/pay` 右侧输入启动码
 - 生产环境至少要配置：
-  - `STRIPE_SECRET_KEY`
-  - `STRIPE_WEBHOOK_SECRET`
+  - `LEADPULSE_REDEEM_CODES`
   - `NEXT_PUBLIC_SITE_URL`
 
 ## 支持的收款入口

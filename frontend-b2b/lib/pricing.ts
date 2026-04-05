@@ -35,9 +35,9 @@ export const CREDITS_POLICY_CARDS: PolicyCard[] = [
       'Free 用来先试跑；Pro 是主力方案；Max 给多产品、批量执行和更高吞吐的团队。',
   },
   {
-    title: '自动续费与取消',
+    title: '按月权益与续期',
     description:
-      'Pro / Max 默认按月自动续费，可在下一个账单日前取消，取消后从下一账期停止；Free 不自动续费。',
+      'Pro / Max 仍然按月提供权益，但当前采用“付款后发兑换码”的开通方式；续期时重新购买新兑换码即可。',
   },
   {
     title: 'Credits 使用顺序',
@@ -52,9 +52,9 @@ export const CREDITS_POLICY_CARDS: PolicyCard[] = [
 ];
 
 export const SUBSCRIPTION_POLICY = [
-  'Pro / Max 默认按月自动续费；你可以在下一个账单日前取消，取消后从下一账期停止。',
-  'Free 不自动续费，也不会产生扣费。',
-  '当前账期已经生效的订阅通常不做按天退款；若出现异常重复扣费，会人工核实并处理。',
+  'Pro / Max 仍然按月提供权益，但当前不是自动扣费订阅；每次续期通过重新购买兑换码完成。',
+  'Free 不会产生扣费。',
+  '当前账期已经生效的开通通常不做按天退款；若出现异常重复收款，会人工核实并处理。',
 ];
 
 export const CREDITS_POLICY = [
@@ -75,17 +75,17 @@ export const TERMS_SECTIONS: LegalSection[] = [
     title: '套餐与计费',
     items: [
       'Free：¥0 / 月，20 credits / 月，不自动续费，不支持 rollover，适合先验证产品、支付和导出代码链路。',
-      'Pro：¥79 / 月，150 credits / 月，默认自动续费，可随时取消，下个账期停止；paid credits 可 rollover 1 个账期，上限 150。',
-      'Max：¥129 / 月，300 credits / 月，默认自动续费，可随时取消，下个账期停止；paid credits 可 rollover 2 个账期，上限 600。',
+      'Pro：¥79 / 月，150 credits / 月，采用“付款后发兑换码”的开通方式；paid credits 可 rollover 1 个账期，上限 150。',
+      'Max：¥129 / 月，300 credits / 月，采用“付款后发兑换码”的开通方式；paid credits 可 rollover 2 个账期，上限 600。',
       `所有付费档价格上限都控制在 ChatGPT Plus 当前 ${CHATGPT_PLUS_PRICE_REFERENCE} 以内。`,
     ],
   },
   {
-    title: '自动续费与取消',
+    title: '续期与取消',
     items: [
-      'Pro 和 Max 属于订阅方案；除非你在下一个账单日前取消，否则系统会按当前账期自动续费。',
-      '取消不会影响当前账期已经发放的有效权益，但从下一账期开始停止续费与新 credits 发放。',
-      '当前账期已生效的订阅通常不做按天退款；异常重复扣费、错误计费或明显系统问题可人工复核。',
+      'Pro 和 Max 当前不走自动扣费订阅，而是按月售卖兑换码；需要续期时重新购买新兑换码即可。',
+      '不续期不会影响当前账期已经发放的有效权益，但下个账期不会自动补发新 credits。',
+      '当前账期已生效的开通通常不做按天退款；异常重复收款、错误计费或明显系统问题可人工复核。',
     ],
   },
   {
@@ -222,9 +222,9 @@ export function getPricingPlans(): PricingPlan[] {
       goodFor: '适合大多数独立开发者、微型 SaaS 和小团队，先把线索、预约和付款跑成稳定闭环。',
       features: [
         '150 credits / 月',
-        '内置 Stripe 支付能力与部署链路',
+        '默认按启动码开通，付款后发码再兑换',
         '导出代码 / sync to GitHub',
-        '默认自动续费，可随时取消，下个账期停止',
+        '续期时重新购买新的 Pro 兑换码',
         'paid credits 可 rollover 1 个账期，上限 150',
       ],
       ctaLabel: '开通 Pro',
@@ -241,7 +241,7 @@ export function getPricingPlans(): PricingPlan[] {
         '300 credits / 月',
         '更高吞吐、更多自动化动作与协作空间',
         '优先支持 webhook、批量执行与团队协作',
-        '默认自动续费，可随时取消，下个账期停止',
+        '续期时重新购买新的 Max 兑换码',
         'paid credits 可 rollover 2 个账期，上限 600',
       ],
       ctaLabel: '开通 Max',

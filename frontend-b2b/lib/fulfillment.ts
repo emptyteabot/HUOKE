@@ -122,6 +122,18 @@ export async function readFulfillmentPackages(limit = 50) {
     .slice(0, Math.max(1, limit));
 }
 
+export async function getFulfillmentPackageByAccessCode(accessCode: string) {
+  const normalizedCode = String(accessCode || '').trim().toUpperCase();
+  if (!normalizedCode) {
+    return null;
+  }
+
+  const items = await readPackages();
+  return (
+    items.find((item) => String(item.accessCode || '').trim().toUpperCase() === normalizedCode) || null
+  );
+}
+
 function normalizePackage(item: Partial<FulfillmentPackage> & Record<string, unknown>): FulfillmentPackage {
   const snapshot = {
     url: String(item.snapshot && typeof item.snapshot === 'object' ? (item.snapshot as Record<string, unknown>).url || item.productUrl || '' : item.productUrl || ''),

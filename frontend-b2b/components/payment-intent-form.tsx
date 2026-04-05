@@ -20,6 +20,7 @@ type SuccessPayload = {
   deliveryUrl?: string;
   proofUrl?: string;
   checkoutUrl?: string;
+  redeemUrl?: string;
 };
 
 type PaymentState = {
@@ -47,7 +48,7 @@ export function PaymentIntentForm({ defaultPlan, paymentProvider = 'wechat' }: P
     productUrl: '',
     plan: normalizedDefaultPlan,
     amount: amountFromPlan(normalizedDefaultPlan),
-    paymentMethod: paymentProvider === 'stripe' ? 'Stripe Checkout' : '微信支付',
+    paymentMethod: paymentProvider === 'stripe' ? 'Stripe Checkout' : '线下付款 / 启动码',
     notes: '',
   });
   const [loading, setLoading] = useState(false);
@@ -58,6 +59,7 @@ export function PaymentIntentForm({ defaultPlan, paymentProvider = 'wechat' }: P
     bookingUrl?: string;
     deliveryUrl?: string;
     proofUrl?: string;
+    redeemUrl?: string;
   }>({});
 
   const planOptions = useMemo(
@@ -102,12 +104,13 @@ export function PaymentIntentForm({ defaultPlan, paymentProvider = 'wechat' }: P
         window.location.assign(payload.checkoutUrl);
         return;
       }
-      setSuccess(payload.message || '开通意向已记录。');
+      setSuccess(payload.message || '购买需求已记录。');
       setSuccessLinks({
         startUrl: payload.startUrl,
         bookingUrl: payload.bookingUrl,
         deliveryUrl: payload.deliveryUrl,
         proofUrl: payload.proofUrl,
+        redeemUrl: payload.redeemUrl,
       });
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : '提交失败，请稍后再试。');
@@ -117,16 +120,21 @@ export function PaymentIntentForm({ defaultPlan, paymentProvider = 'wechat' }: P
   };
 
   const effectiveBookingUrl = successLinks.bookingUrl || '/book';
+  const effectiveRedeemUrl = successLinks.redeemUrl || '/redeem';
 
   return (
     <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
       <div>
-        <p className="font-mono text-[11px] tracking-[0.28em] text-slate-500">付款信息确认</p>
-        <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">方案开通确认</h3>
+        <p className="font-mono text-[11px] tracking-[0.28em] text-slate-500">
+          {paymentProvider === 'stripe' ? '支付信息确认' : '启动码购买登记'}
+        </p>
+        <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+          {paymentProvider === 'stripe' ? '方案开通确认' : '登记购买并领取启动码'}
+        </h3>
         <p className="mt-3 text-sm leading-7 text-slate-600">
           {paymentProvider === 'stripe'
-            ? '填好信息后会直接跳转到 Stripe 托管支付。支付成功后，系统会自动开通方案与启动交付包。'
-            : '扫码付款后，在这里提交信息。我们确认到账后会开通方案，并把你推进到启动交付。'}
+            ? '填好信息后会直接跳转到 Stripe 托管支付。支付成功后，系统会自动开通方案并生成启动交付包。'
+            : '这一步只负责记录购买需求。你付款后会收到启动码，拿到码再去兑换页开通。'}
         </p>
       </div>
 
@@ -199,7 +207,7 @@ export function PaymentIntentForm({ defaultPlan, paymentProvider = 'wechat' }: P
             />
           </label>
           <label className="space-y-2 text-sm text-slate-700">
-            <span>付款方式</span>
+            <span>开通方式</span>
             <input
               className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
               value={formState.paymentMethod}
@@ -214,7 +222,7 @@ export function PaymentIntentForm({ defaultPlan, paymentProvider = 'wechat' }: P
             className="min-h-28 w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
             value={formState.notes}
             onChange={(event) => updateField('notes', event.target.value)}
-            placeholder="例如：想先开 Pro，再视情况升级 Max / 需要发票 / 想了解 credits 配额"
+            placeholder="例如：需要发票 / 需要更快发码 / 先开 Pro 再考虑升级"
           />
         </label>
 
@@ -242,6 +250,12 @@ export function PaymentIntentForm({ defaultPlan, paymentProvider = 'wechat' }: P
                 </Link>
               ) : null}
               <Link
+                href={effectiveRedeemUrl}
+                className="inline-flex items-center rounded-2xl border border-emerald-200 bg-white px-4 py-2 font-semibold text-emerald-700 transition hover:bg-emerald-100/40"
+              >
+                去兑换启动码
+              </Link>
+              <Link
                 href={effectiveBookingUrl}
                 className="inline-flex items-center rounded-2xl border border-emerald-200 bg-white px-4 py-2 font-semibold text-emerald-700 transition hover:bg-emerald-100/40"
               >
@@ -264,19 +278,17 @@ export function PaymentIntentForm({ defaultPlan, paymentProvider = 'wechat' }: P
           disabled={loading}
           className="interactive-button inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-base font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? (paymentProvider === 'stripe' ? '正在跳转支付...' : '提交中...') : paymentProvider === 'stripe' ? '前往安全支付' : '提交付款确认'}
+          {loading
+            ? paymentProvider === 'stripe'
+              ? '正在跳转支付...'
+              : '登记中...'
+            : paymentProvider === 'stripe'
+              ? '前往安全支付'
+              : '登记购买并等待发码'}
         </button>
 
         <p className="text-xs leading-6 text-slate-500">
-          提交即表示你理解 Pro / Max 为月度方案，按月继续生效，可随时取消，并从下一账期停止。详情见
-          <Link href="/terms" className="mx-1 underline underline-offset-4 hover:text-slate-900">
-            服务条款
-          </Link>
-          和
-          <Link href="/privacy" className="ml-1 underline underline-offset-4 hover:text-slate-900">
-            隐私说明
-          </Link>
-          。
+          提交即表示你理解 Pro / Max 为月度方案。当前页面默认按“付款后发启动码，再凭码开通”处理；如果你需要自动支付，请先确认 Stripe 已经真实接好。
         </p>
       </form>
     </div>
