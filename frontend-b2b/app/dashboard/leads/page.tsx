@@ -51,6 +51,45 @@ type LeadsPayload = {
   rows: LeadRow[];
 };
 
+type SavedView = {
+  id: string;
+  name: string;
+  minScore: number;
+  onlyTarget: boolean;
+  excludeCompetitors: boolean;
+  limit: number;
+};
+
+const SAVED_VIEWS_KEY = "leadpulse_saved_views_v1";
+const FILTER_STATE_KEY = "leadpulse_filter_state_v1";
+
+const quickPresets: Array<Omit<SavedView, "id"> & { description: string }> = [
+  {
+    name: "高意向私信",
+    description: "只看高分、可直接推进的一批人。",
+    minScore: 75,
+    onlyTarget: true,
+    excludeCompetitors: true,
+    limit: 50,
+  },
+  {
+    name: "放量观察",
+    description: "扩大样本面，适合先看盘面再细筛。",
+    minScore: 55,
+    onlyTarget: false,
+    excludeCompetitors: true,
+    limit: 200,
+  },
+  {
+    name: "竞品雷达",
+    description: "保留同行和机构，反向观察他们在抢什么需求。",
+    minScore: 40,
+    onlyTarget: false,
+    excludeCompetitors: false,
+    limit: 120,
+  },
+];
+
 export default function LeadsPage() {
   const [userId, setUserId] = useState("guest_demo");
 
@@ -61,6 +100,9 @@ export default function LeadsPage() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [savedViews, setSavedViews] = useState<SavedView[]>([]);
+  const [viewName, setViewName] = useState("");
+  const [autoRefreshSec, setAutoRefreshSec] = useState(0);
 
   const [minScore, setMinScore] = useState(65);
   const [onlyTarget, setOnlyTarget] = useState(true);
@@ -69,6 +111,29 @@ export default function LeadsPage() {
 
   useEffect(() => {
     setUserId(getOrCreateClientUserId());
+    try {
+      const rawViews = window.localStorage.getItem(SAVED_VIEWS_KEY);
+      if (rawViews) {
+        const parsed = JSON.parse(rawViews);
+        if (Array.isArray(parsed)) {
+          setSavedViews(parsed);
+        }
+      }
+
+      const rawFilters = window.localStorage.getItem(FILTER_STATE_KEY);
+      if (rawFilters) {
+        const parsed = JSON.parse(rawFilters);
+        if (parsed && typeof parsed === "object") {
+          if (Number.isFinite(parsed.minScore)) setMinScore(Number(parsed.minScore));
+          if (typeof parsed.onlyTarget === "boolean") setOnlyTarget(parsed.onlyTarget);
+          if (typeof parsed.excludeCompetitors === "boolean") setExcludeCompetitors(parsed.excludeCompetitors);
+          if (Number.isFinite(parsed.limit)) setLimit(Number(parsed.limit));
+          if (Number.isFinite(parsed.autoRefreshSec)) setAutoRefreshSec(Number(parsed.autoRefreshSec));
+        }
+      }
+    } catch {
+      // Ignore local storage parsing failures.
+    }
   }, []);
 
   const query = useMemo(() => {
@@ -194,7 +259,80 @@ export default function LeadsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        FILTER_STATE_KEY,
+        JSON.stringify({
+          minScore,
+          onlyTarget,
+          excludeCompetitors,
+          limit,
+          autoRefreshSec,
+        }),
+      );
+    } catch {
+      // Ignore local storage write failures.
+    }
+  }, [autoRefreshSec, excludeCompetitors, limit, minScore, onlyTarget]);
+
+  useEffect(() => {
+    if (!userId || autoRefreshSec <= 0) return;
+
+    const timer = window.setInterval(() => {
+      void run();
+      void loadWallet();
+    }, autoRefreshSec * 1000);
+
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefreshSec, userId, query]);
+
   const linksUnlocked = Boolean(wallet?.links_unlocked);
+
+  const applyView = (view: Pick<SavedView, "minScore" | "onlyTarget" | "excludeCompetitors" | "limit">) => {
+    setMinScore(view.minScore);
+    setOnlyTarget(view.onlyTarget);
+    setExcludeCompetitors(view.excludeCompetitors);
+    setLimit(view.limit);
+  };
+
+  const saveCurrentView = () => {
+    const trimmed = viewName.trim();
+    if (!trimmed) {
+      setError("请输入视图名称后再保存。");
+      return;
+    }
+
+    const nextView: SavedView = {
+      id: `view_${Date.now()}`,
+      name: trimmed,
+      minScore,
+      onlyTarget,
+      excludeCompetitors,
+      limit,
+    };
+
+    const next = [nextView, ...savedViews].slice(0, 8);
+    setSavedViews(next);
+    setViewName("");
+    setNotice(`已保存视图：${trimmed}`);
+    try {
+      window.localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(next));
+    } catch {
+      // Ignore local storage write failures.
+    }
+  };
+
+  const removeView = (id: string) => {
+    const next = savedViews.filter((item) => item.id !== id);
+    setSavedViews(next);
+    try {
+      window.localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(next));
+    } catch {
+      // Ignore local storage write failures.
+    }
+  };
 
   return (
     <div className="lp-grid" style={{ gap: 14 }}>
@@ -208,6 +346,9 @@ export default function LeadsPage() {
             <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>
               链接状态：{linksUnlocked ? "已解锁" : "未解锁（导出后可见私信主页链接）"}
             </div>
+            <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>
+              Watch mode：{autoRefreshSec > 0 ? `开启，每 ${autoRefreshSec} 秒刷新一次` : "关闭"}
+            </div>
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <button className="lp-btn" onClick={exportCsv} disabled={exporting || loading}>
@@ -216,6 +357,93 @@ export default function LeadsPage() {
           </div>
         </div>
         {notice ? <div style={{ color: "#0b6f3d", marginTop: 10 }}>{notice}</div> : null}
+      </section>
+
+      <section className="lp-card" style={{ padding: 16 }}>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>快速预设与保存视图</div>
+        <div className="lp-grid lp-grid-2">
+          {quickPresets.map((preset) => (
+            <button
+              key={preset.name}
+              type="button"
+              onClick={() => applyView(preset)}
+              className="interactive-panel"
+              style={{
+                textAlign: "left",
+                border: "1px solid #d7e3f7",
+                borderRadius: 16,
+                padding: 14,
+                background: "rgba(255,255,255,0.9)",
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ fontWeight: 700 }}>{preset.name}</div>
+              <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 6 }}>{preset.description}</div>
+              <div style={{ color: "var(--lp-muted)", fontSize: 12, marginTop: 8 }}>
+                minScore {preset.minScore} ｜ {preset.onlyTarget ? "仅目标" : "含泛样本"} ｜ {preset.excludeCompetitors ? "排竞品" : "保留竞品"} ｜ limit {preset.limit}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap", alignItems: "center" }}>
+          <input
+            className="lp-input"
+            style={{ maxWidth: 240 }}
+            value={viewName}
+            onChange={(e) => setViewName(e.target.value)}
+            placeholder="保存当前视图名称"
+          />
+          <button className="lp-btn" type="button" onClick={saveCurrentView}>保存当前视图</button>
+          <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span style={{ fontSize: 13, color: "var(--lp-muted)" }}>自动刷新</span>
+            <select
+              className="lp-select"
+              value={String(autoRefreshSec)}
+              onChange={(e) => setAutoRefreshSec(Number(e.target.value) || 0)}
+              style={{ width: 140 }}
+            >
+              <option value="0">关闭</option>
+              <option value="30">30 秒</option>
+              <option value="60">60 秒</option>
+              <option value="180">3 分钟</option>
+            </select>
+          </label>
+        </div>
+
+        {savedViews.length ? (
+          <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
+            {savedViews.map((view) => (
+              <div
+                key={view.id}
+                style={{
+                  border: "1px solid #d7e3f7",
+                  borderRadius: 999,
+                  background: "#f4f8ff",
+                  padding: "8px 12px",
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "center",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => applyView(view)}
+                  style={{ border: "none", background: "transparent", cursor: "pointer", fontWeight: 600, color: "#224a87" }}
+                >
+                  {view.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeView(view.id)}
+                  style={{ border: "none", background: "transparent", cursor: "pointer", color: "#8c96a6" }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className="lp-card" style={{ padding: 16 }}>
