@@ -2,6 +2,18 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 const INTERNAL_COOKIE = 'leadpulse_internal_access';
+const SOFT_HIDDEN_ROUTES = new Set([
+  '/platform',
+  '/integrations',
+  '/use-cases',
+  '/compare',
+  '/demo',
+  '/security',
+  '/agents',
+  '/proof',
+  '/investors',
+  '/cases',
+]);
 
 function internalAccessKey() {
   return (
@@ -51,6 +63,20 @@ function externalUrl(request: NextRequest, pathname: string) {
 }
 
 export function middleware(request: NextRequest) {
+  if (SOFT_HIDDEN_ROUTES.has(request.nextUrl.pathname) || request.nextUrl.pathname.startsWith('/experiments')) {
+    const secret = internalAccessKey();
+    const currentCookie = request.cookies.get(INTERNAL_COOKIE)?.value;
+    const access = request.nextUrl.searchParams.get('access');
+    const hasInternalAccess = Boolean(secret) && (currentCookie === secret || access === secret);
+
+    if (!hasInternalAccess) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+  }
+
   const secret = internalAccessKey();
   if (!secret) {
     const host = request.headers.get('host') || '';
@@ -99,9 +125,17 @@ export const config = {
     '/dashboard/:path*',
     '/ops',
     '/ops/:path*',
+    '/platform',
+    '/integrations',
+    '/use-cases',
+    '/compare',
+    '/demo',
+    '/security',
     '/proof',
     '/agents',
     '/cases',
     '/investors',
+    '/experiments',
+    '/experiments/:path*',
   ],
 };

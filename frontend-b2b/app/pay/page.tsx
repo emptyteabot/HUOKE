@@ -16,40 +16,40 @@ type SearchParams = Promise<{
 const fragmentedStack = [
   {
     title: '监听工具',
-    detail: '知道哪里有人提到你，但不会替你判断谁值得推进。',
+    detail: '知道哪里有人提到你，但不会替你交付可触达名单。',
   },
   {
     title: 'DM 自动化',
-    detail: '能把评论转成私信，但不负责筛掉同行和噪声。',
+    detail: '能把评论转成私信，但不负责先筛掉同行、机构号和低价值样本。',
   },
   {
     title: '外呼工具',
-    detail: '擅长发序列，但前提是你已经手里有一批好名单。',
+    detail: '擅长发序列，但前提是你已经手里有一批值得联系的人。',
   },
   {
-    title: '工作流/表格',
-    detail: '最后还得你自己记 booking、payment 和 start 的状态。',
+    title: '人工表格',
+    detail: '最后还是得你自己记谁能联系、谁已导出、谁值得跟进。',
   },
 ];
 
 const winReasons = [
-  '不是买一个监听工具，而是买一条从意图到付款的路径。',
-  '不是导出完就结束，而是继续推进 booking、payment 和 start。',
-  '不是把客户丢进后台，而是让公开流量先看懂价值，再进入开通动作。',
+  '你买到的不是一套宏大系统，而是一条更短的获客路径。',
+  '先证明能抓到人，再决定自己跑，还是直接买人工代跑结果。',
+  '付款页只解释开通边界，不再假装复杂系统会自动替你成交。',
 ];
 
 const faqRows = [
   {
     q: '为什么这比单买一个监听工具更值？',
-    a: '因为单独监听只会告诉你“哪里有人提到你”，但不会替你把这批人推进到导出、消息、预约和付款。LeadPulse 把这些动作接在一起。',
+    a: '因为单独监听只会告诉你“哪里有人提到你”，但不会先筛掉噪声，更不会交付可直接触达的名单。LeadPulse 卖的是名单，不是提醒。',
   },
   {
     q: '为什么不直接用评论机器人或私信工具？',
-    a: '评论/私信工具擅长自动回复，但不会先帮你筛掉同行、机构号和低价值噪声。LeadPulse 先筛，再导出，再推进。',
+    a: '评论/私信工具擅长自动回复，但不会先帮你筛掉同行、机构号和低价值噪声。LeadPulse 先筛，再导出，再决定由你自跑还是由我们代跑。',
   },
   {
-    q: '为什么我还需要外呼/销售工具吗？',
-    a: '如果你团队很大，后面可以继续叠。但对大多数小团队来说，LeadPulse 先把最短成交路径跑顺，比先堆更多系统更重要。',
+    q: 'Pro 和 Max / DFY 的区别到底是什么？',
+    a: 'Pro 交付软件使用权和基础控制台，你自己跑；Max / DFY 交付人工代跑、名单清洗和首轮破冰动作。',
   },
 ];
 
@@ -60,10 +60,10 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
   const redeemStatus = String(resolved.redeem || '').trim();
   const planHighlights =
     plan.id === 'max'
-      ? ['300 credits / 月', '更高吞吐、更多自动化动作与协作空间', '续期时重新购买下一枚兑换码']
+      ? ['人工系统代跑', '人工清洗去重后的精准名单', '代发首轮破冰私信 / 邮件']
       : plan.id === 'free'
-        ? ['20 credits / 月', '适合先验证产品闭环', '不自动续费，不支持 rollover']
-        : ['150 credits / 月', '付款后发兑换码，再用兑换码开通', '续期时重新购买下一枚兑换码'];
+        ? ['展示 5-10 条真实样本', '适合先验证抓取能力', '不开放完整控制台']
+        : ['150 credits / 月', '交付 Leads / Messages / Tasks 基础控制台', '客户自行承担平台风控与发送动作'];
 
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-slate-900">
@@ -80,11 +80,9 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
       <section className="mx-auto max-w-6xl px-6 py-16 lg:px-8">
         <div className="max-w-4xl">
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Start</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
-            先买 {plan.name} 兑换码，再开通
-          </h1>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">先确认你买的是软件，还是结果</h1>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-            这里不再假装自动收款。LeadPulse 的正确顺序是：先付款拿到兑换码，再回站内兑换，系统才会生成启动交付包。
+            付款页只负责把边界说清楚。Free 看样本，Pro 买软件使用权，Max / DFY 买人工代跑结果。别再把三种东西混成一个模糊套餐。
           </p>
         </div>
 
@@ -105,7 +103,11 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
                     <span className="ml-2 text-base font-medium text-slate-500">{plan.period}</span>
                   </h2>
                   <p className="mt-4 text-sm leading-7 text-slate-600">
-                    你买到的不是“自动订阅幻觉”，而是一枚可以真正兑换开通的 {plan.name} 兑换码。
+                    {plan.id === 'max'
+                      ? '你买到的是一轮人工代跑结果，而不是一堆自己还得拼起来的工具。'
+                      : isFreePlan
+                        ? '你拿到的是一轮小规模真实样本，不是试用幻觉。'
+                        : `你买到的是 ${plan.name} 软件版开通权限，而不是人工代跑承诺。`}
                   </p>
                 </div>
                 {plan.highlight ? (
@@ -144,7 +146,7 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
                   <ShieldCheck className="h-5 w-5 text-slate-700" />
                   <h2 className="text-2xl font-semibold text-slate-950">Free 无需付款</h2>
                 </div>
-                <p className="mt-4 text-sm leading-7 text-slate-600">先把产品跑起来，再决定要不要升级到付费方案。</p>
+                <p className="mt-4 text-sm leading-7 text-slate-600">先看真实样本，确认系统确实能抓到你想要的人，再决定要不要买软件版或 DFY。</p>
                 <div className="mt-6">
                   <Link
                     href={plan.paymentUrl}
@@ -158,10 +160,12 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
               <article className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
                 <div className="flex items-center gap-3">
                   <CreditCard className="h-5 w-5 text-slate-700" />
-                  <h2 className="text-2xl font-semibold text-slate-950">先付款，再拿兑换码</h2>
+                  <h2 className="text-2xl font-semibold text-slate-950">{plan.id === 'max' ? '先付款，再确认代跑周期' : '先付款，再开通软件版'}</h2>
                 </div>
                 <p className="mt-4 text-sm leading-7 text-slate-600">
-                  付款只解决一件事：让你拿到一枚有效兑换码。没有兑换码，就不会开通，也不会伪装成“已成交”。
+                  {plan.id === 'max'
+                    ? '付款只解决一件事：确认你要我们人工代跑这轮名单。付款后会进入人工确认与交付排期。'
+                    : '付款只解决一件事：让你拿到软件版开通权限。没有开通，就不会伪装成“已经成交”。'}
                 </p>
 
                 <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-black/5 bg-[#f8f8f4] p-4">
@@ -172,9 +176,9 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
 
                 <div className="mt-6 grid gap-3">
                   {[
-                    '1. 微信扫码付款',
-                    '2. 联系发码方领取兑换码',
-                    '3. 回到站内输入兑换码开通',
+                    plan.id === 'max' ? '1. 微信扫码付款' : '1. 微信扫码付款',
+                    plan.id === 'max' ? '2. 联系我们确认本轮 DFY 目标与交付周期' : '2. 联系发码方领取开通码',
+                    plan.id === 'max' ? '3. 进入人工代跑与交付排期' : '3. 回到站内输入兑换码开通',
                   ].map((item) => (
                     <div key={item} className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3 text-sm text-slate-700">
                       {item}
@@ -192,13 +196,13 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
                 </div>
                 <div className="mt-5 space-y-3 text-sm leading-7 text-slate-600">
                   <div className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">
-                    一笔付款对应一枚兑换码；兑换码验证成功后才生成交付包。
+                    软件版一笔付款对应一次开通；DFY 则对应一次人工服务周期和交付排期。
                   </div>
                   <div className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">
-                    如果你要续期或升级，不是等系统乱扣费，而是重新购买下一枚码。
+                    如果你要续期或升级，不是等系统乱扣费，而是重新购买下一周期或重新确认一轮代跑。
                   </div>
                   <div className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">
-                    这样订单、发码、开通三件事分得清，不会再把“付款意向”伪装成“已经开通”。
+                    这样订单、开通和人工交付边界分得清，不会再把“付款意向”伪装成“已经开通或已经交付”。
                   </div>
                 </div>
               </article>
@@ -222,8 +226,8 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
                 ))}
               </div>
               <div className="mt-5 rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm leading-7 text-slate-700">
-                你当然可以继续买监听、评论自动化、外呼、工作流四套系统，但最后还是要自己把状态拼起来。
-                LeadPulse 的价值不是某一个点更炫，而是把这些点串成一条更短的成交路径。
+                你当然可以继续买监听、评论自动化、外呼、表格四套系统，但最后还是要自己把名单和动作拼起来。
+                LeadPulse 的价值不是某一个点更炫，而是先把高意图名单交到你手里。
               </div>
             </article>
 

@@ -2,17 +2,13 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import {
   ArrowUpRight,
-  Bot,
   CheckSquare,
-  FileCheck2,
   LayoutDashboard,
-  Mail,
   MessageSquareQuote,
-  Radar,
   Target,
 } from 'lucide-react';
 
-type DashboardTab = 'overview' | 'leads' | 'tasks' | 'emails' | 'messages' | 'ai' | 'closer' | 'fulfillment' | 'billing' | 'settings';
+type DashboardTab = 'overview' | 'leads' | 'tasks' | 'messages' | 'emails' | 'ai' | 'closer' | 'fulfillment' | 'billing' | 'settings';
 
 type Props = {
   active: DashboardTab;
@@ -30,13 +26,7 @@ const navItems: Array<{
   { key: 'overview', href: '/dashboard', label: '总览', icon: LayoutDashboard },
   { key: 'leads', href: '/dashboard/leads', label: '线索', icon: Target },
   { key: 'tasks', href: '/dashboard/tasks', label: '任务', icon: CheckSquare },
-  { key: 'emails', href: '/dashboard/emails', label: '触达', icon: Mail },
   { key: 'messages', href: '/dashboard/messages', label: '消息', icon: MessageSquareQuote },
-  { key: 'closer', href: '/dashboard/closer', label: 'Closer', icon: Mail },
-  { key: 'fulfillment', href: '/dashboard/fulfillment', label: '交付', icon: FileCheck2 },
-  { key: 'billing', href: '/dashboard/billing', label: '账单', icon: FileCheck2 },
-  { key: 'settings', href: '/dashboard/settings', label: '设置', icon: Radar },
-  { key: 'ai', href: '/dashboard/ai', label: 'Agent OS', icon: Bot },
 ];
 
 export function DashboardShell({ active, title, description, children }: Props) {
@@ -67,10 +57,10 @@ export function DashboardShell({ active, title, description, children }: Props) 
 
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/ops"
+                href="/dashboard/billing"
                 className="interactive-button inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-black/15 hover:bg-white hover:text-slate-900"
               >
-                经营看板
+                账单额度
               </Link>
               <Link
                 href="/book"
@@ -101,15 +91,6 @@ export function DashboardShell({ active, title, description, children }: Props) 
                 </Link>
               );
             })}
-
-            <Link
-              href="/experiments"
-              className="interactive-button inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-black/15 hover:bg-white hover:text-slate-900"
-            >
-              <Radar className="h-4 w-4" />
-              实验页
-            </Link>
-
             <Link
               href="/"
               className="interactive-button inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-black/15 hover:bg-white hover:text-slate-900"

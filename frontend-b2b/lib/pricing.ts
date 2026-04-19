@@ -22,111 +22,79 @@ export type LegalSection = {
   items: string[];
 };
 
-export const CHATGPT_PLUS_PRICE_REFERENCE = '$20/月';
-export const PRICING_CEILING_NOTE = `最高付费档控制在不高于 ChatGPT Plus 当前 ${CHATGPT_PLUS_PRICE_REFERENCE} 的区间内。`;
+export const CHATGPT_PLUS_PRICE_REFERENCE = 'not_used';
+export const PRICING_CEILING_NOTE = '定价按三层结构设计：先看样本，再决定买软件，或者直接买人工代跑结果。';
 
 export const TARGET_AUDIENCE_ONE_LINER =
-  '面向独立开发者、indie hacker、微型 SaaS 创业者和 agency：更快上线、接入支付、导出代码，并把获客、转化和交付放进同一套 credits-first 系统。';
+  '面向高客单、短链路、急需稳定获客入口的小团队：留学咨询工作室、出海 SaaS 独立开发者、小型 agency、高净值知识服务操盘手。';
 
 export const CREDITS_POLICY_CARDS: PolicyCard[] = [
   {
-    title: 'Free / Pro / Max',
-    description:
-      'Free 用来先试跑；Pro 是主力方案；Max 给多产品、批量执行和更高吞吐的团队。',
+    title: 'Free / Pro / Max / DFY',
+    description: 'Free 用于验资；Pro 卖软件使用权；Max / DFY 卖人工代跑、人工筛选与名单交付。',
   },
   {
-    title: '按月权益与续期',
-    description:
-      'Pro / Max 仍然按月提供权益，但当前采用“付款后发兑换码”的开通方式；续期时重新购买新兑换码即可。',
+    title: '交付边界',
+    description: 'Pro 不含人工跑数、人工筛选和代发；Max / DFY 包含人工代跑、去重审查和首轮破冰动作。',
   },
   {
-    title: 'Credits 使用顺序',
-    description:
-      '系统按最早到期优先扣减；若到期时间相同，先扣 referral / promo，再扣 rollover，最后扣当期发放的 paid credits。',
+    title: 'Credits 只属于软件版',
+    description: 'credits 只用于 Pro 内的搜索、筛选、导出和草稿消耗；DFY 服务按周期交付，不按 credits 计费。',
   },
   {
-    title: 'Rollover 与邀请奖励',
-    description:
-      'Pro 最多 rollover 1 个账期，上限 150；Max 最多 rollover 2 个账期，上限 600；成功邀请新付费用户默认奖励 30 bonus credits。',
+    title: '先验证再放大',
+    description: '先拿样本，再决定自跑还是代跑，避免一上来买一堆用不起来的系统。',
   },
 ];
 
 export const SUBSCRIPTION_POLICY = [
-  'Pro / Max 仍然按月提供权益，但当前不是自动扣费订阅；每次续期通过重新购买兑换码完成。',
-  'Free 不会产生扣费。',
-  '当前账期已经生效的开通通常不做按天退款；若出现异常重复收款，会人工核实并处理。',
+  'Free 只提供小规模样本验证，不收费。',
+  'Pro 作为软件版交付，付款后开通，不承诺代跑。',
+  'Max / DFY 为人工服务包，按约定周期交付，不走自动续费。',
 ];
 
 export const CREDITS_POLICY = [
-  'LeadPulse 以 credits 为核心计量单位，用于搜索、打分、生成文案、导出结果、部署动作与自动化执行。',
-  '系统遵循“最早到期优先”原则扣减 credits。',
-  '若多个 credits 到期时间相同，默认先扣 referral / promo credits，再扣 rollover credits，最后扣当期新发放的 paid credits。',
-  'Free 不支持 rollover；Pro 的 paid credits 可 rollover 1 个账期，上限 150；Max 可 rollover 2 个账期，上限 600。',
+  'credits 只用于软件版的搜索、筛选、导出和消息草稿等能力消耗。',
+  '每次导出会消耗 credits，并短时解锁主页与帖子链接。',
+  'DFY 服务按人工交付结果计费，不按 credits 计量。',
 ];
 
 export const REFERRAL_POLICY = [
-  '被邀请的新用户在 30 天内成为有效付费客户后，邀请人默认可获得 30 bonus credits。',
-  '奖励 credits 不可提现、不可转售、不可兑换现金或线下服务。',
-  '奖励 credits 默认 90 天有效；若存在自购、刷量、重复账号或异常邀请，平台保留审核与撤销权。',
+  '当前默认不做公开邀请返利，涉及折扣、加量或联名合作时，以当次报价和书面确认内容为准。',
 ];
 
 export const TERMS_SECTIONS: LegalSection[] = [
   {
-    title: '套餐与计费',
+    title: '套餐与交付',
     items: [
-      'Free：¥0 / 月，20 credits / 月，不自动续费，不支持 rollover，适合先验证产品、支付和导出代码链路。',
-      'Pro：¥79 / 月，150 credits / 月，采用“付款后发兑换码”的开通方式；paid credits 可 rollover 1 个账期，上限 150。',
-      'Max：¥129 / 月，300 credits / 月，采用“付款后发兑换码”的开通方式；paid credits 可 rollover 2 个账期，上限 600。',
-      `所有付费档价格上限都控制在 ChatGPT Plus 当前 ${CHATGPT_PLUS_PRICE_REFERENCE} 以内。`,
+      'Free：¥0 / 样本，展示 5-10 条真实样本线索，用于证明系统具有抓取能力，不开放完整大盘。',
+      'Pro：¥299 / 月，属于纯软件订阅，交付线索控制台、筛选、导出和基础消息草稿，不包含人工跑数、人工审查和代发。',
+      'Max / DFY：¥3999 / 周期，属于人工代跑服务包，包含人工系统代跑、名单清洗去重、每周交付和首轮破冰动作。',
+      '付款前页面展示的是标准范围；若涉及定制脚本、私有数据源或额外交付，最终以当次报价和确认内容为准。',
     ],
   },
   {
-    title: '续期与取消',
+    title: '平台风险与使用边界',
     items: [
-      'Pro 和 Max 当前不走自动扣费订阅，而是按月售卖兑换码；需要续期时重新购买新兑换码即可。',
-      '不续期不会影响当前账期已经发放的有效权益，但下个账期不会自动补发新 credits。',
-      '当前账期已生效的开通通常不做按天退款；异常重复收款、错误计费或明显系统问题可人工复核。',
+      'Pro 用户自行承担平台账号环境、风控规则、发送频率和触达合规责任。',
+      'LeadPulse 不承诺固定营收、固定回复率或固定成交结果；我们交付的是更高效率的高意图名单和更短的触达路径。',
+      '若客户要求我们代发、代跑或代筛，默认进入 Max / DFY 边界，不再按纯软件版解释。',
     ],
   },
   {
-    title: 'Credits 使用与顺序',
+    title: '付款、续期与取消',
     items: [
-      'LeadPulse 以 credits 为核心计量单位，用于搜索、评分、内容生成、导出结果、自动化动作等能力消耗。',
-      '系统遵循“最早到期优先”原则扣减 credits。',
-      '若多个 credits 到期时间相同，默认先扣 referral / promo credits，再扣 rollover credits，最后扣当期新发放的 paid credits。',
+      'Free 无需付款；Pro 和 Max / DFY 付款后开通，不默认自动续费。',
+      'Pro 续期时重新购买下一周期；Max / DFY 续做时重新确认交付范围和周期。',
+      '已实际交付的软件权益、人工跑数、人工筛选和代发动作，通常不支持按天退款；异常重复收款或明确系统错误可人工复核。',
     ],
   },
   {
-    title: 'Rollover 规则',
+    title: '数据与导出',
     items: [
-      '只有付费订阅方案的 paid credits 支持 rollover；Free 不支持 rollover。',
-      'Pro 的 rollover credits 最多保留 1 个账期，单 rollover 池上限 150 credits。',
-      'Max 的 rollover credits 最多保留 2 个账期，单 rollover 池上限 600 credits。',
-      'Referral / promo credits 默认不参与 rollover，除非活动页另有明确说明。',
-    ],
-  },
-  {
-    title: '邀请奖励',
-    items: [
-      '你邀请的新用户在 30 天内成为有效付费订阅后，邀请人默认可获得 30 bonus credits。',
-      '邀请奖励以 credits 形式发放，不可提现、不可转售、不可兑换成现金或线下服务。',
-      '若存在自购、刷量、重复账号、异常邀请或团队判定为作弊的情况，LeadPulse 有权取消奖励。',
-    ],
-  },
-  {
-    title: '产品与交付边界',
-    items: [
-      'LeadPulse 面向独立开发者、indie hacker、微型 SaaS 和 agency，核心卖点包括更快上线、接入支付、导出代码和可复用增长链路。',
-      '平台会持续演进，但不承诺绝对结果，不承诺固定营收，不承诺 100% 转化或回本。',
-      '若涉及定制开发、代运营、私有部署或人工服务，最终范围以当次报价、支付页说明和双方确认内容为准。',
-    ],
-  },
-  {
-    title: '数据、导出与终止',
-    items: [
-      '用户生成的数据、配置、内容和导出代码归用户或其授权主体所有；平台保留运行、安全、风控所需的必要日志。',
-      '若你使用导出代码、GitHub 同步或部署模板，应自行确认仓库权限、第三方服务账单和环境变量安全。',
-      '账号终止或订阅结束后，平台可按内部保留策略处理历史数据；建议你在终止前自行导出关键配置与结果。',
+      '客户在 LeadPulse 中导出的线索、筛选结果和触达草稿，仅供其自身业务使用，不得公开转售或批量转卖。',
+      '为保障稳定性与风控，平台会保留必要的运行日志、导出记录和账务记录。',
+      '账号终止前，客户应自行导出关键名单和配置；超出保留期后，历史运行数据可能被清理。',
     ],
   },
 ];
@@ -135,31 +103,24 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   {
     title: '我们收集什么',
     items: [
-      '你主动提交的姓名、邮箱、公司、网站、预约时间、付款意向、订阅方案和当前增长瓶颈。',
-      '与你的 credits 消耗、rollover、邀请奖励、支付状态、导出代码和部署动作相关的必要运行记录。',
-      '用于风控、审计、反作弊和通知的基础访问日志与事件记录。',
+      '你主动提交的姓名、邮箱、公司、网站、预约信息、付款信息和当前获客目标。',
+      '与你的样本申请、导出、付款、开通、交付和后续沟通相关的必要记录。',
+      '用于风控、限频、审计和通知的基础访问日志与事件记录。',
     ],
   },
   {
     title: '我们如何使用这些信息',
     items: [
-      '用于开通 Free / Pro / Max 方案、发放 credits、记录消耗和处理续费或取消。',
-      '用于联系你、安排预约、确认支付、交付模板、导出代码和同步 GitHub 等能力。',
-      '用于改进产品漏斗、增长回路和反作弊策略，但不会出售你的个人信息。',
+      '用于开通 Free / Pro / Max 方案、处理预约、付款和交付。',
+      '用于生成样本、筛选名单、安排 DFY 交付，并在必要时联系你确认范围与风险边界。',
+      '用于改进筛选质量和控制误用风险，不会出售你的个人信息。',
     ],
   },
   {
-    title: '邀请与奖励数据',
+    title: '导出与删除',
     items: [
-      '如果你参与邀请奖励计划，我们会记录邀请关系、被邀请用户的转化状态和奖励 credits 发放情况。',
-      '邀请奖励数据仅用于核验增长回路和结算 bonus credits，不会被用于公开展示你的私人联系人数据。',
-    ],
-  },
-  {
-    title: '数据导出与删除',
-    items: [
-      '你可以请求导出与你账户相关的关键数据、表单记录、导出代码或配置结果。',
-      '你可以请求更正、删除部分个人数据；但出于结算、风控、审计和合规需要，部分记录可能需要依法保留。',
+      '你可以请求导出与你账户相关的关键记录和交付结果。',
+      '你可以请求更正或删除部分个人数据；但出于结算、风控和审计需要，部分记录可能依法保留。',
     ],
   },
 ];
@@ -170,7 +131,7 @@ function paymentUrlFor(planId: PlanId) {
   }
 
   if (planId === 'max') {
-    return process.env.NEXT_PUBLIC_MAX_PAYMENT_URL || '/pay?plan=max';
+    return process.env.NEXT_PUBLIC_MAX_PAYMENT_URL || '/book?plan=max';
   }
 
   return process.env.NEXT_PUBLIC_PRO_PAYMENT_URL || '/pay?plan=pro';
@@ -185,11 +146,11 @@ export function normalizePlanId(plan?: string): PlanId {
   if (normalized === 'pro') return 'pro';
   if (normalized === 'max') return 'max';
 
-  if (['starter', 'trial', 'standard', 'core'].includes(normalized)) {
+  if (['starter', 'trial', 'standard', 'core', 'software'].includes(normalized)) {
     return 'pro';
   }
 
-  if (['ceremony', 'dfy'].includes(normalized)) {
+  if (['ceremony', 'dfy', 'done-for-you', 'doneforyou'].includes(normalized)) {
     return 'max';
   }
 
@@ -202,49 +163,48 @@ export function getPricingPlans(): PricingPlan[] {
       id: 'free',
       name: 'Free',
       price: '¥0',
-      period: '/月',
-      goodFor: '适合先把产品上线、接入支付、验证第一条漏斗，适合独立开发者先试跑。',
+      period: '/样本',
+      goodFor: '适合先验证 LeadPulse 能不能抓出你真正想要的高意图名单。',
       features: [
-        '20 credits / 月',
-        '适合 1 个产品、1 个 workspace',
-        '可导出代码，可同步 GitHub',
-        '包含基础支付与一键部署模板',
-        '不自动续费，不支持 rollover',
+        '展示 5-10 条真实样本线索',
+        '证明抓取能力，不开放完整大盘',
+        '不包含人工审查、代发和完整控制台',
+        '适合做第一轮验资',
       ],
-      ctaLabel: '先开 Free',
+      ctaLabel: '先拿样本',
       paymentUrl: paymentUrlFor('free'),
     },
     {
       id: 'pro',
       name: 'Pro',
-      price: '¥79',
+      price: '¥299',
       period: '/月',
-      goodFor: '适合大多数独立开发者、微型 SaaS 和小团队，先把线索、预约和付款跑成稳定闭环。',
+      goodFor: '适合想自己跑系统的小团队：你拿软件、拿筛选能力、自己执行触达。',
       features: [
         '150 credits / 月',
-        '默认按启动码开通，付款后发码再兑换',
-        '导出代码 / sync to GitHub',
-        '续期时重新购买新的 Pro 兑换码',
-        'paid credits 可 rollover 1 个账期，上限 150',
+        'Leads / Messages / Tasks 基础控制台',
+        '支持筛选、导出和基础消息草稿',
+        '客户自行承担平台风控、账号环境和发送动作',
+        '不含人工代跑、人工审查和首轮代发',
       ],
-      ctaLabel: '开通 Pro',
+      ctaLabel: '开通软件版',
       paymentUrl: paymentUrlFor('pro'),
       highlight: true,
     },
     {
       id: 'max',
-      name: 'Max',
-      price: '¥129',
-      period: '/月',
-      goodFor: '适合 agency、多产品工作室和高频执行团队，在更低价格上限内拿到更高吞吐与更多自动化动作。',
+      name: 'Max / DFY',
+      price: '¥3999',
+      period: '/周期',
+      goodFor: '适合高客单价业务：你不想自己配环境和跑脚本，而是直接拿人工清洗后的精准名单。',
       features: [
-        '300 credits / 月',
-        '更高吞吐、更多自动化动作与协作空间',
-        '优先支持 webhook、批量执行与团队协作',
-        '续期时重新购买新的 Max 兑换码',
-        'paid credits 可 rollover 2 个账期，上限 600',
+        '人工系统代跑',
+        '人工审查、去重、筛选精准意向名单',
+        '每周交付一轮高意图名单',
+        '代发首轮破冰私信 / 邮件',
+        '适合留学工作室、出海 SaaS、知识服务操盘手',
       ],
-      ctaLabel: '开通 Max',
+      ctaLabel: '预约 DFY',
       paymentUrl: paymentUrlFor('max'),
     },
   ];

@@ -23,7 +23,7 @@ export default function LoginPage() {
             <p className="text-sm font-semibold text-slate-900">内部控制台入口</p>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            这里用于 founder / operator 查看线索、任务、账单、交付和 Agent OS。公开用户默认应从官网、价格页、预约页或启动页进入。
+            这里用于 founder / operator 查看线索、消息、任务和账单。公开用户默认应从官网、价格页或预约页进入。
           </p>
         </div>
 

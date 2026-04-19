@@ -1,14 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  ArrowRight,
-  Check,
-  CreditCard,
-  Gauge,
-  LineChart,
-  ShieldCheck,
-  Sparkles,
-} from 'lucide-react';
+import { Check, CreditCard, ShieldCheck } from 'lucide-react';
 
 import { MarketingPageShell } from '../../components/marketing-page-shell';
 import {
@@ -19,56 +11,22 @@ import {
 } from '../../lib/pricing';
 
 export const metadata: Metadata = {
-  title: 'Pricing',
-  description:
-    'LeadPulse pricing for an AI Lead Capture & Conversion OS that turns public buying intent into qualified pipeline, bookings, payments, and onboarding.',
+  title: '价格',
+  description: 'LeadPulse 价格页：先看样本，再决定买软件使用权还是直接买人工代跑结果。',
 };
-
-const buyingPrinciples = [
-  {
-    title: 'Buy one revenue path, not five disconnected tools',
-    description:
-      'LeadPulse packages signal capture, qualification, outreach prep, booking, payment, and kickoff into one operating layer.',
-    icon: Sparkles,
-  },
-  {
-    title: 'Start self-serve, upgrade when the loop works',
-    description:
-      'Free is for validating the first loop. Pro is the default plan when you want a stable conversion system. Max is for higher throughput teams.',
-    icon: Gauge,
-  },
-  {
-    title: 'Pricing stays clear enough to explain in one screen',
-    description:
-      'Plans are simple on purpose. The goal is faster adoption, cleaner handoff, and less confusion between software, service, and billing.',
-    icon: CreditCard,
-  },
-];
 
 const compareRows = [
   {
-    label: 'Best for',
-    values: {
-      free: 'Validate one narrow lead path before you commit.',
-      pro: 'Run the default LeadPulse operating model with repeatable weekly usage.',
-      max: 'Operate multiple offers, higher volume, or a lean growth team.',
-    },
+    label: 'Free',
+    detail: '给你 5-10 条真实样本，只解决一件事：证明系统抓得到人。',
   },
   {
-    label: 'Conversion motion',
-    values: {
-      free: 'Test capture, review, and export with minimal risk.',
-      pro: 'Run signal to booking to payment to onboarding as one path.',
-      max: 'Scale the same path across more workflows, operators, and output.',
-    },
+    label: 'Pro',
+    detail: '纯软件版。你拿控制台、拿筛选与导出能力，自己承担平台规则和发送动作。',
   },
   {
-    label: 'Why people choose it',
-    values: {
-      free: 'You want proof before process.',
-      pro: 'You want a real SaaS operating layer, not another experiment.',
-      max: 'You need more throughput without rebuilding your stack.',
-    },
+    label: 'Max / DFY',
+    detail: '人工代跑版。我们替你跑系统、人工清洗名单，并代发第一轮破冰动作。',
   },
 ];
 
@@ -77,42 +35,20 @@ export default function PricingPage() {
 
   return (
     <MarketingPageShell
-      eyebrow="Pricing"
-      title="Pricing for an AI Lead Capture & Conversion OS"
-      description="LeadPulse is priced like a standard SaaS, but the value is not just access to a dashboard. You are buying a shorter path from public intent to booked call, paid customer, and kickoff."
-      typeLine="AI Lead Capture & Conversion OS"
-      primaryCta={{ href: '/register?plan=free', label: '先开 Free' }}
-      secondaryCta={{ href: '/pay?plan=pro', label: '直接开通 Pro' }}
+      eyebrow="价格"
+      title="先看样本，再决定买软件还是买结果"
+      description="定价不再包装复杂叙事，只区分三件事：要不要先看样本、要不要自己跑、要不要直接买人工代跑结果。"
+      typeLine="样本验证 / 软件使用权 / Done-For-You"
+      primaryCta={{ href: '/register?plan=free', label: '先拿样本' }}
+      secondaryCta={{ href: '/book', label: '预约 DFY' }}
     >
       <section className="mx-auto max-w-7xl px-6 py-2 lg:px-8">
         <div className="grid gap-4 lg:grid-cols-3">
-          {buyingPrinciples.map((item) => {
-            const Icon = item.icon;
-            return (
-              <article
-                key={item.title}
-                className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]"
-              >
-                <div className="w-fit rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
-                  <Icon className="h-5 w-5 text-slate-800" />
-                </div>
-                <h2 className="mt-5 text-xl font-semibold tracking-tight text-slate-950">{item.title}</h2>
-                <p className="mt-3 text-sm leading-7 text-slate-600">{item.description}</p>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto mt-10 max-w-7xl px-6 pb-10 lg:px-8">
-        <div className="grid gap-4 xl:grid-cols-3">
           {plans.map((plan) => (
             <article
               key={plan.id}
               className={`interactive-panel rounded-[2rem] border p-6 shadow-[0_16px_50px_rgba(15,23,42,0.06)] ${
-                plan.highlight
-                  ? 'border-slate-900/10 bg-white'
-                  : 'border-black/5 bg-white/88'
+                plan.highlight ? 'border-slate-900/10 bg-white' : 'border-black/5 bg-white/88'
               }`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -125,7 +61,7 @@ export default function PricingPage() {
                 </div>
                 {plan.highlight ? (
                   <span className="rounded-full border border-black/10 bg-[#f7f7f2] px-3 py-1 text-xs font-medium text-slate-700">
-                    Most teams start here
+                    默认入口
                   </span>
                 ) : null}
               </div>
@@ -163,32 +99,19 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 pb-10 lg:px-8">
+      <section className="mx-auto mt-10 max-w-7xl px-6 pb-10 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[1.02fr_0.98fr]">
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
             <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Plan logic</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Choose the plan by operating model, not vanity features</h2>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">别按功能买，按你想不想自己跑来买</h2>
             <p className="mt-4 text-sm leading-7 text-slate-600">{TARGET_AUDIENCE_ONE_LINER}</p>
             <p className="mt-3 text-sm leading-7 text-slate-600">{PRICING_CEILING_NOTE}</p>
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-3">
               {compareRows.map((row) => (
                 <article key={row.label} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
                   <h3 className="text-lg font-semibold text-slate-950">{row.label}</h3>
-                  <div className="mt-4 grid gap-3 xl:grid-cols-3">
-                    <div className="rounded-2xl border border-black/5 bg-white px-4 py-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Free</div>
-                      <p className="mt-2 text-sm leading-7 text-slate-600">{row.values.free}</p>
-                    </div>
-                    <div className="rounded-2xl border border-emerald-200 bg-white px-4 py-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Pro</div>
-                      <p className="mt-2 text-sm leading-7 text-slate-600">{row.values.pro}</p>
-                    </div>
-                    <div className="rounded-2xl border border-black/5 bg-white px-4 py-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Max</div>
-                      <p className="mt-2 text-sm leading-7 text-slate-600">{row.values.max}</p>
-                    </div>
-                  </div>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">{row.detail}</p>
                 </article>
               ))}
             </div>
@@ -197,11 +120,11 @@ export default function PricingPage() {
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
             <div className="flex items-center gap-3">
               <div className="rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
-                <LineChart className="h-5 w-5 text-slate-800" />
+                <CreditCard className="h-5 w-5 text-slate-800" />
               </div>
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">Credits and policy</div>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Keep pricing simple. Keep usage explicit.</h2>
+                <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">Rules</div>
+                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">少讲花活，只讲边界</h2>
               </div>
             </div>
 
@@ -219,10 +142,10 @@ export default function PricingPage() {
             <div className="mt-6 rounded-3xl border border-black/5 bg-white px-5 py-5">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="h-5 w-5 text-slate-800" />
-                <div className="text-sm font-semibold text-slate-950">Need help choosing?</div>
+                <div className="text-sm font-semibold text-slate-950">不确定选哪个？</div>
               </div>
               <p className="mt-3 text-sm leading-7 text-slate-600">
-                If you are still deciding whether LeadPulse should behave more like a self-serve SaaS or an operator-assisted growth system for your team, book a short call and we can choose the right plan boundary first.
+                如果你还不确定是先看样本、自己跑软件，还是直接把第一轮交给我们代跑，先约 15 分钟，把边界说清楚再付钱。
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link
@@ -240,44 +163,6 @@ export default function PricingPage() {
               </div>
             </div>
           </section>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 pb-12 lg:px-8">
-        <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-          <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">Next step</div>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-                Start with proof, then scale the conversion loop
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                Free is the lowest-friction entry. Pro is the standard operating plan. If you already know the motion works, go straight to Pro or book a call to map the rollout.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 xl:justify-end">
-              <Link
-                href="/register?plan=free"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8]"
-              >
-                先开 Free
-              </Link>
-              <Link
-                href="/book"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-[#fbfbf8] hover:text-slate-950"
-              >
-                预约 15 分钟
-              </Link>
-              <Link
-                href="/pay?plan=pro"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-[#fbfbf8] hover:text-slate-950"
-              >
-                开通 Pro
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
     </MarketingPageShell>

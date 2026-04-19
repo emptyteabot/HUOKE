@@ -12,7 +12,7 @@ export default function TermsPage() {
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Terms</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">服务条款</h1>
           <p className="mt-4 text-lg leading-8 text-slate-600">
-            这份条款重点写清楚 credits 规则、按月生效、取消、rollover 和邀请奖励，避免增长模型跑起来以后再扯皮。
+            这份条款只讲清楚三件事：样本、软件使用权、人工代跑服务包。先把边界说明白，避免后面再把软件和服务混在一起。
           </p>
         </div>
 

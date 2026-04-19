@@ -7,7 +7,7 @@ export function SiteFooter() {
         <div className="max-w-md">
           <div className="text-slate-900 font-semibold">LeadPulse</div>
           <div className="mt-2 leading-7">
-            把公开平台里的高意图需求表达，接到线索筛选、触达推进、预约、付款和启动交付。
+            自动捕获公开平台里的高意图线索，清洗后交付成可触达名单。
           </div>
         </div>
 
@@ -18,17 +18,8 @@ export function SiteFooter() {
           <Link href="/pricing" className="transition hover:text-slate-950">
             价格
           </Link>
-          <Link href="/use-cases" className="transition hover:text-slate-950">
-            场景
-          </Link>
-          <Link href="/integrations" className="transition hover:text-slate-950">
-            集成
-          </Link>
           <Link href="/faq" className="transition hover:text-slate-950">
             FAQ
-          </Link>
-          <Link href="/security" className="transition hover:text-slate-950">
-            安全
           </Link>
           <Link href="/privacy" className="transition hover:text-slate-950">
             隐私
