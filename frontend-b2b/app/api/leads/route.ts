@@ -17,6 +17,13 @@ export const runtime = "nodejs";
 
 type RunResult = { ok: boolean; stderr: string; stdout: string };
 
+type LeadRowsLoadResult = {
+  rows: LeadRow[];
+  source: "local_exporter" | "openclaw_json" | "supabase" | "bundled_snapshot" | "unavailable";
+  source_detail: string;
+  errors: Record<string, string>;
+};
+
 type IntentLevel = "high" | "medium" | "low";
 
 type LeadRow = {
@@ -139,6 +146,8 @@ const VERTICAL_CONFIGS: Record<string, VerticalConfig> = {
 
 const DEMAND_TERMS = ["求推荐", "求助", "请问", "有没有", "哪家", "想找", "怎么选", "预算", "费用", "急", "避雷"];
 const QUESTION_TERMS = ["?", "？", "请问", "有没有", "哪家", "怎么", "如何"];
+const LEAD_ROWS_CACHE_TTL_MS = 30_000;
+const leadRowsCache = new Map<string, { loaded_at: number; result: LeadRowsLoadResult }>();
 
 function parseBool(v: string | null, fallback: boolean): boolean {
   if (v == null || v === "") return fallback;
@@ -676,6 +685,17 @@ async function loadLeadRows(maxFetch: number, vertical: string): Promise<{
   source_detail: string;
   errors: Record<string, string>;
 }> {
+  const cacheKey = normalizeVertical(vertical);
+  const cached = leadRowsCache.get(cacheKey);
+  if (cached && Date.now() - cached.loaded_at < LEAD_ROWS_CACHE_TTL_MS) {
+    return {
+      rows: cached.result.rows,
+      source: cached.result.source,
+      source_detail: cached.result.source_detail,
+      errors: { ...cached.result.errors },
+    };
+  }
+
   const errors: Record<string, string> = {};
 
   // Prefer local cleaned exporter first so web always reflects newest local OpenClaw results.
@@ -687,45 +707,53 @@ async function loadLeadRows(maxFetch: number, vertical: string): Promise<{
     vertical,
   });
   if (local.ok) {
-    return {
+    const result: LeadRowsLoadResult = {
       rows: local.payload.rows || [],
       source: "local_exporter",
       source_detail: "python_exporter",
       errors,
     };
+    leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
+    return result;
   }
   errors.local_exporter = `${local.error}:${String(local.detail || "")}`;
 
   const openclaw = loadFromOpenclawLatest(Math.max(500, maxFetch), vertical);
   if (openclaw.ok) {
-    return {
+    const result: LeadRowsLoadResult = {
       rows: openclaw.rows,
       source: "openclaw_json",
       source_detail: openclaw.detail,
       errors,
     };
+    leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
+    return result;
   }
   errors.openclaw_json = `${openclaw.error}:${String(openclaw.detail || "")}`;
 
   const supabaseLoad = await loadLeadsFromSupabase(maxFetch, vertical);
   if (supabaseLoad.status === "ok") {
-    return {
+    const result: LeadRowsLoadResult = {
       rows: supabaseLoad.rows,
       source: "supabase",
       source_detail: "supabase_rest",
       errors,
     };
+    leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
+    return result;
   }
   errors.supabase = supabaseLoad.reason;
 
   const snapshot = loadFromBundledSnapshot();
   if (snapshot.ok) {
-    return {
+    const result: LeadRowsLoadResult = {
       rows: snapshot.rows,
       source: "bundled_snapshot",
       source_detail: snapshot.detail,
       errors,
     };
+    leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
+    return result;
   }
   errors.snapshot = `${snapshot.error}:${String(snapshot.detail || "")}`;
 

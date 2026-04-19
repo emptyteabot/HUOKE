@@ -103,10 +103,14 @@ export function createCommunicationDraft(
   };
 }
 
-export async function readCommunicationDrafts(): Promise<CommunicationDraft[]> {
-  const parsed = await readNamespace<CommunicationDraft>(DRAFT_NAMESPACE, {
+async function readStoredCommunicationDrafts(): Promise<CommunicationDraft[]> {
+  return readNamespace<CommunicationDraft>(DRAFT_NAMESPACE, {
     legacyFilePath: draftsPath,
   });
+}
+
+export async function readCommunicationDrafts(): Promise<CommunicationDraft[]> {
+  const parsed = await readStoredCommunicationDrafts();
   if (parsed.length > 0) {
     return parsed;
   }
@@ -118,7 +122,7 @@ async function readIntakeFile<T>(fileName: string): Promise<T[]> {
 }
 
 export async function persistCommunicationDraft(draft: CommunicationDraft) {
-  const existing = await readCommunicationDrafts();
+  const existing = await readStoredCommunicationDrafts();
   const matchIndex = existing.findIndex(
     (item) => uniqueDraftKey(item) === uniqueDraftKey(draft),
   );

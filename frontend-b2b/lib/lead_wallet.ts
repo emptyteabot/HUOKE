@@ -1,145 +1,209 @@
-import crypto from "node:crypto";
+﻿import crypto from "node:crypto";
+import { NextRequest } from "next/server";
 
-const WALLET_COOKIE = "leadpulse_wallet";
-const EXPORT_CREDIT_COST = 5;
-const DEFAULT_FREE_CREDITS = 20;
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+const COOKIE_NAME = "lp_wallet";
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
-export type LeadWallet = {
-  userId: string;
+export type WalletState = {
+  v: number;
+  user_id: string;
   credits: number;
-  exportCredits: number;
-  linksUnlocked: boolean;
-  createdAt: string;
-  updatedAt: string;
+  exports_count: number;
+  free_exports_used: number;
+  last_export_at: string;
+  links_unlocked_until: string;
 };
 
-type RequestLike = {
-  headers: Headers;
-  cookies?: {
-    get(name: string): { value: string } | undefined;
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function toInt(value: string | undefined, fallback: number): number {
+  const raw = String(value ?? "").trim();
+  if (!raw) return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.trunc(n);
+}
+
+export function freeExportLimit(): number {
+  return Math.max(0, toInt(process.env.FREE_EXPORT_LIMIT, 3));
+}
+
+export function exportCreditCost(): number {
+  return Math.max(1, toInt(process.env.EXPORT_CREDIT_COST, 20));
+}
+
+export function linkUnlockHours(): number {
+  return Math.max(1, toInt(process.env.LINK_UNLOCK_HOURS, 72));
+}
+
+export function defaultCredits(): number {
+  return Math.max(0, toInt(process.env.DEFAULT_EXPORT_CREDITS, 0));
+}
+
+function signingSecret(): string {
+  return String(process.env.WALLET_SIGNING_SECRET || "leadpulse-wallet-dev-secret-change-me");
+}
+
+export function normalizeUserId(input: string | null | undefined): string {
+  const raw = String(input || "guest_demo").trim().toLowerCase();
+  const safe = raw.replace(/[^a-z0-9_-]/g, "_").slice(0, 64);
+  return safe || "guest_demo";
+}
+
+function defaultWallet(userId: string): WalletState {
+  return {
+    v: 1,
+    user_id: normalizeUserId(userId),
+    credits: defaultCredits(),
+    exports_count: 0,
+    free_exports_used: 0,
+    last_export_at: "",
+    links_unlocked_until: "",
   };
-};
-
-function sanitizeUserId(userId?: string) {
-  const raw = String(userId || "").trim();
-  if (!raw) return "";
-  return raw.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64);
 }
 
-function parseCookieHeader(cookieHeader: string) {
-  return cookieHeader.split(";").reduce<Record<string, string>>((acc, part) => {
-    const idx = part.indexOf("=");
-    if (idx <= 0) return acc;
-    const key = part.slice(0, idx).trim();
-    const value = part.slice(idx + 1).trim();
-    if (key) acc[key] = value;
-    return acc;
-  }, {});
+function hmac(payload: string): string {
+  return crypto.createHmac("sha256", signingSecret()).update(payload).digest("base64url");
 }
 
-function decodeWalletCookie(raw: string): LeadWallet | null {
+function encodeWallet(wallet: WalletState): string {
+  const payload = Buffer.from(JSON.stringify(wallet), "utf8").toString("base64url");
+  const sig = hmac(payload);
+  return `${payload}.${sig}`;
+}
+
+function decodeWallet(token: string): WalletState | null {
+  const parts = String(token || "").split(".");
+  if (parts.length !== 2) return null;
+  const payload = parts[0] || "";
+  const sig = parts[1] || "";
+  if (!payload || !sig) return null;
+
+  const expected = hmac(payload);
+  const sigBuf = Buffer.from(sig);
+  const expectedBuf = Buffer.from(expected);
+  if (sigBuf.length !== expectedBuf.length) return null;
+  if (!crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
+
   try {
-    const json = Buffer.from(raw, "base64url").toString("utf8");
-    const parsed = JSON.parse(json) as Partial<LeadWallet>;
-    if (!parsed.userId) return null;
-
-    const credits = Number(parsed.credits);
-    const exportCredits = Number(parsed.exportCredits);
-    const createdAt = String(parsed.createdAt || new Date().toISOString());
-    const updatedAt = String(parsed.updatedAt || createdAt);
+    const obj = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as WalletState;
+    if (!obj || typeof obj !== "object") return null;
     return {
-      userId: sanitizeUserId(parsed.userId) || "guest_demo",
-      credits: Number.isFinite(credits) ? Math.max(0, Math.trunc(credits)) : DEFAULT_FREE_CREDITS,
-      exportCredits: Number.isFinite(exportCredits) ? Math.max(0, Math.trunc(exportCredits)) : 0,
-      linksUnlocked: Boolean(parsed.linksUnlocked),
-      createdAt,
-      updatedAt,
+      v: 1,
+      user_id: normalizeUserId(obj.user_id),
+      credits: Math.max(0, toInt(String(obj.credits), defaultCredits())),
+      exports_count: Math.max(0, toInt(String(obj.exports_count), 0)),
+      free_exports_used: Math.max(0, toInt(String((obj as any).free_exports_used), 0)),
+      last_export_at: String(obj.last_export_at || ""),
+      links_unlocked_until: String(obj.links_unlocked_until || ""),
     };
   } catch {
     return null;
   }
 }
 
-function encodeWalletCookie(wallet: LeadWallet) {
-  return Buffer.from(JSON.stringify(wallet), "utf8").toString("base64url");
+export function walletCookieValue(wallet: WalletState): string {
+  return encodeWallet(wallet);
 }
 
-function createWallet(userId: string): LeadWallet {
-  const now = new Date().toISOString();
-  return {
-    userId: sanitizeUserId(userId) || "guest_demo",
-    credits: DEFAULT_FREE_CREDITS,
-    exportCredits: 0,
-    linksUnlocked: DEFAULT_FREE_CREDITS >= EXPORT_CREDIT_COST,
-    createdAt: now,
-    updatedAt: now,
-  };
+export function walletTokenForResponse(wallet: WalletState): string {
+  return walletCookieValue(wallet);
 }
 
-function readWalletCookie(request: RequestLike) {
-  const cookieFromNext = request.cookies?.get(WALLET_COOKIE)?.value;
-  if (cookieFromNext) {
-    return decodeWalletCookie(cookieFromNext);
+export function parseWalletToken(token: string, userId: string): WalletState | null {
+  const parsed = decodeWallet(token);
+  if (!parsed) return null;
+  if (normalizeUserId(parsed.user_id) !== normalizeUserId(userId)) return null;
+  return parsed;
+}
+
+export function getWalletFromRequest(req: NextRequest, userIdInput?: string, tokenOverride?: string): WalletState {
+  const userId = normalizeUserId(userIdInput || req.nextUrl.searchParams.get("userId"));
+
+  const tokenCandidates = [
+    String(tokenOverride || ""),
+    String(req.headers.get("x-wallet-token") || ""),
+    String(req.nextUrl.searchParams.get("walletToken") || ""),
+    String(req.cookies.get(COOKIE_NAME)?.value || ""),
+  ];
+
+  for (const token of tokenCandidates) {
+    if (!token) continue;
+    const parsed = parseWalletToken(token, userId);
+    if (parsed) return parsed;
   }
 
-  const cookieHeader = request.headers.get("cookie") || "";
-  if (!cookieHeader) return null;
-
-  const cookies = parseCookieHeader(cookieHeader);
-  const raw = cookies[WALLET_COOKIE];
-  return raw ? decodeWalletCookie(raw) : null;
+  return defaultWallet(userId);
 }
 
-export function exportCreditCost() {
-  return EXPORT_CREDIT_COST;
+export function isLinksUnlocked(wallet: WalletState): boolean {
+  const ts = Date.parse(String(wallet.links_unlocked_until || ""));
+  if (!Number.isFinite(ts)) return false;
+  return ts > Date.now();
 }
 
-export function getWalletFromRequest(request: RequestLike, userId?: string): LeadWallet {
-  const fromCookie = readWalletCookie(request);
-  const resolvedUserId = sanitizeUserId(userId) || fromCookie?.userId || "guest_demo";
+export function freeExportsRemaining(wallet: WalletState): number {
+  return Math.max(0, freeExportLimit() - wallet.free_exports_used);
+}
 
-  if (fromCookie && fromCookie.userId === resolvedUserId) {
-    return {
-      ...fromCookie,
-      linksUnlocked: fromCookie.linksUnlocked || fromCookie.credits >= EXPORT_CREDIT_COST,
-      updatedAt: new Date().toISOString(),
+export function debitAndUnlock(
+  wallet: WalletState,
+  cost: number,
+):
+  | { ok: true; wallet: WalletState; mode: "free" | "credit"; credits_spent: number }
+  | { ok: false; error: string } {
+  const c = Math.max(1, Math.trunc(cost));
+
+  const freeRemaining = freeExportsRemaining(wallet);
+  const unlockMs = linkUnlockHours() * 60 * 60 * 1000;
+
+  if (freeRemaining > 0) {
+    const next: WalletState = {
+      ...wallet,
+      free_exports_used: wallet.free_exports_used + 1,
+      exports_count: wallet.exports_count + 1,
+      last_export_at: nowIso(),
+      links_unlocked_until: new Date(Date.now() + unlockMs).toISOString(),
     };
+    return { ok: true, wallet: next, mode: "free", credits_spent: 0 };
   }
 
-  return createWallet(resolvedUserId);
+  if (wallet.credits < c) {
+    return { ok: false, error: "insufficient_credits" };
+  }
+
+  const next: WalletState = {
+    ...wallet,
+    credits: Math.max(0, wallet.credits - c),
+    exports_count: wallet.exports_count + 1,
+    last_export_at: nowIso(),
+    links_unlocked_until: new Date(Date.now() + unlockMs).toISOString(),
+  };
+  return { ok: true, wallet: next, mode: "credit", credits_spent: c };
 }
 
-export function isLinksUnlocked(wallet: LeadWallet) {
-  return Boolean(wallet.linksUnlocked || wallet.credits >= EXPORT_CREDIT_COST);
+export function walletSetCookieHeader(wallet: WalletState): string {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const token = walletCookieValue(wallet);
+  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE_SECONDS}${secure}`;
 }
 
-export function walletPublic(wallet: LeadWallet) {
+export function walletPublic(wallet: WalletState) {
   return {
-    user_id: wallet.userId,
+    user_id: wallet.user_id,
     credits: wallet.credits,
-    export_credits: wallet.exportCredits,
-    export_credit_cost: EXPORT_CREDIT_COST,
+    exports_count: wallet.exports_count,
+    free_export_limit: freeExportLimit(),
+    free_exports_used: wallet.free_exports_used,
+    free_exports_remaining: freeExportsRemaining(wallet),
+    last_export_at: wallet.last_export_at,
     links_unlocked: isLinksUnlocked(wallet),
-    created_at: wallet.createdAt,
-    updated_at: wallet.updatedAt,
+    links_unlocked_until: wallet.links_unlocked_until,
+    export_credit_cost: exportCreditCost(),
+    link_unlock_hours: linkUnlockHours(),
   };
 }
 
-export function walletTokenForResponse(wallet: LeadWallet) {
-  return crypto
-    .createHash("sha256")
-    .update(JSON.stringify(walletPublic(wallet)))
-    .digest("hex")
-    .slice(0, 24);
-}
 
-export function walletSetCookieHeader(wallet: LeadWallet) {
-  const payload = encodeWalletCookie({
-    ...wallet,
-    linksUnlocked: isLinksUnlocked(wallet),
-    updatedAt: new Date().toISOString(),
-  });
-
-  return `${WALLET_COOKIE}=${payload}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}`;
-}

@@ -18,6 +18,13 @@ function cleanRedirectUrl(request: NextRequest) {
   return url;
 }
 
+function secureCookie(request: NextRequest) {
+  const forwardedProto = request.headers.get('x-forwarded-proto');
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+  const isLocal = host.includes('127.0.0.1') || host.includes('localhost');
+  return forwardedProto === 'https' || !isLocal;
+}
+
 function externalUrl(request: NextRequest, pathname: string) {
   const forwardedProto = request.headers.get('x-forwarded-proto');
   const forwardedHost = request.headers.get('x-forwarded-host');
@@ -70,11 +77,11 @@ export function middleware(request: NextRequest) {
 
   const access = request.nextUrl.searchParams.get('access');
   if (access && access === secret) {
-    const response = NextResponse.next();
+    const response = NextResponse.redirect(cleanRedirectUrl(request));
     response.cookies.set(INTERNAL_COOKIE, secret, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: true,
+      secure: secureCookie(request),
       path: '/',
       maxAge: 60 * 60 * 24 * 30,
     });
@@ -82,7 +89,8 @@ export function middleware(request: NextRequest) {
   }
 
   const loginUrl = externalUrl(request, '/internal-login');
-  loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
+  const cleanUrl = cleanRedirectUrl(request);
+  loginUrl.searchParams.set('next', `${cleanUrl.pathname}${cleanUrl.search}`);
   return NextResponse.rewrite(loginUrl);
 }
 

@@ -22,6 +22,18 @@ type PaymentPayload = {
   notes?: string;
 };
 
+function startUrlForRecord(record: { id: string; plan?: string; company?: string; email?: string }) {
+  const params = new URLSearchParams({
+    plan: String(record.plan || '').trim() || 'pro',
+    sourceId: record.id,
+  });
+
+  if (record.company) params.set('company', String(record.company).trim());
+  if (record.email) params.set('email', String(record.email).trim());
+
+  return `${SITE_URL}/start?${params.toString()}`;
+}
+
 function getStripeClient() {
   const secretKey = String(process.env.STRIPE_SECRET_KEY || '').trim();
   if (!secretKey) {
@@ -53,7 +65,7 @@ function normalizePayload(payload: PaymentPayload) {
     plan: normalizedPlan,
     amount: String(plan.price).trim(),
     reportedAmount: String(payload.amount || '').trim(),
-    paymentMethod: String(payload.paymentMethod || '线下付款 / 启动码').trim(),
+    paymentMethod: String(payload.paymentMethod || '微信支付').trim(),
     notes: String(payload.notes || '').trim(),
   };
 }
@@ -148,20 +160,27 @@ export async function POST(request: Request) {
     );
     await fanOutNotifications(buildSummary(record), record);
 
+    const startUrl = startUrlForRecord({
+      id: record.id,
+      plan: record.plan,
+      company: record.company,
+      email: record.email,
+    });
+
     const paymentProvider = String(process.env.LEADPULSE_PAYMENT_PROVIDER || 'wechat').trim().toLowerCase();
     if (paymentProvider !== 'stripe') {
       await updateSourceStage('payment_intent', record.id, {
-        paymentStatus: 'code_purchase_pending',
-        deliveryStatus: 'awaiting_code_issue',
+        paymentStatus: 'pending_verification',
+        deliveryStatus: 'pending_payment_verification',
       });
 
       return Response.json({
         ok: true,
-        message: '购买需求已记录。付款确认后，我们会发送启动码；拿到启动码后去兑换页开通。',
+        message: '付款确认已记录。我们会先核验微信到账，再开通方案并发送启动交付包。',
+        startUrl,
         bookingUrl: `${SITE_URL}/book`,
         proofUrl: `${SITE_URL}/product`,
         messagesUrl: `${SITE_URL}/dashboard/messages`,
-        redeemUrl: `${SITE_URL}/redeem`,
       });
     }
 
@@ -227,6 +246,7 @@ export async function POST(request: Request) {
     return Response.json({
       ok: true,
       message: '付款确认已记录，正在跳转到安全支付。',
+      startUrl,
       bookingUrl: `${SITE_URL}/book`,
       proofUrl: `${SITE_URL}/product`,
       messagesUrl: `${SITE_URL}/dashboard/messages`,

@@ -83,13 +83,33 @@ export function intakeFileForKind(kind: IntakeKind) {
 }
 
 async function postJson(url: string, payload: unknown) {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+  const target = String(url || '').trim();
+  if (!target) {
+    throw new Error('Webhook URL missing');
+  }
+
+  const timeoutMs = Math.max(1000, Number(process.env.LEADPULSE_WEBHOOK_TIMEOUT_MS || 3500));
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetch(target, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Webhook timeout after ${timeoutMs}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!response.ok) {
     throw new Error(`Webhook failed: ${response.status}`);
