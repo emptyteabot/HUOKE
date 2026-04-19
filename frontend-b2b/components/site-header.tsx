@@ -8,7 +8,7 @@ type Props = {
 const navItems = [
   { href: '/product', label: '产品' },
   { href: '/demo', label: '演示' },
-  { href: '/book', label: '预约' },
+  { href: '/pay?plan=pro', label: '价格' },
 ];
 
 export function SiteHeader({ ctaHref = '/book', ctaLabel = '预约诊断' }: Props) {
@@ -21,7 +21,7 @@ export function SiteHeader({ ctaHref = '/book', ctaLabel = '预约诊断' }: Pro
           </div>
           <div>
             <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">LeadPulse</div>
-            <div className="mt-1 text-base font-semibold text-slate-950">AI Growth System</div>
+            <div className="mt-1 text-base font-semibold text-slate-950">AI Lead Capture OS</div>
           </div>
         </Link>
 
