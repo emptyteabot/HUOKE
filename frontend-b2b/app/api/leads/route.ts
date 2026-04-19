@@ -472,7 +472,7 @@ function summarize(rows: LeadRow[]): LeadsPayload["summary"] {
   };
 }
 
-function buildPayload(rows: LeadRow[], params: { limit: number; minScore: number; onlyTarget: boolean; excludeCompetitors: boolean; vertical: string }): LeadsPayload {
+export function buildPayload(rows: LeadRow[], params: { limit: number; minScore: number; onlyTarget: boolean; excludeCompetitors: boolean; vertical: string }): LeadsPayload {
   let filtered = rows;
   if (params.excludeCompetitors) filtered = filtered.filter((x) => !x.is_competitor);
   if (params.onlyTarget) filtered = filtered.filter((x) => x.is_target);
@@ -679,7 +679,7 @@ function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string 
   }
 }
 
-async function loadLeadRows(maxFetch: number, vertical: string): Promise<{
+export async function loadLeadRows(maxFetch: number, vertical: string): Promise<{
   rows: LeadRow[];
   source: "local_exporter" | "openclaw_json" | "supabase" | "bundled_snapshot" | "unavailable";
   source_detail: string;

@@ -13,17 +13,17 @@ export default function LoginPage() {
           </div>
           <h1 className="mt-5 text-3xl font-semibold text-slate-950">LeadPulse Console</h1>
           <div className="mt-3 text-sm leading-6">
-            <TypewriterDecor text="直接进入本地控制台，不依赖旧的外部登录流程。" />
+            <TypewriterDecor text="这是内部控制台入口，不是面向客户的普通产品登录页。" />
           </div>
         </div>
 
         <div className="rounded-[28px] border border-black/5 bg-[#f8f8f4] p-5">
           <div className="flex items-center gap-3">
             <ShieldCheck className="h-5 w-5 text-[#0071e3]" />
-            <p className="text-sm font-semibold text-slate-900">直接进入本地控制台</p>
+            <p className="text-sm font-semibold text-slate-900">内部控制台入口</p>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            现在可以直接查看线索、触达模板、AI Prompt 和经营数据。后续如果要接正式鉴权，再替换这一页。
+            这里用于 founder / operator 查看线索、任务、账单、交付和 Agent OS。公开用户默认应从官网、价格页、预约页或启动页进入。
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
             href="/dashboard"
             className="interactive-button inline-flex items-center rounded-full border border-black/10 bg-[#0071e3] px-5 py-3 font-semibold text-white shadow-sm hover:bg-[#0062c3]"
           >
-            进入控制台
+            进入内部控制台
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
           <Link
@@ -40,6 +40,12 @@ export default function LoginPage() {
             className="interactive-button inline-flex items-center rounded-full border border-black/10 bg-white px-5 py-3 font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbfb]"
           >
             返回官网
+          </Link>
+          <Link
+            href="/pricing"
+            className="interactive-button inline-flex items-center rounded-full border border-black/10 bg-white px-5 py-3 font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbfb]"
+          >
+            查看价格
           </Link>
         </div>
       </div>

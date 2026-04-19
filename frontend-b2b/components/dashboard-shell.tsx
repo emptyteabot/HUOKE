@@ -12,7 +12,7 @@ import {
   Target,
 } from 'lucide-react';
 
-type DashboardTab = 'overview' | 'leads' | 'tasks' | 'emails' | 'messages' | 'ai' | 'closer' | 'fulfillment';
+type DashboardTab = 'overview' | 'leads' | 'tasks' | 'emails' | 'messages' | 'ai' | 'closer' | 'fulfillment' | 'billing' | 'settings';
 
 type Props = {
   active: DashboardTab;
@@ -34,6 +34,8 @@ const navItems: Array<{
   { key: 'messages', href: '/dashboard/messages', label: '消息', icon: MessageSquareQuote },
   { key: 'closer', href: '/dashboard/closer', label: 'Closer', icon: Mail },
   { key: 'fulfillment', href: '/dashboard/fulfillment', label: '交付', icon: FileCheck2 },
+  { key: 'billing', href: '/dashboard/billing', label: '账单', icon: FileCheck2 },
+  { key: 'settings', href: '/dashboard/settings', label: '设置', icon: Radar },
   { key: 'ai', href: '/dashboard/ai', label: 'Agent OS', icon: Bot },
 ];
 
