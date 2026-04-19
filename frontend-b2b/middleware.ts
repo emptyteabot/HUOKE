@@ -70,9 +70,7 @@ export function middleware(request: NextRequest) {
     const hasInternalAccess = Boolean(secret) && (currentCookie === secret || access === secret);
 
     if (!hasInternalAccess) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/';
-      url.search = '';
+      const url = externalUrl(request, '/');
       return NextResponse.redirect(url);
     }
   }
