@@ -13,6 +13,46 @@ type SearchParams = Promise<{
   redeem?: string;
 }>;
 
+const fragmentedStack = [
+  {
+    title: '监听工具',
+    detail: '知道哪里有人提到你，但不会替你判断谁值得推进。',
+  },
+  {
+    title: 'DM 自动化',
+    detail: '能把评论转成私信，但不负责筛掉同行和噪声。',
+  },
+  {
+    title: '外呼工具',
+    detail: '擅长发序列，但前提是你已经手里有一批好名单。',
+  },
+  {
+    title: '工作流/表格',
+    detail: '最后还得你自己记 booking、payment 和 start 的状态。',
+  },
+];
+
+const winReasons = [
+  '不是买一个监听工具，而是买一条从意图到付款的路径。',
+  '不是导出完就结束，而是继续推进 booking、payment 和 start。',
+  '不是把客户丢进后台，而是让公开流量先看懂价值，再进入开通动作。',
+];
+
+const faqRows = [
+  {
+    q: '为什么这比单买一个监听工具更值？',
+    a: '因为单独监听只会告诉你“哪里有人提到你”，但不会替你把这批人推进到导出、消息、预约和付款。LeadPulse 把这些动作接在一起。',
+  },
+  {
+    q: '为什么不直接用评论机器人或私信工具？',
+    a: '评论/私信工具擅长自动回复，但不会先帮你筛掉同行、机构号和低价值噪声。LeadPulse 先筛，再导出，再推进。',
+  },
+  {
+    q: '为什么我还需要外呼/销售工具吗？',
+    a: '如果你团队很大，后面可以继续叠。但对大多数小团队来说，LeadPulse 先把最短成交路径跑顺，比先堆更多系统更重要。',
+  },
+];
+
 export default async function PayPage({ searchParams }: { searchParams: SearchParams }) {
   const resolved = await searchParams;
   const plan = getPlanById(resolved.plan);
@@ -78,6 +118,20 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
               <div className="mt-6 space-y-3">
                 {planHighlights.map((item) => (
                   <div key={item} className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3 text-sm text-slate-700">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+              <div className="flex items-center gap-3">
+                <FileCheck2 className="h-5 w-5 text-slate-700" />
+                <h2 className="text-2xl font-semibold text-slate-950">你不是在买一层工具</h2>
+              </div>
+              <div className="mt-5 space-y-3">
+                {winReasons.map((item) => (
+                  <div key={item} className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3 text-sm leading-7 text-slate-700">
                     {item}
                   </div>
                 ))}
@@ -156,6 +210,25 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
 
             <article className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
               <div className="flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-slate-700" />
+                <h2 className="text-xl font-semibold text-slate-950">为什么比拼栈更划算</h2>
+              </div>
+              <div className="mt-5 space-y-3">
+                {fragmentedStack.map((item) => (
+                  <div key={item.title} className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4">
+                    <div className="text-sm font-semibold text-slate-950">{item.title}</div>
+                    <div className="mt-2 text-sm leading-7 text-slate-600">{item.detail}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm leading-7 text-slate-700">
+                你当然可以继续买监听、评论自动化、外呼、工作流四套系统，但最后还是要自己把状态拼起来。
+                LeadPulse 的价值不是某一个点更炫，而是把这些点串成一条更短的成交路径。
+              </div>
+            </article>
+
+            <article className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+              <div className="flex items-center gap-3">
                 <FileCheck2 className="h-5 w-5 text-slate-700" />
                 <h2 className="text-xl font-semibold text-slate-950">补充说明</h2>
               </div>
@@ -185,6 +258,21 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
                 >
                   隐私说明
                 </Link>
+              </div>
+            </article>
+
+            <article className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+              <div className="flex items-center gap-3">
+                <FileCheck2 className="h-5 w-5 text-slate-700" />
+                <h2 className="text-xl font-semibold text-slate-950">购买前常见问题</h2>
+              </div>
+              <div className="mt-5 space-y-3">
+                {faqRows.map((item) => (
+                  <div key={item.q} className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4">
+                    <div className="text-sm font-semibold text-slate-950">{item.q}</div>
+                    <div className="mt-2 text-sm leading-7 text-slate-600">{item.a}</div>
+                  </div>
+                ))}
               </div>
             </article>
           </div>
