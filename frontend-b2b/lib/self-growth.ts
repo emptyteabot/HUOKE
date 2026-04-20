@@ -90,56 +90,74 @@ const fallbackSummary: SelfGrowthSummary = {
   top_accounts: [],
 };
 
-const selfGrowthRoot = path.join(process.cwd(), '..', 'data', 'self_growth');
+const selfGrowthRoots = [
+  path.join(process.cwd(), 'data', 'self_growth'),
+  path.join(process.cwd(), '..', 'data', 'self_growth'),
+];
+const reportRoots = [
+  path.join(process.cwd(), 'data', 'reports'),
+  path.join(process.cwd(), '..', 'data', 'reports'),
+];
+const liveTargetPaths = [
+  path.join(process.cwd(), 'data', 'live_targets', 'leadpulse_real_targets_latest.json'),
+  path.join(process.cwd(), '..', 'data', 'live_targets', 'leadpulse_real_targets_latest.json'),
+  path.join(process.cwd(), '..', 'data', 'live_targets', 'leadpulse_real_targets_20260317.json'),
+];
 
 function replaceUtmLink(value: string) {
   return String(value || '').replaceAll('[UTM_LINK]', SITE_URL);
 }
 
 export async function readSelfGrowthSummary(): Promise<SelfGrowthSummary> {
-  const summaryPath = path.join(selfGrowthRoot, 'summary.json');
+  for (const root of selfGrowthRoots) {
+    const summaryPath = path.join(root, 'summary.json');
 
-  try {
-    const [raw, rerankOverrides] = await Promise.all([
-      readFile(summaryPath, 'utf-8'),
-      readRerankOverrides(),
-    ]);
-    const parsed = JSON.parse(raw) as SelfGrowthSummary;
-    const rerankMap = new Map(
-      rerankOverrides
-        .filter((item) => item.company)
-        .map((item) => [String(item.company).trim().toLowerCase(), item]),
-    );
+    try {
+      const [raw, rerankOverrides] = await Promise.all([
+        readFile(summaryPath, 'utf-8'),
+        readRerankOverrides(),
+      ]);
+      const parsed = JSON.parse(raw) as SelfGrowthSummary;
+      const rerankMap = new Map(
+        rerankOverrides
+          .filter((item) => item.company)
+          .map((item) => [String(item.company).trim().toLowerCase(), item]),
+      );
 
-    return {
-      ...parsed,
-      top_accounts: [...parsed.top_accounts].sort((left, right) => {
-        const leftBoost = rerankMap.get(String(left.company_name).trim().toLowerCase())?.boost || 0;
-        const rightBoost = rerankMap.get(String(right.company_name).trim().toLowerCase())?.boost || 0;
-        if (leftBoost !== rightBoost) {
-          return rightBoost - leftBoost;
-        }
-        return right.blended_score - left.blended_score;
-      }),
-    };
-  } catch {
-    return fallbackSummary;
+      return {
+        ...parsed,
+        top_accounts: [...parsed.top_accounts].sort((left, right) => {
+          const leftBoost = rerankMap.get(String(left.company_name).trim().toLowerCase())?.boost || 0;
+          const rightBoost = rerankMap.get(String(right.company_name).trim().toLowerCase())?.boost || 0;
+          if (leftBoost !== rightBoost) {
+            return rightBoost - leftBoost;
+          }
+          return right.blended_score - left.blended_score;
+        }),
+      };
+    } catch {
+      continue;
+    }
   }
+  return fallbackSummary;
 }
 
 async function readJsonFile<T>(fileName: string, fallback: T): Promise<T> {
-  try {
-    const filePath = path.join(selfGrowthRoot, fileName);
-    const namespace = `self-growth:${fileName}`;
-    const records = await readNamespace<T & { id?: string }>(namespace, {
-      legacyFilePath: filePath,
-      syncLegacyOnChange: true,
-      legacyIdResolver: () => fileName,
-    });
-    return (records[0] as T) || fallback;
-  } catch {
-    return fallback;
+  const namespace = `self-growth:${fileName}`;
+  for (const root of selfGrowthRoots) {
+    try {
+      const filePath = path.join(root, fileName);
+      const records = await readNamespace<T & { id?: string }>(namespace, {
+        legacyFilePath: filePath,
+        syncLegacyOnChange: true,
+        legacyIdResolver: () => fileName,
+      });
+      return (records[0] as T) || fallback;
+    } catch {
+      continue;
+    }
   }
+  return fallback;
 }
 
 export async function readSelfGrowthAccounts(): Promise<SelfGrowthAccount[]> {
@@ -166,22 +184,25 @@ export async function readSelfGrowthContentBacklog(): Promise<SelfGrowthContentI
 }
 
 export async function readSelfGrowthReport(): Promise<string> {
-  try {
-    const raw = await readFile(path.join(process.cwd(), '..', 'data', 'reports', 'leadpulse_self_growth_report.md'), 'utf-8');
-    return replaceUtmLink(raw);
-  } catch {
-    return '';
+  for (const root of reportRoots) {
+    try {
+      const raw = await readFile(path.join(root, 'leadpulse_self_growth_report.md'), 'utf-8');
+      return replaceUtmLink(raw);
+    } catch {
+      continue;
+    }
   }
+  return '';
 }
 
 export async function readLiveTargets(): Promise<LiveTarget[]> {
-  try {
-    const raw = await readFile(
-      path.join(process.cwd(), '..', 'data', 'live_targets', 'leadpulse_real_targets_20260317.json'),
-      'utf-8',
-    );
-    return JSON.parse(raw) as LiveTarget[];
-  } catch {
-    return [];
+  for (const candidatePath of liveTargetPaths) {
+    try {
+      const raw = await readFile(candidatePath, 'utf-8');
+      return JSON.parse(raw) as LiveTarget[];
+    } catch {
+      continue;
+    }
   }
+  return [];
 }

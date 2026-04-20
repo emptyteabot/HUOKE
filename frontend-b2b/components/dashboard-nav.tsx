@@ -8,6 +8,7 @@ const NAVS = [
   { href: "/dashboard/leads", label: "潜在客户" },
   { href: "/dashboard/tasks", label: "任务" },
   { href: "/dashboard/messages", label: "消息" },
+  { href: "/ops/self-growth", label: "自用闭环" },
 ];
 
 export default function DashboardNav() {

@@ -104,6 +104,7 @@ export default function DashboardPage() {
           <Link href="/dashboard/leads" className="lp-btn">筛选潜在客户</Link>
           <Link href="/dashboard/messages" className="lp-btn">查看消息草稿</Link>
           <Link href="/dashboard/tasks" className="lp-btn">推进任务</Link>
+          <Link href="/ops/self-growth" className="lp-btn">查看自用闭环</Link>
         </div>
       </section>
 
