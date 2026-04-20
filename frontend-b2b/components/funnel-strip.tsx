@@ -15,9 +15,9 @@ type Props = {
 };
 
 export function FunnelStrip({
-  eyebrow = '主路径',
-  title = '看懂、预约、付款',
-  description = '公开站只负责把客户带到下一步。',
+  eyebrow = '怎么开始',
+  title = '先看、再问、再决定',
+  description = '先把方向看清楚，再决定要不要继续。',
   steps,
 }: Props) {
   return (

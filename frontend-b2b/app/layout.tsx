@@ -4,7 +4,7 @@ import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL } from "../lib/sit
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: `${SITE_NAME} | 高意图线索提取器`,
+  title: `${SITE_NAME} | 帮你找到正在找服务的人`,
   description: SITE_DESCRIPTION,
   keywords: SITE_KEYWORDS,
   applicationName: SITE_NAME,
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
   openGraph: {
-    title: `${SITE_NAME} | 高意图线索提取器`,
+    title: `${SITE_NAME} | 帮你找到正在找服务的人`,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} | 高意图线索提取器`,
+    title: `${SITE_NAME} | 帮你找到正在找服务的人`,
     description: SITE_DESCRIPTION,
   },
 };

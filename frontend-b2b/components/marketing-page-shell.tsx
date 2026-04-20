@@ -2,7 +2,6 @@ import Link from 'next/link';
 
 import { SiteFooter } from './site-footer';
 import { SiteHeader } from './site-header';
-import { TypewriterDecor } from './typewriter-decor';
 
 type Cta = {
   href: string;
@@ -23,9 +22,9 @@ export function MarketingPageShell({
   eyebrow,
   title,
   description,
-  typeLine = '更快看懂，更快继续下一步。',
-  primaryCta = { href: '/book', label: '预约诊断' },
-  secondaryCta = { href: '/pay?plan=pro', label: '开通 Pro' },
+  typeLine = '先看样本，再决定要不要继续。',
+  primaryCta = { href: '/book', label: '免费沟通' },
+  secondaryCta = { href: '/pricing', label: '看收费方式' },
   children,
 }: Props) {
   return (
@@ -34,15 +33,11 @@ export function MarketingPageShell({
 
       <section className="mx-auto max-w-7xl px-6 pb-10 pt-16 lg:px-8">
         <div className="max-w-4xl fade-up">
-          <div className="apple-pill breathing-pill px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[#86868b]">
-            {eyebrow}
-          </div>
+          <div className="apple-pill px-4 py-2 text-[11px] tracking-[0.18em] text-[#86868b]">{eyebrow}</div>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-[4rem] md:leading-[1.04]">
             {title}
           </h1>
-          <div className="mt-4 text-base leading-7">
-            <TypewriterDecor text={typeLine} />
-          </div>
+          <p className="mt-4 text-base leading-7 text-slate-500">{typeLine}</p>
           <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">{description}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link

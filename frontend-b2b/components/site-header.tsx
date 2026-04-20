@@ -6,12 +6,12 @@ type Props = {
 };
 
 const navItems = [
-  { href: '/product', label: '产品' },
-  { href: '/pricing', label: '价格' },
-  { href: '/faq', label: 'FAQ' },
+  { href: '/product', label: '产品介绍' },
+  { href: '/pricing', label: '收费方式' },
+  { href: '/faq', label: '常见问题' },
 ];
 
-export function SiteHeader({ ctaHref = '/book', ctaLabel = '预约拿样本' }: Props) {
+export function SiteHeader({ ctaHref = '/book', ctaLabel = '免费拿样本' }: Props) {
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-[#f5f5f7]/92 backdrop-blur-2xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-8">
@@ -21,7 +21,7 @@ export function SiteHeader({ ctaHref = '/book', ctaLabel = '预约拿样本' }: 
           </div>
           <div>
             <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">LeadPulse</div>
-            <div className="mt-1 text-base font-semibold text-slate-950">高意图线索提取器</div>
+            <div className="mt-1 text-base font-semibold text-slate-950">帮你找到正在找服务的人</div>
           </div>
         </Link>
 

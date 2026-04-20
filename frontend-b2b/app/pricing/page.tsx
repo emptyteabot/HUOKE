@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Check, CreditCard, ShieldCheck } from 'lucide-react';
+import { Check, ShieldCheck } from 'lucide-react';
 
 import { MarketingPageShell } from '../../components/marketing-page-shell';
 import {
@@ -11,36 +11,21 @@ import {
 } from '../../lib/pricing';
 
 export const metadata: Metadata = {
-  title: '价格',
-  description: 'LeadPulse 价格页：先看样本，再决定买软件使用权还是直接买人工代跑结果。',
+  title: '收费方式',
+  description: '先看免费样本，再决定是自己用软件版，还是先试一轮代跑版。',
 };
-
-const compareRows = [
-  {
-    label: 'Free',
-    detail: '给你 5-10 条真实样本，只解决一件事：证明系统抓得到人。',
-  },
-  {
-    label: 'Pro',
-    detail: '纯软件版。你拿控制台、拿筛选与导出能力，自己承担平台规则和发送动作。',
-  },
-  {
-    label: 'Max / DFY',
-    detail: '人工代跑版。我们替你跑系统、人工清洗名单，并代发第一轮破冰动作。',
-  },
-];
 
 export default function PricingPage() {
   const plans = getPricingPlans();
 
   return (
     <MarketingPageShell
-      eyebrow="价格"
-      title="先看样本，再决定买软件还是买结果"
-      description="定价不再包装复杂叙事，只区分三件事：要不要先看样本、要不要自己跑、要不要直接买人工代跑结果。"
-      typeLine="样本验证 / 软件使用权 / Done-For-You"
-      primaryCta={{ href: '/register?plan=free', label: '先拿样本' }}
-      secondaryCta={{ href: '/book', label: '预约 DFY' }}
+      eyebrow="收费方式"
+      title="先小单验证，不先把价格做成门槛"
+      description="现在这套定价的目的不是做豪华套餐，而是让你先低成本试一轮，判断值不值得继续。"
+      typeLine="先看样本，再决定自己做还是交给我们做。"
+      primaryCta={{ href: '/register?plan=free', label: '免费拿样本' }}
+      secondaryCta={{ href: '/book', label: '先聊 15 分钟' }}
     >
       <section className="mx-auto max-w-7xl px-6 py-2 lg:px-8">
         <div className="grid gap-4 lg:grid-cols-3">
@@ -53,7 +38,7 @@ export default function PricingPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">{plan.name}</div>
+                  <div className="text-sm font-semibold text-slate-950">{plan.name}</div>
                   <h2 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
                     {plan.price}
                     <span className="ml-2 text-base font-medium text-slate-500">{plan.period}</span>
@@ -61,7 +46,7 @@ export default function PricingPage() {
                 </div>
                 {plan.highlight ? (
                   <span className="rounded-full border border-black/10 bg-[#f7f7f2] px-3 py-1 text-xs font-medium text-slate-700">
-                    默认入口
+                    最容易开始
                   </span>
                 ) : null}
               </div>
@@ -80,18 +65,12 @@ export default function PricingPage() {
                 ))}
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-6">
                 <Link
                   href={plan.paymentUrl}
                   className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8]"
                 >
                   {plan.ctaLabel}
-                </Link>
-                <Link
-                  href="/book"
-                  className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-white hover:text-slate-950"
-                >
-                  预约 15 分钟
                 </Link>
               </div>
             </article>
@@ -102,30 +81,26 @@ export default function PricingPage() {
       <section className="mx-auto mt-10 max-w-7xl px-6 pb-10 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[1.02fr_0.98fr]">
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Plan logic</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">别按功能买，按你想不想自己跑来买</h2>
+            <div className="text-sm font-semibold text-slate-950">为什么现在这样定</div>
             <p className="mt-4 text-sm leading-7 text-slate-600">{TARGET_AUDIENCE_ONE_LINER}</p>
             <p className="mt-3 text-sm leading-7 text-slate-600">{PRICING_CEILING_NOTE}</p>
-
             <div className="mt-6 space-y-3">
-              {compareRows.map((row) => (
-                <article key={row.label} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
-                  <h3 className="text-lg font-semibold text-slate-950">{row.label}</h3>
-                  <p className="mt-3 text-sm leading-7 text-slate-600">{row.detail}</p>
-                </article>
+              {[
+                '如果你只想先判断方向，先拿免费样本。',
+                '如果你愿意自己动手跑，先开软件版。',
+                '如果你只想先看一轮整理好的结果，就走代跑版。',
+              ].map((row) => (
+                <div key={row} className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm leading-7 text-slate-700">
+                  {row}
+                </div>
               ))}
             </div>
           </section>
 
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
-                <CreditCard className="h-5 w-5 text-slate-800" />
-              </div>
-              <div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">Rules</div>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">少讲花活，只讲边界</h2>
-              </div>
+              <ShieldCheck className="h-5 w-5 text-slate-800" />
+              <div className="text-sm font-semibold text-slate-950">你最需要知道的</div>
             </div>
 
             <div className="mt-6 space-y-4">
@@ -137,30 +112,6 @@ export default function PricingPage() {
                   </div>
                 </article>
               ))}
-            </div>
-
-            <div className="mt-6 rounded-3xl border border-black/5 bg-white px-5 py-5">
-              <div className="flex items-center gap-3">
-                <ShieldCheck className="h-5 w-5 text-slate-800" />
-                <div className="text-sm font-semibold text-slate-950">不确定选哪个？</div>
-              </div>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                如果你还不确定是先看样本、自己跑软件，还是直接把第一轮交给我们代跑，先约 15 分钟，把边界说清楚再付钱。
-              </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  href="/book"
-                  className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8]"
-                >
-                  预约方案诊断
-                </Link>
-                <Link
-                  href="/pay?plan=pro"
-                  className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-[#fbfbf8] hover:text-slate-950"
-                >
-                  直接开通 Pro
-                </Link>
-              </div>
             </div>
           </section>
         </div>

@@ -7,19 +7,19 @@ export function SiteFooter() {
         <div className="max-w-md">
           <div className="text-slate-900 font-semibold">LeadPulse</div>
           <div className="mt-2 leading-7">
-            自动捕获公开平台里的高意图线索，清洗后交付成可触达名单。
+            帮你先看一轮真实样本，再决定自己做还是交给我们代跑。
           </div>
         </div>
 
         <div className="flex flex-wrap gap-4 lg:gap-6">
           <Link href="/product" className="transition hover:text-slate-950">
-            产品
+            产品介绍
           </Link>
           <Link href="/pricing" className="transition hover:text-slate-950">
-            价格
+            收费方式
           </Link>
           <Link href="/faq" className="transition hover:text-slate-950">
-            FAQ
+            常见问题
           </Link>
           <Link href="/privacy" className="transition hover:text-slate-950">
             隐私

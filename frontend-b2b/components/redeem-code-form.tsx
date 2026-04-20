@@ -78,9 +78,9 @@ export function RedeemCodeForm({ defaultCompany = '', initialCode = '' }: Props)
     <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
       <div>
         <p className="font-mono text-[11px] tracking-[0.28em] text-slate-500">兑换开通</p>
-        <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">已经买到兑换码，直接在这里开通</h3>
+        <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">已经拿到开通码，就在这里继续</h3>
         <p className="mt-3 text-sm leading-7 text-slate-600">
-          LeadPulse 不再假装自动收款。你先付款拿到兑换码，再在这里兑换，系统才会生成启动交付包。
+          你付完款后会拿到开通码。把开通码填进来，就可以继续进入下一步。
         </p>
       </div>
 

@@ -25,7 +25,7 @@ const initialState: BookingState = {
   context: '',
 };
 
-const channelOptions = ['微信 / 飞书', '邮箱', 'X / Twitter 私信', '电话 / 语音'];
+const channelOptions = ['微信 / 飞书', '邮箱', '平台私信', '电话 / 语音'];
 
 type SuccessPayload = {
   ok?: boolean;
@@ -80,7 +80,7 @@ export function BookingRequestForm() {
     <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
       <h3 className="text-2xl font-semibold text-slate-950">提交预约请求</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600">
-        填一个你方便的时间段。提交后会进入 LeadPulse 的预约队列，并同步到通知通道里。
+        留一个你方便的时间段。我们会先看你的情况合不合适，不会一上来就硬推方案。
       </p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -161,7 +161,7 @@ export function BookingRequestForm() {
             className="min-h-28 w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
             value={formState.context}
             onChange={(event) => updateField('context', event.target.value)}
-            placeholder="简单说一下你卖什么、现在最大的瓶颈是什么、最想先解决哪一环。"
+            placeholder="简单说一下你是做什么的、最想找到哪类客户、现在最大的难点是什么。"
           />
         </label>
 
@@ -175,7 +175,7 @@ export function BookingRequestForm() {
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
             <p>{success}</p>
             <p className="mt-2 text-emerald-700/90">
-              如果你已经确定要走主力方案，也可以直接去开通页先开通 Pro。
+              如果你已经想先自己试，也可以直接去看软件版。
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               {successPayload.paymentUrl ? (
@@ -185,7 +185,7 @@ export function BookingRequestForm() {
                   rel="noreferrer"
                   className="inline-flex items-center rounded-2xl border border-emerald-200 bg-white px-4 py-2 font-semibold text-emerald-700 transition hover:bg-emerald-100/40"
                 >
-                  直接开 Pro
+                  去看软件版
                 </a>
               ) : null}
               {successPayload.proofUrl ? (

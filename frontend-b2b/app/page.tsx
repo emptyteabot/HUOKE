@@ -1,95 +1,54 @@
-"use client";
+import Link from 'next/link';
+import { BadgeCheck, MessageSquareText, ShieldCheck } from 'lucide-react';
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { ArrowRight, BadgeCheck, MessageSquareText, Radar, ShieldCheck } from "lucide-react";
+import { SiteFooter } from '../components/site-footer';
+import { SiteHeader } from '../components/site-header';
 
-import { SiteFooter } from "../components/site-footer";
-import { SiteHeader } from "../components/site-header";
-import { getOrCreateClientUserId } from "@/lib/client_user";
+const fitFor = [
+  '留学咨询、服务工作室、代运营、小型服务团队',
+  '独立开发者、出海小团队、需要自己找客户的人',
+  '不想一开始就买很多工具，只想先看样本的人',
+];
 
-type LeadSummary = {
-  total_rows: number;
-  target_rows: number;
-  score_ge_65_rows: number;
-  dm_ready_rows: number;
-};
-
-const steps = [
+const valueRows = [
   {
-    title: "抓评论区和搜索里的高意图表达",
-    detail: "只抓“求推荐、预算、避雷、找谁做、怎么做”这类会直接影响成交的话。",
+    title: '先找正在问问题的人',
+    detail: '重点不是看热闹，而是先把那些已经在公开讨论里问价格、问推荐、问怎么选的人整理出来。',
   },
   {
-    title: "先剔除同行、机构号和噪声",
-    detail: "名单不是越大越好，先把不能转化的样本拿掉，剩下的才值得私信。",
+    title: '先筛一遍再交给你',
+    detail: '我们会尽量先筛掉明显的同行、机构号和噪声样本，不拿一堆没用的内容充数。',
   },
   {
-    title: "一键导出成可触达名单",
-    detail: "导出后直接拿到主页/帖子入口，进入首轮触达，不再靠表格手工拼。",
+    title: '先看样本再决定',
+    detail: '你可以先看样本，如果方向不对，就没必要继续付费。',
   },
 ];
 
-const proofRows = [
-  {
-    label: "你真正买到的",
-    value: "不是后台，不是 CRM，而是一批已经带有购买意图的可触达名单。",
-  },
-  {
-    label: "最短使用方式",
-    value: "先看 5-10 条真实样本，再决定要不要开软件版或人工代跑版。",
-  },
-  {
-    label: "不再承诺的东西",
-    value: "不卖大而全的复杂后台，不先讲部署和体系，只卖高意图名单。",
-  },
+const startRows = [
+  '免费样本：先看一小批真实样本，判断方向对不对。',
+  '软件版：适合你自己筛名单、导名单、自己联系。',
+  '代跑版：适合你先想拿一轮整理好的结果。',
 ];
 
 export default function HomePage() {
-  const [summary, setSummary] = useState<LeadSummary | null>(null);
-  const [userId, setUserId] = useState("guest_demo");
-
-  useEffect(() => {
-    setUserId(getOrCreateClientUserId());
-  }, []);
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        const qs = new URLSearchParams({
-          limit: "1",
-          minScore: "65",
-          onlyTarget: "1",
-          excludeCompetitors: "1",
-          userId,
-        });
-        const res = await fetch(`/api/leads?${qs.toString()}`, { cache: "no-store" });
-        const data = await res.json();
-        setSummary(data?.summary || null);
-      } catch {
-        setSummary(null);
-      }
-    };
-    if (userId) run();
-  }, [userId]);
-
   return (
     <main className="min-h-screen bg-[#f5f5ef] text-slate-900">
-      <SiteHeader ctaHref="/book" ctaLabel="预约拿样本" />
+      <SiteHeader ctaHref="/book" ctaLabel="免费拿样本" />
 
-      <section className="mx-auto max-w-7xl px-6 pb-8 pt-16 lg:px-8">
-        <div className="grid gap-8 xl:grid-cols-[1.08fr_0.92fr]">
-          <div className="fade-up">
-            <div className="apple-pill breathing-pill inline-flex px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[#86868b]">
-              小红书 / 抖音 / X 评论区高意图线索
+      <section className="mx-auto max-w-7xl px-6 pb-10 pt-16 lg:px-8">
+        <div className="grid gap-10 xl:grid-cols-[1.08fr_0.92fr]">
+          <div>
+            <div className="apple-pill inline-flex px-4 py-2 text-[11px] tracking-[0.18em] text-[#86868b]">
+              评论区、帖子、公开讨论里的真实找客需求
             </div>
             <h1 className="mt-4 max-w-5xl text-4xl font-semibold tracking-tight text-slate-950 md:text-[4rem] md:leading-[1.02]">
-              自动捕获小红书 / 抖音 / X 评论区高意图线索，
+              帮你从公开平台里
               <br />
-              一键拿到可触达名单。
+              找到正在找方案的人。
             </h1>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
-              LeadPulse 只做一件事：把公开平台里已经在问“找谁、多少钱、怎么做”的人，清洗成你能立刻私信的名单。
+              如果有人已经在问“找谁做、多少钱、哪个好、怎么避坑”，这类人通常比普通流量更值得跟进。LeadPulse 做的就是先把这批人整理出来。
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -97,77 +56,41 @@ export default function HomePage() {
                 href="/register?plan=free"
                 className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8]"
               >
-                先看样本
+                免费看样本
               </Link>
               <Link
                 href="/pricing"
                 className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-white hover:text-slate-950"
               >
-                看价格
+                看收费方式
               </Link>
               <Link
                 href="/book"
                 className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white/88 px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-white hover:text-slate-950"
               >
-                预约人工代跑
+                先聊 15 分钟
               </Link>
-            </div>
-
-            <div className="mt-8 grid gap-3 md:grid-cols-3">
-              {proofRows.map((item) => (
-                <div
-                  key={item.label}
-                  className="interactive-panel rounded-2xl border border-black/5 bg-white/82 px-4 py-4 text-sm leading-7 text-slate-700 shadow-[0_12px_40px_rgba(15,23,42,0.04)]"
-                >
-                  <div className="font-semibold text-slate-950">{item.label}</div>
-                  <div className="mt-2">{item.value}</div>
-                </div>
-              ))}
             </div>
           </div>
 
-          <div className="space-y-4 fade-up-delay">
+          <div className="space-y-4">
             <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_18px_48px_rgba(15,23,42,0.06)]">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
-                  <Radar className="h-5 w-5 text-slate-900" />
-                </div>
-                <div>
-                  <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">当前样本池</div>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">这不是空话，是现成盘子</h2>
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4">
-                  <div className="text-xs text-slate-500">总样本</div>
-                  <div className="mt-2 text-3xl font-semibold text-slate-950">{summary?.total_rows ?? "--"}</div>
-                </div>
-                <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4">
-                  <div className="text-xs text-slate-500">高分线索</div>
-                  <div className="mt-2 text-3xl font-semibold text-slate-950">{summary?.score_ge_65_rows ?? "--"}</div>
-                </div>
-                <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4">
-                  <div className="text-xs text-slate-500">目标线索</div>
-                  <div className="mt-2 text-3xl font-semibold text-slate-950">{summary?.target_rows ?? "--"}</div>
-                </div>
-                <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4">
-                  <div className="text-xs text-slate-500">可私信入口</div>
-                  <div className="mt-2 text-3xl font-semibold text-slate-950">{summary?.dm_ready_rows ?? "--"}</div>
-                </div>
+              <div className="text-sm font-semibold text-slate-950">这更适合谁</div>
+              <div className="mt-4 space-y-3">
+                {fitFor.map((item) => (
+                  <div key={item} className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm leading-7 text-slate-700">
+                    {item}
+                  </div>
+                ))}
               </div>
             </section>
 
             <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-              <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">怎么用</div>
+              <div className="text-sm font-semibold text-slate-950">你会怎么开始</div>
               <div className="mt-4 space-y-3">
-                {steps.map((item) => (
-                  <div key={item.title} className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <BadgeCheck className="h-4 w-4 text-slate-700" />
-                      <div className="text-sm font-semibold text-slate-950">{item.title}</div>
-                    </div>
-                    <div className="mt-2 text-sm leading-7 text-slate-600">{item.detail}</div>
+                {startRows.map((item) => (
+                  <div key={item} className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm leading-7 text-slate-700">
+                    {item}
                   </div>
                 ))}
               </div>
@@ -176,21 +99,35 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-        <div className="grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
+      <section className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        <div className="grid gap-6 xl:grid-cols-3">
+          {valueRows.map((item, index) => {
+            const Icon = index === 0 ? MessageSquareText : index === 1 ? ShieldCheck : BadgeCheck;
+            return (
+              <article
+                key={item.title}
+                className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]"
+              >
+                <div className="w-fit rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
+                  <Icon className="h-5 w-5 text-slate-900" />
+                </div>
+                <h2 className="mt-5 text-2xl font-semibold tracking-tight text-slate-950">{item.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-600">{item.detail}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 pb-12 pt-6 lg:px-8">
+        <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="flex items-center gap-3">
-              <MessageSquareText className="h-5 w-5 text-slate-900" />
-              <div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">对比</div>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">你不是缺流量，你是缺已经在问问题的人</h2>
-              </div>
-            </div>
+            <div className="text-sm font-semibold text-slate-950">这不是又一个看板工具</div>
             <div className="mt-6 space-y-3">
               {[
-                "社媒监听工具告诉你哪里有人提到你，但不会交付可私信名单。",
-                "评论自动化工具会回消息，但不会先剔除同行和机构号。",
-                "CRM 会管理进入系统的人，但不会替你从评论区里抓真实需求。",
+                '不是给你更多图表，而是先给你一批更值得联系的人。',
+                '不是替你做品牌监控，而是尽量帮你找到更接近成交的问题表达。',
+                '不是逼你先买长期方案，而是先让你看一轮样本。',
               ].map((item) => (
                 <div key={item} className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm leading-7 text-slate-700">
                   {item}
@@ -200,39 +137,17 @@ export default function HomePage() {
           </section>
 
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="h-5 w-5 text-slate-900" />
-              <div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">交付方式</div>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">先买结果，再决定要不要自己操盘</h2>
-              </div>
-            </div>
+            <div className="text-sm font-semibold text-slate-950">为什么先试一轮更合理</div>
             <div className="mt-6 space-y-3">
               {[
-                "Free：先看 5-10 条真实样本，验证系统能不能抓到高意图名单。",
-                "Pro：给你软件和控制台，名单你自己导出、自己触达、自己承担平台风控。",
-                "Max / DFY：我们人工代跑、人工审查、每周交付名单，并代发首轮破冰私信。",
+                '如果样本不对，你不用继续买。',
+                '如果样本对了，你可以自己跑，也可以交给我们代跑。',
+                '先把第一轮做小、做实，比先讲大而全更适合现在的阶段。',
               ].map((item) => (
                 <div key={item} className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm leading-7 text-slate-700">
                   {item}
                 </div>
               ))}
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/register?plan=free"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8]"
-              >
-                先拿样本
-              </Link>
-              <Link
-                href="/pricing"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-[#fbfbf8] hover:text-slate-950"
-              >
-                看定价
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
             </div>
           </section>
         </div>
