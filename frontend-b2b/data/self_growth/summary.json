@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-04-20T02:58:05+00:00",
+  "total_accounts": 60,
+  "queued_accounts": 60,
+  "content_backlog_items": 3,
+  "priority_counts": {
+    "S": 3,
+    "A": 5,
+    "B": 26,
+    "C": 26
+  },
+  "status_counts": {
+    "queued": 60
+  },
+  "top_accounts": [
+    {
+      "account_id": "3c16ec4edf9d",
+      "company_name": "Accomplished-Scar854",
+      "segment": "小型 agency / 服务团队",
+      "priority": "S",
+      "blended_score": 299,
+      "next_action": "先发样本截图，若有兴趣，再继续报价或约沟通。"
+    },
+    {
+      "account_id": "3a56257d19d1",
+      "company_name": "1stgen_runner",
+      "segment": "小型 agency / 服务团队",
+      "priority": "S",
+      "blended_score": 296,
+      "next_action": "先发样本截图，若有兴趣，再继续报价或约沟通。"
+    },
+    {
+      "account_id": "016c52ba52ff",
+      "company_name": "queerlymotherly",
+      "segment": "出海 SaaS / 独立开发者",
+      "priority": "S",
+      "blended_score": 296,
+      "next_action": "先发样本截图，若有兴趣，再继续报价或约沟通。"
+    },
+    {
+      "account_id": "f81d96306dda",
+      "company_name": "AbbreviationsNext484",
+      "segment": "小型 agency / 服务团队",
+      "priority": "A",
+      "blended_score": 284,
+      "next_action": "先发样本截图，若有兴趣，再继续报价或约沟通。"
+    },
+    {
+      "account_id": "cf09f32a07c2",
+      "company_name": "LegitimateSale994",
+      "segment": "小型 agency / 服务团队",
+      "priority": "A",
+      "blended_score": 284,
+      "next_action": "先发样本截图，若有兴趣，再继续报价或约沟通。"
+    },
+    {
+      "account_id": "e53009cd8e98",
+      "company_name": "Solo_leveled90",
+      "segment": "小型 agency / 服务团队",
+      "priority": "A",
+      "blended_score": 281,
+      "next_action": "先发样本截图，若有兴趣，再继续报价或约沟通。"
+    }
+  ]
+}

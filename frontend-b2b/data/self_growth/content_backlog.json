@@ -1,0 +1,35 @@
+[
+  {
+    "content_id": "lp-self-use-001",
+    "title": "为什么服务团队总觉得流量不少，却迟迟拿不到客户",
+    "hook": "很多人不是没流量，而是没抓住已经在问问题的人。",
+    "angle": "讲清“问价格、问推荐、问怎么选”的人为什么比普通浏览更值钱。",
+    "cta": "先看一轮样本，方向对了再继续。",
+    "proof_source": [
+      "https://www.reddit.com/r/DigitalMarketing/comments/1rwal4h/am_i_the_only_one_losing_entire_days_to/"
+    ],
+    "priority": 96
+  },
+  {
+    "content_id": "lp-self-use-002",
+    "title": "为什么一上来买很多工具，最后反而什么都没跑起来",
+    "hook": "工具越多，不代表客户越多。",
+    "angle": "强调冷启动阶段先做小闭环，而不是先拼技术栈。",
+    "cta": "先拿样本，再决定自己做还是代跑。",
+    "proof_source": [
+      "https://www.reddit.com/r/smallbusiness/comments/1rwgkrj/anyone_else_struggle_with_high_client_acquisition/"
+    ],
+    "priority": 88
+  },
+  {
+    "content_id": "lp-self-use-003",
+    "title": "如果你现在最缺客户，第一步应该看哪里",
+    "hook": "不要先猜你该发什么内容，先去看别人已经在问什么。",
+    "angle": "解释公开平台里的问题表达如何变成线索入口。",
+    "cta": "先看 5 条左右真实样本。",
+    "proof_source": [
+      "https://www.reddit.com/r/SaaS/comments/1rro4x2/please_help_how_do_i_hire_a_marketer_for_a_startup/"
+    ],
+    "priority": 82
+  }
+]

@@ -1,0 +1,1802 @@
+[
+  {
+    "queue_id": "lp-self-001",
+    "account_id": "3c16ec4edf9d",
+    "company_name": "Accomplished-Scar854",
+    "priority": "S",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，正向回复后优先推代跑版",
+    "scheduled_at": "2026-04-20T03:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Accomplished-Scar854，你好。看到你最近在聊：Am I the only one losing entire days to end-of-month client reporting? I run a small agenc。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，正向回复后优先推代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-002",
+    "account_id": "3a56257d19d1",
+    "company_name": "1stgen_runner",
+    "priority": "S",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，正向回复后优先推代跑版",
+    "scheduled_at": "2026-04-20T03:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "1stgen_runner，你好。看到你最近在聊：Anyone else struggle with high client acquisition costs in a service business? I run a sma。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，正向回复后优先推代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-003",
+    "account_id": "016c52ba52ff",
+    "company_name": "queerlymotherly",
+    "priority": "S",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，正向回复后优先推代跑版",
+    "scheduled_at": "2026-04-20T03:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "queerlymotherly，你好。看到你最近在聊：Please help - How do I hire a marketer for a startup? I need help from SaaS builders who t。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，正向回复后优先推代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-004",
+    "account_id": "f81d96306dda",
+    "company_name": "AbbreviationsNext484",
+    "priority": "A",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T03:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "AbbreviationsNext484，你好。看到你最近在聊：Where do I learn how to strategize? Hey guys, newbie here. I really really need help find 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-005",
+    "account_id": "cf09f32a07c2",
+    "company_name": "LegitimateSale994",
+    "priority": "A",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T03:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "LegitimateSale994，你好。看到你最近在聊：How to find clients Hi guys, I started a full service marketing agency last year by myself。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-006",
+    "account_id": "e53009cd8e98",
+    "company_name": "Solo_leveled90",
+    "priority": "A",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T04:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Solo_leveled90，你好。看到你最近在聊：How to handle complex \"Intake\" scheduling for a small agency? We’re a small marketing agen。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-007",
+    "account_id": "770bef04fb97",
+    "company_name": "peculiar-founder",
+    "priority": "A",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T04:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "peculiar-founder，你好。看到你最近在聊：Marketing agencies: what’s the most annoying part of client communication? Quick question 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-008",
+    "account_id": "0d307282de61",
+    "company_name": "No-Mistake421",
+    "priority": "A",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T04:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "No-Mistake421，你好。看到你最近在聊：What's the best LinkedIn outreach tool for managing multiple client accounts? A few honest。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-009",
+    "account_id": "b410fa7452cd",
+    "company_name": "FriendlyAd3156",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T04:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "FriendlyAd3156，你好。看到你最近在聊：Freelance admin business – how do I find my first clients? I’m about to start my own freel。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-010",
+    "account_id": "720e51d798ac",
+    "company_name": "Zealousideal-Bag3695",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T04:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Zealousideal-Bag3695，你好。看到你最近在聊：What would you do if you had to start over? If you had to start from scratch with no clien。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-011",
+    "account_id": "fb2df60acb53",
+    "company_name": "whyvalue",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T05:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "whyvalue，你好。看到你最近在聊：How would you quantify an increase in CPL from increasing spend? (PPC) I am being asked to。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-012",
+    "account_id": "192461ec7d7b",
+    "company_name": "Medium-Assistant7425",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T05:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Medium-Assistant7425，你好。看到你最近在聊：What is the best way to reach out to international clients? I am an English language and l。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-013",
+    "account_id": "3890cf05d07b",
+    "company_name": "Forsaken-Gap2354",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T05:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Forsaken-Gap2354，你好。看到你最近在聊：What do you usually do when a client goes silent after a quote? I have noticed something i。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-014",
+    "account_id": "c522d45841b3",
+    "company_name": "External-Patience-55",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T05:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "External-Patience-55，你好。看到你最近在聊：How to grow business/increase exposure? So i own a small website building business an dhav。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-015",
+    "account_id": "19537df66ea0",
+    "company_name": "MycologistLow6681",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T05:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "MycologistLow6681，你好。看到你最近在聊：How do you handle clients who are overwhelmed by the home buying/selling process? I've bee。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-016",
+    "account_id": "3818b3597c59",
+    "company_name": "LifeOfAnujRawat",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T06:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "LifeOfAnujRawat，你好。看到你最近在聊：Serious advice needed ! I recently started a small tech + digital marketing agency, and ho。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-017",
+    "account_id": "a72544464ab5",
+    "company_name": "CurrencyReasonable36",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T06:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "CurrencyReasonable36，你好。看到你最近在聊：7 years doing web dev, 2 years trying to scale an agency. Is the job market worth it or sh。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-018",
+    "account_id": "370aa246bf3f",
+    "company_name": "vestorsnetads",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T06:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "vestorsnetads，你好。看到你最近在聊：How many small business owners deal with bad Google Ads leads and irrelevant calls? I have。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-019",
+    "account_id": "64e7c8dbcb92",
+    "company_name": "Saransh_Pradeep",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T06:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Saransh_Pradeep，你好。看到你最近在聊：70% Agencies struggle to get clients in the first 3 years. 50%of these never make it past 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-020",
+    "account_id": "78b01fbf12a7",
+    "company_name": "Roseee-k",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T06:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Roseee-k，你好。看到你最近在聊：We doubled our prices to reduce our client load… and it barely worked. What would you do? 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-021",
+    "account_id": "3f11ca8e6b56",
+    "company_name": "golaet89",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T07:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "golaet89，你好。看到你最近在聊：PPC agency spent $20,000 budget in three months and brought me exactly one lead. Actually,。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-022",
+    "account_id": "8c7e8f58edac",
+    "company_name": "Puzzleheaded_Soft959",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T07:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Puzzleheaded_Soft959，你好。看到你最近在聊：Client Fulfillment Hey y’all I run a marketing agency with 40 clients all on a commission 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-023",
+    "account_id": "6c06ece65d0a",
+    "company_name": "_HayKen_",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T07:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "_HayKen_，你好。看到你最近在聊：Best SaaS content writing agency in 2026? Everyone says “just write blog posts and do SEO.。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-024",
+    "account_id": "2b1e03abf3fe",
+    "company_name": "zmndigital",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T07:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "zmndigital，你好。看到你最近在聊：I run a marketing agency and I’m thinking about building an all-in-one SaaS for agencies. 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-025",
+    "account_id": "c81d8361459e",
+    "company_name": "ilonasumo",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T07:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "ilonasumo，你好。看到你最近在聊：Anyone know AI/automation experts for marketing agencies? Hi hi, I lead the marketing team。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-026",
+    "account_id": "5e912242a9ab",
+    "company_name": "Amazing-Preparation1",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T08:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Amazing-Preparation1，你好。看到你最近在聊：Struggling to land my first few web dev/social clients despite low pricing. What am I miss。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-027",
+    "account_id": "51a717b2a575",
+    "company_name": "acehotdog",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，后续优先推软件版",
+    "scheduled_at": "2026-04-20T08:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "acehotdog，你好。看到你最近在聊：Trial users won’t convert (under 1.5%). What am I doing wrong? Hello, I’m running into an 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，后续优先推软件版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-028",
+    "account_id": "c914dfc721e2",
+    "company_name": "AlternativeEvent687",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T08:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "AlternativeEvent687，你好。看到你最近在聊：How to find sals people if you don’t want to do sales yourself ? Hi, I’m working on a smal。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-029",
+    "account_id": "82a624e7fc26",
+    "company_name": "Konstantinos_Ps",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T08:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Konstantinos_Ps，你好。看到你最近在聊：How can I acquire clients to create web apps / websites for them Hello ! I am a full stack。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-030",
+    "account_id": "76efc20888fd",
+    "company_name": "ohwhereareyoufrom",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T08:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "ohwhereareyoufrom，你好。看到你最近在聊：Trying AGAIN after too many failed ideas Good idea, have leads, don't have resources to fu。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-031",
+    "account_id": "0b912991b44c",
+    "company_name": "No-Mistake421",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T09:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "No-Mistake421，你好。看到你最近在聊：How I find clients for my agency using LinkedIn automation. The exact process from list to。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-032",
+    "account_id": "6ca3d756b596",
+    "company_name": "Pale-Imagination1838",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T09:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Pale-Imagination1838，你好。看到你最近在聊：Any good content creators on youtube for tiktok ads? Im talking deep level knowladge. I kn。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-033",
+    "account_id": "14c18da69ce0",
+    "company_name": "en-together091820",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T09:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "en-together091820，你好。看到你最近在聊：When is the best time to send a marketing email?? Ive been looking into the best times to 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-034",
+    "account_id": "79d65257d306",
+    "company_name": "Glittering-Sky5728",
+    "priority": "B",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T09:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Glittering-Sky5728，你好。看到你最近在聊：What problems are brands facing when it comes to marketing? As I’m building out a campaign。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-035",
+    "account_id": "09a7004c60ac",
+    "company_name": "Soft-Lime-9599",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T09:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Soft-Lime-9599，你好。看到你最近在聊：Is it time to stop calling it SEO and start calling it GEO? I was looking at our traffic a。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-036",
+    "account_id": "a0c5e3d731d0",
+    "company_name": "In-Hell123",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T10:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "In-Hell123，你好。看到你最近在聊：where can I find marketing agencies to partner with as a web development agency? Basically。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-037",
+    "account_id": "1e7fa91da0fb",
+    "company_name": "In-Hell123",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T10:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "In-Hell123，你好。看到你最近在聊：where can I find marketing agencies to partner with as a web development agency? Basically。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-038",
+    "account_id": "3bb2e3cd124d",
+    "company_name": "Educational-Idea-439",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T10:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Educational-Idea-439，你好。看到你最近在聊：What do consultants use for client deliverables that look high-end? Been independent for t。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-039",
+    "account_id": "2328e796915e",
+    "company_name": "External-Patience-55",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T10:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "External-Patience-55，你好。看到你最近在聊：Making more sales Hi guys. I have recently (3 months ago) started my a business where i bu。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-040",
+    "account_id": "f53262988803",
+    "company_name": "jivi31",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，后续优先推软件版",
+    "scheduled_at": "2026-04-20T10:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "jivi31，你好。看到你最近在聊：When does onboarding actually start? Most founders say: *“when the user hits our site.”* I。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，后续优先推软件版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-041",
+    "account_id": "acfe0aba4217",
+    "company_name": "sandsage",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T11:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "sandsage，你好。看到你最近在聊：Anyone have a QSEHRA admin they don't hate? I'm on the board of a small non-profit that's 。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-042",
+    "account_id": "f4d2aeeb5638",
+    "company_name": "sagar_223",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T11:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "sagar_223，你好。看到你最近在聊：Helping brands grow with social media, performance marketing, and influencer collaboration。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-043",
+    "account_id": "296559d33ef2",
+    "company_name": "PyrateGirl",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T11:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "PyrateGirl，你好。看到你最近在聊：Secure Form Creation Help I am a virtual assistant and am trying to create a form for inco。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-044",
+    "account_id": "4228e435c4d7",
+    "company_name": "bigBLCk69",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T11:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "bigBLCk69，你好。看到你最近在聊：Need Scaling Strategy Advices I run a small digital agency (web dev, design, digital marke。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-045",
+    "account_id": "039be3b20db5",
+    "company_name": "Warm-Reaction-456",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，后续优先推软件版",
+    "scheduled_at": "2026-04-20T11:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Warm-Reaction-456，你好。看到你最近在聊：You are not burned out. You are taking market silence personally I build SaaS MVPs and aut。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，后续优先推软件版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-046",
+    "account_id": "50a2f7e6e252",
+    "company_name": "Puzzleheaded_Soft959",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T12:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Puzzleheaded_Soft959，你好。看到你最近在聊：Looking for Beta Tester Hey y’all I’m looking for some beta testers, I run my own commissi。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-047",
+    "account_id": "6bc53d072d31",
+    "company_name": "Kindly-Reality4804",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T12:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Kindly-Reality4804，你好。看到你最近在聊：i run a paid media agency for ecommerce brands. cold email got me 8 retainer clients in 90。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-048",
+    "account_id": "f7c65e8fe132",
+    "company_name": "engene1109",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T12:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "engene1109，你好。看到你最近在聊：Transitioning from social media to selling on my own site, any advice? Ive been building m。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-049",
+    "account_id": "c8cafdc7ca54",
+    "company_name": "king_1607",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，后续优先推软件版",
+    "scheduled_at": "2026-04-20T12:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "king_1607，你好。看到你最近在聊：SOC 2 cost us a $40k deal. How are other small SaaS founders handling this? SOC 2 killed o。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，后续优先推软件版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-050",
+    "account_id": "b3ccb7572682",
+    "company_name": "suck_my_roooster",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T12:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "suck_my_roooster，你好。看到你最近在聊：Where to advertise on a budget Hello everyone, I am debating which advertising path to tak。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-051",
+    "account_id": "2779f3544c38",
+    "company_name": "nodimension1553",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T13:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "nodimension1553，你好。看到你最近在聊：Is anyone else completely giving up on paying UGC creators this quarter? Curious if anyone。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-052",
+    "account_id": "78f2bd7cafee",
+    "company_name": "Life-Sugar-6055",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T13:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Life-Sugar-6055，你好。看到你最近在聊：My client is upset with me. Did I overpromise? I'm a new freelancer. Not new to marketing.。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-053",
+    "account_id": "a50fec370c49",
+    "company_name": "somajkati",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，后续优先推软件版",
+    "scheduled_at": "2026-04-20T13:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "somajkati，你好。看到你最近在聊：How did you get your first SaaS sale with zero audience? I'm a solo (hobby) dev and I just。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，后续优先推软件版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-054",
+    "account_id": "48a3beab4bb8",
+    "company_name": "kubrador",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T13:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "kubrador，你好。看到你最近在聊：our office flooded with sewage and destroyed 6 months of campaign data. our biggest client。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-055",
+    "account_id": "f44a78b60710",
+    "company_name": "ANWx0",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T13:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "ANWx0，你好。看到你最近在聊：We stopped sending Meta Ads traffic to Landing Pages (and halved our CPA for B2B leads). H。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-056",
+    "account_id": "b5ba309dd5c7",
+    "company_name": "Interesting_Ad_6109",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T14:10:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Interesting_Ad_6109，你好。看到你最近在聊：Insurance Leads Available (ACA / Medicare / Life / Final Expense) Hey everyone — figured I。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-057",
+    "account_id": "2017d27a5765",
+    "company_name": "spor44",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，后续优先推软件版",
+    "scheduled_at": "2026-04-20T14:22:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "spor44，你好。看到你最近在聊：20% conversion rate on a $39.99/year app. Does that mean my pricing is right -- or that I'。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，后续优先推软件版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-058",
+    "account_id": "4ce2eb2e3c7a",
+    "company_name": "wizard_jod",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，后续优先推软件版",
+    "scheduled_at": "2026-04-20T14:34:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "wizard_jod，你好。看到你最近在聊：What GEO agency have you seen actually deliver results for optimization? honestly feel lik。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，后续优先推软件版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-059",
+    "account_id": "5d66ebcd29ac",
+    "company_name": "Temporary_Term_1042",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，后续优先推软件版",
+    "scheduled_at": "2026-04-20T14:46:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "Temporary_Term_1042，你好。看到你最近在聊：I need Tech E&amp;O insurance for my AI SaaS business Running an AI SaaS that makes automa。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，后续优先推软件版。"
+      }
+    ]
+  },
+  {
+    "queue_id": "lp-self-060",
+    "account_id": "9543f459818f",
+    "company_name": "alo88startup",
+    "priority": "C",
+    "channel": "Reddit 私信 / 评论",
+    "recommended_offer": "先发样本，再看适合软件版还是代跑版",
+    "scheduled_at": "2026-04-20T14:58:05+00:00",
+    "status": "ready",
+    "sequence": [
+      {
+        "step": 1,
+        "day_offset": 0,
+        "channel": "私信",
+        "message": "alo88startup，你好。看到你最近在聊：How much to spend in listings and guest posts?! I see different competitors showing in dif。 我这边整理了一批公开平台里正在问价格、推荐、怎么选的人，如果你愿意，我先发你一张样本截图。"
+      },
+      {
+        "step": 2,
+        "day_offset": 1,
+        "channel": "私信",
+        "message": "补一句，如果你现在最缺的是更像样的客户名单，我可以先按你这个方向整理一版样本给你看。"
+      },
+      {
+        "step": 3,
+        "day_offset": 2,
+        "channel": "私信",
+        "message": "如果你觉得样本方向对，我们再继续聊下一步。当前建议：先发样本，再看适合软件版还是代跑版。"
+      }
+    ]
+  }
+]
