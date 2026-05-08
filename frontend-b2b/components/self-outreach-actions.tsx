@@ -43,6 +43,11 @@ function isRedditContact(platform: string, contactMode?: string) {
   return contactMode === "reddit_compose" || /reddit/i.test(platform);
 }
 
+function contactButtonLabel(platform: string, contactMode?: string) {
+  if (contactMode === "manual_search_task") return "打开搜索入口";
+  return isRedditContact(platform, contactMode) ? "打开私信窗口" : "打开主页/来源";
+}
+
 export function SelfOutreachActions({
   leadKey,
   author,
@@ -65,7 +70,7 @@ export function SelfOutreachActions({
     if (isRedditContact(platform, contactMode)) return redditComposeUrl(author, message);
     return profileUrl || sourceUrl;
   }, [author, composeUrl, contactMode, message, platform, profileUrl, sourceUrl]);
-  const contactLabel = isRedditContact(platform, contactMode) ? "打开私信窗口" : "打开主页/来源";
+  const contactLabel = contactButtonLabel(platform, contactMode);
   const hasSeparateProfile = profileUrl && profileUrl !== sourceUrl;
 
   const update = (field: keyof StatusMap[string]) => {

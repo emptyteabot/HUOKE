@@ -8,7 +8,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import shorten
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import quote, urlencode, urlsplit, urlunsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -152,6 +152,121 @@ SAMPLE_LEADS = [
     },
 ]
 
+PLATFORM_SEARCH_TASKS = [
+    {
+        "platform": "小红书",
+        "search_url": "https://www.xiaohongshu.com/search_result?keyword=" + quote("留学顾问 英国留学 26fall"),
+        "industry_label": "平台搜索 / 小红书",
+        "title": "小红书留学顾问和机构账号补充",
+        "search_terms": "留学顾问、英国留学、G5申请、26fall、英港申请、留学中介推荐",
+        "signal_summary": "继续在小红书补直客：优先找主页明确承接咨询、持续发布申请内容、评论区有学生提问的顾问/机构号。",
+    },
+    {
+        "platform": "微博",
+        "search_url": "https://s.weibo.com/weibo?" + urlencode({"q": "留学顾问 26fall 英国留学"}),
+        "industry_label": "平台搜索 / 微博",
+        "title": "微博留学机构和社群号补充",
+        "search_terms": "留学顾问、留学机构、英国留学申请、26fall、offer播报、留学中介",
+        "signal_summary": "在微博找机构号、顾问号、offer播报号和渠道号；直客优先，渠道号只做合作观察。",
+    },
+    {
+        "platform": "知乎",
+        "search_url": "https://www.zhihu.com/search?" + urlencode({"type": "content", "q": "留学顾问 英国留学 中介推荐"}),
+        "industry_label": "平台搜索 / 知乎",
+        "title": "知乎留学回答者和机构号补充",
+        "search_terms": "留学顾问、留学中介推荐、英国留学申请、G5申请、选校定位",
+        "signal_summary": "优先找回答里明确承接咨询的机构/顾问；只看公开回答和主页，不抓私信或联系方式。",
+    },
+    {
+        "platform": "B站",
+        "search_url": "https://search.bilibili.com/all?" + urlencode({"keyword": "英国留学 顾问 26fall"}),
+        "industry_label": "平台搜索 / B站",
+        "title": "B站留学 UP 主和机构号补充",
+        "search_terms": "英国留学、留学顾问、G5申请、留学中介、26fall申请",
+        "signal_summary": "找持续做留学申请视频的 UP 主、机构号和直播号；优先有课程/咨询承接迹象的账号。",
+    },
+    {
+        "platform": "抖音",
+        "search_url": "https://www.douyin.com/search/" + quote("留学顾问 26fall 英国留学"),
+        "industry_label": "平台搜索 / 抖音",
+        "title": "抖音留学顾问短视频账号补充",
+        "search_terms": "留学顾问、英国留学、26fall、G5申请、留学规划",
+        "signal_summary": "抖音需人工打开搜索结果核对主页；优先找有咨询转化、直播或企业号标识的留学账号。",
+    },
+    {
+        "platform": "快手",
+        "search_url": "https://www.kuaishou.com/search/video?" + urlencode({"searchKey": "留学顾问 26fall 英国留学"}),
+        "industry_label": "平台搜索 / 快手",
+        "title": "快手留学顾问和教育账号补充",
+        "search_terms": "留学顾问、留学规划、英国留学、申请季、留学中介",
+        "signal_summary": "快手作为增量渠道，先人工找教育/留学账号；只保留主页明确承接咨询的账号。",
+    },
+    {
+        "platform": "视频号",
+        "search_url": "https://channels.weixin.qq.com/",
+        "industry_label": "平台搜索 / 视频号",
+        "title": "视频号留学顾问和机构账号补充",
+        "search_terms": "留学顾问、英国留学、G5申请、26fall、留学规划",
+        "signal_summary": "视频号主要在微信内人工搜索；只记录公开视频号主页和公开内容，不导出微信号或私域信息。",
+    },
+    {
+        "platform": "微信公众号",
+        "search_url": "https://weixin.sogou.com/weixin?" + urlencode({"type": 1, "query": "留学顾问 英国留学 26fall"}),
+        "industry_label": "平台搜索 / 公众号",
+        "title": "公众号留学机构和内容号补充",
+        "search_terms": "留学顾问、英国留学、26fall申请、G5申请、留学中介",
+        "signal_summary": "用搜狗微信找公众号主页和文章；优先找持续发布申请季内容且有咨询承接的机构号。",
+    },
+    {
+        "platform": "贴吧",
+        "search_url": "https://tieba.baidu.com/f/search/res?" + urlencode({"ie": "utf-8", "qw": "留学中介推荐 英国留学"}),
+        "industry_label": "平台搜索 / 贴吧",
+        "title": "贴吧留学机构和讨论场补充",
+        "search_terms": "留学中介推荐、英国留学、申请中介、选校定位",
+        "signal_summary": "贴吧优先用于找公开需求样本和活跃讨论场；机构触达需人工核对账号是否真实承接服务。",
+    },
+    {
+        "platform": "豆瓣",
+        "search_url": "https://www.douban.com/search?" + urlencode({"q": "留学中介推荐 英国留学"}),
+        "industry_label": "平台搜索 / 豆瓣",
+        "title": "豆瓣留学小组和服务账号补充",
+        "search_terms": "留学中介推荐、英国留学、留学申请、选校定位",
+        "signal_summary": "豆瓣以小组公开讨论为主，先找需求样本和小组运营者；不要把普通学生当 LeadPulse 客户。",
+    },
+    {
+        "platform": "即刻",
+        "search_url": "https://web.okjike.com/",
+        "industry_label": "平台搜索 / 即刻",
+        "title": "即刻留学和教育服务账号补充",
+        "search_terms": "留学顾问、英国留学、G5申请、教育创业、获客",
+        "signal_summary": "即刻需要站内人工搜索；更适合找教育服务创业者、顾问和内容号，不适合批量自动化。",
+    },
+    {
+        "platform": "脉脉",
+        "search_url": "https://maimai.cn/",
+        "industry_label": "平台搜索 / 脉脉",
+        "title": "脉脉教育服务从业者补充",
+        "search_terms": "留学顾问、国际教育、教育咨询、获客、市场负责人",
+        "signal_summary": "脉脉更适合找机构市场/增长负责人；只做人工核对，不采集非公开职场信息。",
+    },
+    {
+        "platform": "领英",
+        "search_url": "https://www.linkedin.com/search/results/people/?" + urlencode({"keywords": "留学顾问 国际教育"}),
+        "industry_label": "平台搜索 / 领英",
+        "title": "领英国际教育顾问和机构负责人补充",
+        "search_terms": "留学顾问、国际教育、Admissions Consultant、Study Abroad Consultant",
+        "signal_summary": "领英适合找机构负责人、顾问和商务合作对象；先人工核对公开 profile，再复制中文或英文首信。",
+    },
+    {
+        "platform": "知乎机构话题",
+        "search_url": "https://www.zhihu.com/search?" + urlencode({"type": "content", "q": "留学机构 怎么获客"}),
+        "industry_label": "平台搜索 / 知乎机构话题",
+        "title": "知乎留学机构获客讨论补充",
+        "search_terms": "留学机构获客、留学顾问获客、教育咨询获客、招生线索",
+        "signal_summary": "专门找讨论获客、招生、线索、转化困难的机构从业者，优先级高于普通内容号。",
+    },
+]
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -281,6 +396,16 @@ def score_candidate(row: dict[str, str]) -> int:
 
 def contact_message(row: dict[str, str]) -> str:
     samples = "、".join(sample["title"] for sample in SAMPLE_LEADS[:3])
+    if row.get("fit_tier") == "platform_task":
+        return (
+            f"搜索关键词：{row.get('search_terms', '')}\n\n"
+            "筛选规则：只保留公开主页显示为留学机构、留学顾问、国际教育内容号、机构市场/增长负责人的账号；"
+            "排除学生/家长求助帖、纯攻略号、无咨询承接迹象的泛内容号。\n\n"
+            f"找到合格账号后可发：你好，我看到你在{row['platform']}做留学申请/顾问相关内容。"
+            "我这边在做 LeadPulse，用公开平台上的留学需求帖做人工清洗，"
+            "每条包含原帖链接、需求摘要、意向判断和建议破冰话术，不碰手机号、微信号或私信数据。"
+            "我可以先发 4 条免费样本给你判断质量；如果能用，再按你的主做方向整理 30-50 条，首轮 999。"
+        )
     if row.get("fit_tier") == "channel_partner":
         return (
             f"你好，我看到你在{row['platform']}做{row['title']}相关内容。"
@@ -300,19 +425,50 @@ def contact_message(row: dict[str, str]) -> str:
     )
 
 
+def platform_task_candidates() -> list[dict[str, str]]:
+    candidates: list[dict[str, str]] = []
+    for task in PLATFORM_SEARCH_TASKS:
+        platform = task["platform"]
+        candidates.append(
+            {
+                "author": f"平台搜索任务：{platform}",
+                "platform": platform,
+                "profile_url": "",
+                "source_url": task["search_url"],
+                "published_at": "",
+                "content": "",
+                "quality_score": "40",
+                "source_file": "manual_platform_search_plan",
+                "industry_label": task["industry_label"],
+                "title": task["title"],
+                "signal_summary": task["signal_summary"],
+                "recommended_offer": "先补足该平台 5-10 个可核对账号，再把合格直客加入 P0/P1 触达队列；不伪造客户，不自动私信。",
+                "fit_tier": "platform_task",
+                "search_terms": task["search_terms"],
+            }
+        )
+    return candidates
+
+
 def render_rows(candidates: list[dict[str, str]]) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     sorted_candidates = sorted(
         candidates,
         key=lambda candidate: (
             candidate.get("fit_tier") == "direct_buyer",
+            candidate.get("fit_tier") == "channel_partner",
             score_candidate(candidate),
         ),
         reverse=True,
     )
     for rank, row in enumerate(sorted_candidates, 1):
         score = score_candidate(row)
-        priority = "P0" if row.get("fit_tier") == "direct_buyer" else "P1"
+        if row.get("fit_tier") == "direct_buyer":
+            priority = "P0"
+        elif row.get("fit_tier") == "channel_partner":
+            priority = "P1"
+        else:
+            priority = "P2"
         rows.append(
             {
                 "rank": str(rank),
@@ -324,7 +480,7 @@ def render_rows(candidates: list[dict[str, str]]) -> list[dict[str, str]]:
                 "author": row["author"],
                 "profile_url": row.get("profile_url", ""),
                 "compose_url": "",
-                "contact_mode": "manual_profile_or_source",
+                "contact_mode": "manual_search_task" if row.get("fit_tier") == "platform_task" else "manual_profile_or_source",
                 "fit_tier": row.get("fit_tier", "direct_buyer"),
                 "source_url": row["source_url"],
                 "published_at": row.get("published_at", ""),
@@ -335,7 +491,11 @@ def render_rows(candidates: list[dict[str, str]]) -> list[dict[str, str]]:
                 "next_action": (
                     "直客优先：打开来源或主页，核对账号是真实机构/顾问；复制草稿，由你在平台内手动私信。"
                     if row.get("fit_tier") == "direct_buyer"
-                    else "渠道观察：只在直客联系完后处理，先判断对方是否适合合作分发或转介绍。"
+                    else (
+                        "渠道观察：只在直客联系完后处理，先判断对方是否适合合作分发或转介绍。"
+                        if row.get("fit_tier") == "channel_partner"
+                        else "平台搜索任务：打开搜索入口，按筛选规则补 5-10 个真实账号，再人工升级为 P0/P1。"
+                    )
                 ),
             }
         )
@@ -356,7 +516,7 @@ def write_md(path: Path, rows: list[dict[str, str]]) -> None:
         "# LeadPulse 国内平台手动触达队列",
         "",
         "- 触达对象：人工 curated 的留学机构、留学顾问、留学内容号、渠道号。",
-        "- 优先级：P0 是直客；P1 是渠道/媒体/观察名单，不能等同于明确买线索的客户。",
+        "- 优先级：P0 是直客；P1 是渠道/媒体/观察名单；P2 是平台搜索任务，不等同于客户。",
         "- 执行边界：只复制话术和打开公开来源，不自动发送私信，不抓取非公开联系方式。",
         f"- Queue rows: {len(rows)}",
         "",
@@ -404,7 +564,8 @@ def write_frontend_json(path: Path, rows: list[dict[str, str]]) -> None:
         "manual_send_only": True,
         "market": "domestic_cn",
         "queue_kind": "manual_curated_first_customer_queue",
-        "source_note": "这不是从 853 条数据里自动严格筛出的队列，而是人工整理的首批国内触达名单，并用本地公开来源数据补充了来源链接和主页信息。",
+        "source_note": "这不是从 853 条数据里自动严格筛出的队列。P0/P1 是人工整理并补充公开来源的国内触达名单；P2 是各社交平台的人工搜索任务，用来补更多真实账号。",
+        "platform_task_rows": sum(1 for row in rows if row.get("fit_tier") == "platform_task"),
         "industry_mix": dict(by_industry.most_common()),
         "sample_leads": SAMPLE_LEADS,
         "rows": rows,
@@ -413,7 +574,7 @@ def write_frontend_json(path: Path, rows: list[dict[str, str]]) -> None:
 
 
 def main() -> int:
-    rows = render_rows(curated_candidates())
+    rows = render_rows(curated_candidates() + platform_task_candidates())
     write_csv(OUT_CSV, rows)
     write_csv(TODAY_CSV, rows[:20])
     write_md(OUT_MD, rows)

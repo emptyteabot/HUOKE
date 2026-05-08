@@ -54,6 +54,7 @@ function leadKey(row: OutreachRow) {
 }
 
 function fitLabel(row: OutreachRow) {
+  if (row.fit_tier === "platform_task") return "搜索任务";
   if (row.fit_tier === "channel_partner") return "渠道观察";
   if (row.fit_tier === "direct_buyer") return "直客";
   return null;
