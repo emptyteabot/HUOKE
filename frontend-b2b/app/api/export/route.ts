@@ -3,6 +3,7 @@ import { buildPayload, loadLeadRows } from "../leads/route";
 import {
   debitAndUnlock,
   exportCreditCost,
+  freeExportsRemaining,
   getWalletFromRequest,
   normalizeUserId,
   walletTokenForResponse,
@@ -80,8 +81,25 @@ export async function POST(req: NextRequest) {
   const walletToken = walletTokenForResponse(wallet);
   const creditCost = exportCreditCost();
 
+  const hasExportAccess = freeExportsRemaining(wallet) > 0 || wallet.credits >= creditCost;
+  if (!hasExportAccess) {
+    const res = NextResponse.json(
+      {
+        error: "export_access_required",
+        message: "导出需要有效开通码、积分或后台配置的免费导出额度。",
+        required: creditCost,
+        wallet: walletPublic(wallet),
+        wallet_token: walletToken,
+      },
+      { status: 402 },
+    );
+    res.headers.set("Set-Cookie", walletSetCookieHeader(wallet));
+    res.headers.set("X-LeadPulse-Wallet-Token", walletToken);
+    return res;
+  }
+
   const minScore = Math.max(0, Math.min(100, toInt(body.minScore, 65)));
-  const limit = Math.max(20, Math.min(2000, toInt(body.limit, 500)));
+  const limit = Math.max(1, Math.min(2000, toInt(body.limit, 500)));
   const onlyTarget = toBool(body.onlyTarget, true);
   const excludeCompetitors = toBool(body.excludeCompetitors, true);
   const vertical = String(body.vertical || "study_abroad").trim() || "study_abroad";

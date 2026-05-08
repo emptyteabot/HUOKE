@@ -6,14 +6,14 @@
 
 ```bash
 # 数据库 (Supabase)
-DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.jwtrkknqxopfgvipphyh.supabase.co:5432/postgres
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.your-project-ref.supabase.co:5432/postgres
 
 # JWT密钥
-JWT_SECRET=leadpulse-super-secret-jwt-key-2024-production-secure
+JWT_SECRET=<generate-a-strong-random-jwt-secret>
 
 # OpenAI API (使用OneAPI)
-OPENAI_API_KEY=sk-MRhl7sGPXCYtqtDx49fxuzv3SjbxrJlUza9ylZjlMTHYz0wu
-OPENAI_BASE_URL=https://oneapi.gemiaude.com/v1
+OPENAI_API_KEY=${OPENAI_API_KEY}
+OPENAI_BASE_URL=https://your-openai-compatible-endpoint/v1
 
 # 邮件服务 (暂时禁用)
 SENDGRID_API_KEY=

@@ -23,9 +23,14 @@ except Exception:  # pragma: no cover
 try:
     from config import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET
 except Exception:
-    JWT_SECRET = os.getenv("JWT_SECRET", "guestseek-super-secret-key-2024")
+    JWT_SECRET = os.getenv("JWT_SECRET", "")
     JWT_ALGORITHM = "HS256"
     JWT_EXPIRE_MINUTES = 60 * 24 * 7
+
+if not JWT_SECRET:
+    if os.getenv("STREAMLIT_ENV") == "production":
+        raise RuntimeError("JWT_SECRET is required in production.")
+    JWT_SECRET = "leadpulse-local-dev-jwt-secret"
 
 
 SECRET_KEY = JWT_SECRET

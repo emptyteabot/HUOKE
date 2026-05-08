@@ -6,6 +6,7 @@ AI生成潜在客户数据 - 信号驱动版
 """
 
 import json
+import os
 import random
 import requests
 from datetime import datetime, timedelta
@@ -16,8 +17,8 @@ import re
 class DeepSeekLeadEnricher:
     """DeepSeek AI客户数据增强器"""
 
-    def __init__(self, api_key: str = "sk-d86589fb80f248cea3f4a843eaebce5a"):
-        self.api_key = api_key
+    def __init__(self, api_key: str = ""):
+        self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY", "")
         self.api_url = "https://api.deepseek.com/v1/chat/completions"
 
     def enrich_lead_with_signals(self, lead: Dict) -> Dict:

@@ -27,7 +27,7 @@ function toInt(value: string | undefined, fallback: number): number {
 }
 
 export function freeExportLimit(): number {
-  return Math.max(0, toInt(process.env.FREE_EXPORT_LIMIT, 3));
+  return Math.max(0, toInt(process.env.FREE_EXPORT_LIMIT, 0));
 }
 
 export function exportCreditCost(): number {
@@ -43,7 +43,14 @@ export function defaultCredits(): number {
 }
 
 function signingSecret(): string {
-  return String(process.env.WALLET_SIGNING_SECRET || "leadpulse-wallet-dev-secret-change-me");
+  const secret = String(process.env.WALLET_SIGNING_SECRET || "").trim();
+  if (secret) return secret;
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("WALLET_SIGNING_SECRET is required in production.");
+  }
+
+  return "leadpulse-wallet-dev-secret-change-me";
 }
 
 export function normalizeUserId(input: string | null | undefined): string {

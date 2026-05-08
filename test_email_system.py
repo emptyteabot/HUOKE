@@ -71,8 +71,8 @@ def test_email_content_generation():
     class DeepSeekEmailGenerator:
         """DeepSeek AI邮件生成器"""
 
-        def __init__(self, api_key: str = "sk-d86589fb80f248cea3f4a843eaebce5a"):
-            self.api_key = api_key
+        def __init__(self, api_key: str = ""):
+            self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY", "")
             self.api_url = "https://api.deepseek.com/v1/chat/completions"
 
         def generate_email(self, lead_data: Dict, sequence_day: int = 1, ab_variant: str = "A") -> Dict:

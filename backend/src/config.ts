@@ -1,3 +1,12 @@
+function requiredSecret(name: string, devFallback: string) {
+  const value = process.env[name] || '';
+  if (value) return value;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`${name} is required in production.`);
+  }
+  return devFallback;
+}
+
 export const config = {
   // 数据库
   database: {
@@ -6,7 +15,7 @@ export const config = {
 
   // JWT
   jwt: {
-    secret: process.env.JWT_SECRET || 'leadpulse-super-secret-jwt-key-2024-production-secure'
+    secret: requiredSecret('JWT_SECRET', 'leadpulse-local-dev-jwt-secret')
   },
 
   // OpenAI

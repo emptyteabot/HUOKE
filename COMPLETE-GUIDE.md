@@ -54,11 +54,11 @@ SUPABASE_URL = "https://xxx.supabase.co"
 SUPABASE_KEY = "eyJxxx..."
 
 # OpenAI配置
-OPENAI_API_KEY = "sk-MRhl7sGPXCYtqtDx49fxuzv3SjbxrJlUza9ylZjlMTHYz0wu"
-OPENAI_BASE_URL = "https://oneapi.gemiaude.com/v1"
+OPENAI_API_KEY = "${OPENAI_API_KEY}"
+OPENAI_BASE_URL = "https://your-openai-compatible-endpoint/v1"
 
 # JWT配置
-JWT_SECRET = "guestseek-super-secret-key-2024-change-this"
+JWT_SECRET = "<generate-a-strong-random-jwt-secret>"
 
 # SendGrid配置 (必填 - 用于发送邮件)
 SENDGRID_API_KEY = "SG.xxxx"

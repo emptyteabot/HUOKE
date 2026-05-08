@@ -2,7 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../index';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+function jwtSecret() {
+  const value = process.env.JWT_SECRET || '';
+  if (value) return value;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET is required in production.');
+  }
+  return 'leadpulse-local-dev-jwt-secret';
+}
+
+const JWT_SECRET = jwtSecret();
 
 export interface AuthRequest extends Request {
   userId?: string;

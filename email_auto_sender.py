@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 class DeepSeekEmailGenerator:
     """DeepSeek AI邮件生成器"""
 
-    def __init__(self, api_key: str = "sk-d86589fb80f248cea3f4a843eaebce5a"):
-        self.api_key = api_key
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY", "")
         self.api_url = "https://api.deepseek.com/v1/chat/completions"
 
     def generate_email(self, lead_data: Dict, sequence_day: int = 1, ab_variant: str = "A") -> Dict:
@@ -52,6 +52,10 @@ class DeepSeekEmailGenerator:
             包含主题和内容的字典
         """
         prompt = self._build_prompt(lead_data, sequence_day, ab_variant)
+
+        if not self.api_key:
+            logger.warning("DEEPSEEK_API_KEY未配置，使用备用邮件模板")
+            return self._get_fallback_email(lead_data, sequence_day)
 
         try:
             response = requests.post(
@@ -308,7 +312,7 @@ class EmailAutoSender:
     """邮件自动发送器 - 信号驱动版"""
 
     def __init__(self, api_key: str, from_email: str, from_name: str = "留学顾问团队",
-                 deepseek_api_key: str = "sk-d86589fb80f248cea3f4a843eaebce5a"):
+                 deepseek_api_key: Optional[str] = None):
         """
         初始化邮件发送器
 
@@ -1064,7 +1068,7 @@ if __name__ == "__main__":
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "your-sendgrid-api-key")
     FROM_EMAIL = os.getenv("FROM_EMAIL", "advisor@studyabroad.com")
     FROM_NAME = "留学顾问团队"
-    DEEPSEEK_API_KEY = "sk-d86589fb80f248cea3f4a843eaebce5a"
+    DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 
     # 创建发送器
     sender = EmailAutoSender(

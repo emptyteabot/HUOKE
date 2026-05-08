@@ -111,7 +111,7 @@ print(f"找到 {len(s_leads)} 个S级客户")
 sender = EmailAutoSender(
     api_key="你的SendGrid密钥",
     from_email="advisor@studyabroad.com",
-    deepseek_api_key="sk-d86589fb80f248cea3f4a843eaebce5a"
+    deepseek_api_key="${DEEPSEEK_API_KEY}"
 )
 
 # 先测试10个

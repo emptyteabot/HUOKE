@@ -63,7 +63,7 @@ with open('leadpulse_leads.json') as f:
 sender = EmailAutoSender(
     api_key="你的SendGrid密钥",
     from_email="advisor@studyabroad.com",
-    deepseek_api_key="sk-d86589fb80f248cea3f4a843eaebce5a"
+    deepseek_api_key="${DEEPSEEK_API_KEY}"
 )
 
 # 发送给S级客户
@@ -128,7 +128,7 @@ print(f"回复率: {report['reply_rate']}%")
 
 1. **DeepSeek API** (已提供)
 ```bash
-DEEPSEEK_API_KEY=sk-d86589fb80f248cea3f4a843eaebce5a
+DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
 ```
 
 2. **SendGrid API** (需要注册)

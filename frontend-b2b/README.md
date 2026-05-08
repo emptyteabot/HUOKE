@@ -52,6 +52,13 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 ```
 
+生产环境还必须配置：
+
+- `LEADPULSE_INTERNAL_ACCESS_KEY`：访问 `/dashboard` 和 `/ops` 的内部访问密钥
+- `WALLET_SIGNING_SECRET`：签名导出额度钱包；必须是随机长密钥
+- `FREE_EXPORT_LIMIT`：免费导出次数，默认 `0`，不要在公开生产环境随意放开
+- `DEFAULT_EXPORT_CREDITS`：新用户默认积分，默认 `0`
+
 ## 设计伙伴申请写到哪里
 
 - 本地开发：`../data/intake/design_partner_applications.json`
