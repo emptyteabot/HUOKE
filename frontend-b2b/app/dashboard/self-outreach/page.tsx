@@ -1,5 +1,8 @@
-import outreachQueue from "@/data/self_outreach/strict_outreach_queue.json";
+import { readFile } from "fs/promises";
+import path from "path";
 import { SelfOutreachActions } from "@/components/self-outreach-actions";
+
+export const dynamic = "force-dynamic";
 
 type OutreachRow = {
   rank: string;
@@ -9,6 +12,10 @@ type OutreachRow = {
   source: string;
   platform: string;
   author: string;
+  profile_url?: string;
+  compose_url?: string;
+  contact_mode?: string;
+  fit_tier?: string;
   source_url: string;
   published_at: string;
   title: string;
@@ -25,9 +32,12 @@ type OutreachPayload = {
   strict_ready_rows: number;
   queue_rows: number;
   manual_send_only: boolean;
+  source_note?: string;
   industry_mix: Record<string, number>;
   rows: OutreachRow[];
 };
+
+type SearchParams = Promise<{ source?: string | string[] }>;
 
 function dateLabel(value: string) {
   const date = new Date(value);
@@ -43,11 +53,31 @@ function leadKey(row: OutreachRow) {
   return `${row.rank}:${row.author}:${row.source_url}`;
 }
 
-export default function SelfOutreachPage() {
-  const payload = outreachQueue as OutreachPayload;
+function fitLabel(row: OutreachRow) {
+  if (row.fit_tier === "channel_partner") return "渠道观察";
+  if (row.fit_tier === "direct_buyer") return "直客";
+  return null;
+}
+
+function sourceValue(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+async function readOutreachPayload(source: "global" | "domestic") {
+  const fileName = source === "domestic" ? "domestic_outreach_queue.json" : "strict_outreach_queue.json";
+  const filePath = path.join(process.cwd(), "data", "self_outreach", fileName);
+  const raw = await readFile(filePath, "utf-8");
+  return JSON.parse(raw) as OutreachPayload;
+}
+
+export default async function SelfOutreachPage({ searchParams }: { searchParams?: SearchParams }) {
+  const resolved = searchParams ? await searchParams : {};
+  const activeSource = sourceValue(resolved.source) === "domestic" ? "domestic" : "global";
+  const payload = await readOutreachPayload(activeSource);
   const rows = payload.rows || [];
   const p0Rows = rows.filter((row) => row.priority === "P0").length;
   const latestGenerated = dateLabel(payload.generated_at);
+  const isDomestic = activeSource === "domestic";
 
   return (
     <div className="lp-grid" style={{ gap: 14 }}>
@@ -58,8 +88,21 @@ export default function SelfOutreachPage() {
             <h1 style={{ margin: 0, fontSize: 30, letterSpacing: -0.4 }}>LeadPulse 自用私信工作台</h1>
             <p style={{ margin: "10px 0 0", color: "var(--lp-muted)", lineHeight: 1.7 }}>
               这里不是群发工具。LeadPulse 已经完成候选发现、二次过滤、证据摘录和私信草稿。
-              你只需要逐条打开原帖核对，再复制草稿到 Reddit，最后由你手动点击发送。
+              {isDomestic
+                ? "你只需要逐条打开小红书/微博/知乎来源或主页核对，再复制中文草稿，最后由你在平台内手动发送。"
+                : "你只需要逐条打开原帖核对，再复制草稿到 Reddit，最后由你手动点击发送。"}
             </p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+              <a className={isDomestic ? "lp-btn lp-btn-secondary" : "lp-btn"} href="/dashboard/self-outreach">
+                全球公开源
+              </a>
+              <a
+                className={isDomestic ? "lp-btn" : "lp-btn lp-btn-secondary"}
+                href="/dashboard/self-outreach?source=domestic"
+              >
+                国内平台
+              </a>
+            </div>
           </div>
           <div className="lp-grid lp-grid-2">
             <div className="lp-mini-card">
@@ -87,6 +130,9 @@ export default function SelfOutreachPage() {
           <div>
             <div style={{ fontWeight: 800 }}>行业分布</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>{payload.source_file}</div>
+            {payload.source_note ? (
+              <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>{payload.source_note}</div>
+            ) : null}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {Object.entries(payload.industry_mix || {}).map(([industry, count]) => (
@@ -104,6 +150,7 @@ export default function SelfOutreachPage() {
             <div className="lp-outreach-head">
               <div>
                 <div className="lp-badge">{row.priority} · #{row.rank} · {row.industry_label}</div>
+                {fitLabel(row) ? <div className="lp-badge" style={{ marginTop: 6 }}>{fitLabel(row)}</div> : null}
                 <h2 className="lp-outreach-title">{row.title}</h2>
                 <div className="lp-outreach-meta">
                   <span>{row.author}</span>
@@ -134,7 +181,11 @@ export default function SelfOutreachPage() {
             <SelfOutreachActions
               leadKey={leadKey(row)}
               author={row.author}
+              platform={row.platform}
               sourceUrl={row.source_url}
+              profileUrl={row.profile_url}
+              composeUrl={row.compose_url}
+              contactMode={row.contact_mode}
               message={row.first_message}
             />
           </article>

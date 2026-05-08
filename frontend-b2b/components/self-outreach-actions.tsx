@@ -6,7 +6,11 @@ import { Check, Copy, ExternalLink, MessageSquareText } from "lucide-react";
 type Props = {
   leadKey: string;
   author: string;
+  platform: string;
   sourceUrl: string;
+  profileUrl?: string;
+  composeUrl?: string;
+  contactMode?: string;
   message: string;
 };
 
@@ -35,7 +39,20 @@ function redditComposeUrl(author: string, message: string) {
   return `https://www.reddit.com/message/compose/?${params.toString()}`;
 }
 
-export function SelfOutreachActions({ leadKey, author, sourceUrl, message }: Props) {
+function isRedditContact(platform: string, contactMode?: string) {
+  return contactMode === "reddit_compose" || /reddit/i.test(platform);
+}
+
+export function SelfOutreachActions({
+  leadKey,
+  author,
+  platform,
+  sourceUrl,
+  profileUrl,
+  composeUrl,
+  contactMode,
+  message,
+}: Props) {
   const [status, setStatus] = useState<StatusMap>({});
 
   useEffect(() => {
@@ -43,7 +60,13 @@ export function SelfOutreachActions({ leadKey, author, sourceUrl, message }: Pro
   }, []);
 
   const current = status[leadKey] || {};
-  const composeUrl = useMemo(() => redditComposeUrl(author, message), [author, message]);
+  const contactUrl = useMemo(() => {
+    if (composeUrl) return composeUrl;
+    if (isRedditContact(platform, contactMode)) return redditComposeUrl(author, message);
+    return profileUrl || sourceUrl;
+  }, [author, composeUrl, contactMode, message, platform, profileUrl, sourceUrl]);
+  const contactLabel = isRedditContact(platform, contactMode) ? "打开私信窗口" : "打开主页/来源";
+  const hasSeparateProfile = profileUrl && profileUrl !== sourceUrl;
 
   const update = (field: keyof StatusMap[string]) => {
     const next = {
@@ -64,7 +87,7 @@ export function SelfOutreachActions({ leadKey, author, sourceUrl, message }: Pro
 
   const openCompose = () => {
     update("opened");
-    window.open(composeUrl, "_blank", "noopener,noreferrer");
+    window.open(contactUrl, "_blank", "noopener,noreferrer");
   };
 
   const markSent = () => {
@@ -81,9 +104,21 @@ export function SelfOutreachActions({ leadKey, author, sourceUrl, message }: Pro
         <ExternalLink size={16} />
         打开原帖
       </a>
+      {hasSeparateProfile ? (
+        <a
+          className="lp-btn lp-btn-secondary"
+          href={profileUrl}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => update("opened")}
+        >
+          <ExternalLink size={16} />
+          打开主页
+        </a>
+      ) : null}
       <button type="button" className="lp-btn" onClick={openCompose}>
-        <MessageSquareText size={16} />
-        打开私信窗口
+        {current.opened ? <Check size={16} /> : <MessageSquareText size={16} />}
+        {contactLabel}
       </button>
       <button type="button" className="lp-btn lp-btn-secondary" onClick={markSent}>
         {current.sent ? <Check size={16} /> : null}
