@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAVS = [
   { href: "/dashboard", label: "作战中枢" },
   { href: "/dashboard/leads", label: "潜在客户" },
+  { href: "/dashboard/self-outreach", label: "自用私信" },
   { href: "/dashboard/tasks", label: "任务" },
   { href: "/dashboard/messages", label: "消息" },
   { href: "/ops/self-growth", label: "自用闭环" },

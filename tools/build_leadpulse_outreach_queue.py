@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import re
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -15,6 +16,8 @@ INPUT = SALES_DIR / "leadpulse_self_prospecting_ready_to_contact_latest.csv"
 OUT_CSV = SALES_DIR / "leadpulse_strict_outreach_queue.csv"
 OUT_MD = SALES_DIR / "leadpulse_strict_outreach_queue.md"
 TODAY_CSV = SALES_DIR / "leadpulse_today_contact_20.csv"
+FRONTEND_SELF_OUTREACH_DIR = PROJECT_ROOT / "frontend-b2b" / "data" / "self_outreach"
+FRONTEND_SELF_OUTREACH_JSON = FRONTEND_SELF_OUTREACH_DIR / "strict_outreach_queue.json"
 
 
 EXCLUDE_PATTERNS = tuple(
@@ -356,6 +359,10 @@ TEXT_REPLACEMENTS = {
 }
 
 
+def now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
 def blob(row: dict[str, str]) -> str:
     return " ".join(row.get(key, "") for key in ("title", "evidence"))
 
@@ -594,6 +601,22 @@ def write_md(path: Path, rows: list[dict[str, str]], source_count: int, ready_co
     path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
+def write_frontend_json(path: Path, rows: list[dict[str, str]], source_count: int, ready_count: int) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    by_industry = Counter(row["industry_label"] for row in rows)
+    payload = {
+        "generated_at": now_iso(),
+        "source_file": str(INPUT.relative_to(PROJECT_ROOT)).replace("\\", "/"),
+        "source_rows": source_count,
+        "strict_ready_rows": ready_count,
+        "queue_rows": len(rows),
+        "manual_send_only": True,
+        "industry_mix": dict(by_industry.most_common()),
+        "rows": rows,
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     if not INPUT.exists():
         raise SystemExit(f"missing input: {INPUT}")
@@ -605,6 +628,7 @@ def main() -> int:
     write_csv(OUT_CSV, output_rows)
     write_csv(TODAY_CSV, output_rows[:20])
     write_md(OUT_MD, output_rows, len(source_rows), len(strict_rows))
+    write_frontend_json(FRONTEND_SELF_OUTREACH_JSON, output_rows, len(source_rows), len(strict_rows))
 
     print(f"source_rows={len(source_rows)}")
     print(f"strict_ready_rows={len(strict_rows)}")
@@ -613,6 +637,7 @@ def main() -> int:
     print(f"wrote={OUT_CSV.relative_to(PROJECT_ROOT)}")
     print(f"wrote={TODAY_CSV.relative_to(PROJECT_ROOT)}")
     print(f"wrote={OUT_MD.relative_to(PROJECT_ROOT)}")
+    print(f"wrote={FRONTEND_SELF_OUTREACH_JSON.relative_to(PROJECT_ROOT)}")
     return 0
 
 

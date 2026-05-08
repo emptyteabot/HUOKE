@@ -149,6 +149,10 @@ a {
 }
 
 .lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: none;
   border-radius: 12px;
   padding: 10px 14px;
@@ -156,11 +160,108 @@ a {
   color: #fff;
   font-weight: 600;
   cursor: pointer;
+  min-height: 40px;
+  text-align: center;
 }
 
 .lp-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.lp-btn-secondary {
+  border: 1px solid #c8d9f5;
+  background: #f8fbff;
+  color: #224a87;
+}
+
+.lp-mini-card {
+  border: 1px solid #d7e5fb;
+  border-radius: 14px;
+  background: #f7fbff;
+  padding: 12px;
+}
+
+.lp-mini-label,
+.lp-section-label {
+  color: var(--lp-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lp-outreach-card {
+  padding: 18px;
+}
+
+.lp-outreach-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.lp-outreach-title {
+  margin: 10px 0 0;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+}
+
+.lp-outreach-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--lp-muted);
+  font-size: 13px;
+}
+
+.lp-outreach-meta span {
+  border: 1px solid #d9e7fb;
+  border-radius: 999px;
+  background: #f8fbff;
+  padding: 4px 9px;
+}
+
+.lp-score-pill {
+  flex-shrink: 0;
+  border: 1px solid #c8d9f5;
+  border-radius: 999px;
+  background: #edf5ff;
+  color: #245190;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lp-outreach-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.lp-evidence,
+.lp-draft-box p {
+  margin: 6px 0 0;
+  color: #24364f;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.lp-draft-box {
+  border: 1px solid #d7e5fb;
+  border-radius: 14px;
+  background: #fbfdff;
+  margin-top: 14px;
+  padding: 12px;
+}
+
+.lp-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .lp-input,
@@ -187,8 +288,17 @@ a {
 
 @media (max-width: 760px) {
   .lp-grid-4,
-  .lp-grid-2 {
+  .lp-grid-2,
+  .lp-outreach-grid {
     grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .lp-outreach-head {
+    flex-direction: column;
+  }
+
+  .lp-action-row .lp-btn {
+    width: 100%;
   }
 
   .lp-shell {

@@ -62,3 +62,5 @@ linkedin_session.json
 !tsconfig.json
 !railway.json
 !data/exports/high_value_leads_latest.json
+!frontend-b2b/data/self_outreach/
+!frontend-b2b/data/self_outreach/strict_outreach_queue.json
