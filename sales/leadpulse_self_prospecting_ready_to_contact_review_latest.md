@@ -1,40 +1,37 @@
 # LeadPulse self-prospecting review
 
-- Generated at: 2026-05-08T08:08:43+00:00
-- Raw candidates fetched: 3585
-- Scored candidates after filters: 1725
+- Generated at: 2026-05-09T03:07:55+00:00
+- Raw candidates fetched: 4295
+- Scored candidates after filters: 2055
 - Selected output target: 1000
-- Final rows: 784
+- Final rows: 1000
 
 ## Quality tiers
-- A: 458
-- B: 326
+- A: 643
+- B: 357
 
 ## Industry distribution
-- Marketing agencies: 179
-- B2B SaaS and startups: 108
-- Ecommerce and DTC: 108
-- Local services: 94
-- Coaches and consultants: 61
-- Clinics and wellness: 55
-- Restaurants and hospitality: 42
-- Recruiting and staffing: 40
-- Real estate: 32
-- Legal and accounting: 26
-- Home services and contractors: 21
-- Creator and content services: 10
-- Education and training: 8
+- Marketing agencies: 193
+- Coaches and consultants: 143
+- B2B SaaS and startups: 111
+- Recruiting and staffing: 107
+- Ecommerce and DTC: 100
+- Real estate: 60
+- Restaurants and hospitality: 58
+- Local services: 55
+- Legal and accounting: 51
+- Home services and contractors: 47
+- Clinics and wellness: 36
+- Creator and content services: 36
+- Education and training: 3
 
 ## Source distribution
-- reddit_rss: 693
-- existing_live_targets: 42
-- reddit_global_rss: 39
-- github_repo: 10
+- reddit_rss: 967
+- existing_live_targets: 33
 
 ## Review flags
-- weak_business_identity: 28
-- no_explicit_growth_pain: 19
-- repo_not_buyer_intent: 10
+- weak_business_identity: 42
+- no_explicit_growth_pain: 8
 
 ## Top 25
 1. [A/100] Marketing agencies | 1stgen_runner | 1stgen_runner
@@ -58,60 +55,60 @@
 7. [A/100] Marketing agencies | Kindly-Reality4804 | Kindly-Reality4804
    - URL: https://www.reddit.com/r/marketingagency/comments/1rnqf7p/i_run_a_paid_media_agency_for_ecommerce_brands/
    - Fit: Marketing agencies: matched agency, ecommerce plus cold email, clients.
-8. [A/100] Marketing agencies | /u/mtalhasubhani | Sales Closer (UK-based) for Marketing Agency
-   - URL: https://www.reddit.com/r/marketingagency/comments/1sglc4d/sales_closer_ukbased_for_marketing_agency/
-   - Fit: Marketing agencies: matched agency plus appointments, sales calls, marketing.
-9. [A/100] Marketing agencies | /u/Working_Attention_74 | Lead gen/appt setting references
-   - URL: https://www.reddit.com/r/marketingagency/comments/1f97trh/lead_genappt_setting_references/
-   - Fit: Marketing agencies: matched agency, freelancer plus appointments, leads, looking for.
-10. [A/100] Marketing agencies | /u/Far-Investigator-867 | Appointment Setting (Client Side)
-   - URL: https://www.reddit.com/r/marketingagency/comments/1eujq6r/appointment_setting_client_side/
-   - Fit: Marketing agencies: matched agency plus appointments, crm, leads.
-11. [A/100] Marketing agencies | /u/monk_life07 | How do I break into higher paying digital marketing roles?
-   - URL: https://www.reddit.com/r/DigitalMarketing/comments/1t1a1li/how_do_i_break_into_higher_paying_digital/
-   - Fit: Marketing agencies: matched agency plus google ads, marketing, leads.
-12. [A/100] Marketing agencies | /u/monk_life07 | How do I break into higher paying digital marketing roles?
-   - URL: https://www.reddit.com/r/DigitalMarketing/comments/1t19ef5/how_do_i_break_into_higher_paying_digital/
-   - Fit: Marketing agencies: matched agency plus google ads, marketing, leads.
-13. [A/100] Marketing agencies | /u/roberterh96 | Is Facebook Ads still a good channel to get clients for marketing/web design services?
-   - URL: https://www.reddit.com/r/DigitalMarketing/comments/1sx9sr9/is_facebook_ads_still_a_good_channel_to_get/
-   - Fit: Marketing agencies: matched agency plus lead quality, google ads, referrals.
-14. [A/100] Marketing agencies | /u/AdventurousChain336 | Client acquisition discussion
-   - URL: https://www.reddit.com/r/DigitalMarketing/comments/1t1ninj/client_acquisition_discussion/
-   - Fit: Marketing agencies: matched agency, founder plus client acquisition, marketing, clients.
-15. [A/100] Marketing agencies | /u/anass71 | Has anyone tried content + outreach for client acquisition? If yes which social platform? (Except linkedIn)
-   - URL: https://www.reddit.com/r/DigitalMarketing/comments/1sn116e/has_anyone_tried_content_outreach_for_client/
-   - Fit: Marketing agencies: matched agency, founder plus client acquisition, outreach, sales calls.
-16. [B/100] B2B SaaS and startups | acehotdog | acehotdog
-   - URL: https://www.reddit.com/r/SaaS/comments/1rwxmrg/trial_users_wont_convert_under_15_what_am_i_doing/
-   - Fit: B2B SaaS and startups: matched startup, saas plus conversion, software.
-17. [A/100] B2B SaaS and startups | /u/Spiritual_Heron_5680 | I spent 3 months turning YC's 2026 funding wishlist into 120 startup blueprints. Here are the 5 that surprised me most - I will not promote
-   - URL: https://www.reddit.com/r/startups/comments/1t3gl7n/i_spent_3_months_turning_ycs_2026_funding/
-   - Fit: B2B SaaS and startups: matched founder, startup plus customer acquisition, looking for.
-18. [A/100] B2B SaaS and startups | /u/thewhitelynx | What problems would or do you pay $100/month for? i will not promote
-   - URL: https://www.reddit.com/r/startups/comments/1t4zotx/what_problems_would_or_do_you_pay_100month_for_i/
-   - Fit: B2B SaaS and startups: matched startup, saas plus customer acquisition, tool.
-19. [A/100] B2B SaaS and startups | /u/alisid332 | Average Customer acquisition cost(I will not promote)
-   - URL: https://www.reddit.com/r/startups/comments/1sahh69/average_customer_acquisition_costi_will_not/
-   - Fit: B2B SaaS and startups: matched startup, saas plus customer acquisition, customer acquisition cost, google ads.
-20. [A/100] B2B SaaS and startups | /u/Extra-Motor-8227 | SaaS founders, do you have any system to reduce churn, or are you just focused on getting new customers? (i will not promote)
-   - URL: https://www.reddit.com/r/startups/comments/1r985cq/saas_founders_do_you_have_any_system_to_reduce/
-   - Fit: B2B SaaS and startups: matched founder, startup plus outreach, cold outreach, customers.
-21. [A/100] B2B SaaS and startups | /u/Infinite_Welcome_201 | How did you market your saas(i will not promote)
-   - URL: https://www.reddit.com/r/startups/comments/1om1779/how_did_you_market_your_saasi_will_not_promote/
-   - Fit: B2B SaaS and startups: matched founder, startup plus outreach, cold email, marketing.
-22. [A/100] B2B SaaS and startups | /u/applextrent | The ONLY AI-resistant startup marketing playbook that still scales - I will not promote
-   - URL: https://www.reddit.com/r/startups/comments/1of593v/the_only_airesistant_startup_marketing_playbook/
-   - Fit: B2B SaaS and startups: matched founder, startup plus conversion, marketing, sales.
-23. [A/100] B2B SaaS and startups | /u/HauntingCook2909 | I'm building an AI-powered outreach automation tool, would you use this? I WILL NOT PROMOTE
-   - URL: https://www.reddit.com/r/startups/comments/1sna69v/im_building_an_aipowered_outreach_automation_tool/
-   - Fit: B2B SaaS and startups: matched startup, saas plus outreach, leads, tool.
-24. [A/100] B2B SaaS and startups | /u/janpaulo | Struggling to get B2B leads and need some insight - I will not promote
-   - URL: https://www.reddit.com/r/startups/comments/1s4qoph/struggling_to_get_b2b_leads_and_need_some_insight/
-   - Fit: B2B SaaS and startups: matched startup, saas plus lead generation, cold email, referrals.
-25. [A/100] B2B SaaS and startups | /u/MannerNaive1926 | Dev/IoT Expert seeking Smart Founders (i will not promote)
-   - URL: https://www.reddit.com/r/startups/comments/1qwys8p/deviot_expert_seeking_smart_founders_i_will_not/
-   - Fit: B2B SaaS and startups: matched founder, startup plus marketing, sales, customers.
+8. [A/100] Marketing agencies | /u/i_am_awais | I want to make an agency
+   - URL: https://www.reddit.com/r/marketingagency/comments/1r3xoif/i_want_to_make_an_agency/
+   - Fit: Marketing agencies: matched agency, owner plus referrals, sales, clients.
+9. [A/100] Marketing agencies | /u/Positive_o_12 | ...approaching agencies as a behind-the-scenes email partner
+   - URL: https://www.reddit.com/r/marketingagency/comments/1nkcgzu/approaching_agencies_as_a_behindthescenes_email/
+   - Fit: Marketing agencies: matched agency plus client acquisition, outreach, marketing.
+10. [A/100] Marketing agencies | /u/Xx_Tops_xX | Does automated outbound/GTM really work? If so, how did you set it up? At a loss here and could really use some good advice.
+   - URL: https://www.reddit.com/r/marketingagency/comments/1s9ngui/does_automated_outboundgtm_really_work_if_so_how/
+   - Fit: Marketing agencies: matched agency plus outreach, cold outreach, conversion.
+11. [A/100] Marketing agencies | /u/No-Mistake421 | What's the best LinkedIn outreach tool for managing multiple client accounts? A few honest questions before I commit to one.
+   - URL: https://www.reddit.com/r/marketingagency/comments/1rqrygk/whats_the_best_linkedin_outreach_tool_for/
+   - Fit: Marketing agencies: matched agency plus outreach, marketing, clients.
+12. [A/100] Marketing agencies | /u/Winter_South6038 | How Important Is SEO When Working with a Digital Marketing Agency?
+   - URL: https://www.reddit.com/r/marketingagency/comments/1r8y6m7/how_important_is_seo_when_working_with_a_digital/
+   - Fit: Marketing agencies: matched agency plus local seo, marketing, leads.
+13. [A/100] Marketing agencies | /u/Charming-Display-538 | Looking for a new way to receive loan applications
+   - URL: https://www.reddit.com/r/marketingagency/comments/1op4tl1/looking_for_a_new_way_to_receive_loan_applications/
+   - Fit: Marketing agencies: matched agency plus lead generation, marketing, leads.
+14. [A/100] Marketing agencies | /u/KINGMASTER36 | ATTENTION!! If you're an agency owner
+   - URL: https://www.reddit.com/r/marketingagency/comments/1mi6k3q/attention_if_youre_an_agency_owner/
+   - Fit: Marketing agencies: matched agency, owner plus lead generation, cold email, cost.
+15. [A/100] Marketing agencies | /u/mustached-glasses | Stuck at 10k/mo - pls help
+   - URL: https://www.reddit.com/r/marketingagency/comments/1liwx5j/stuck_at_10kmo_pls_help/
+   - Fit: Marketing agencies: matched agency plus outreach, cold outreach, marketing.
+16. [A/100] Marketing agencies | /u/No-Mistake421 | Every agency client asks the same question: why are we getting connections but no qualified leads? Here is the actual answer.
+   - URL: https://www.reddit.com/r/marketingagency/comments/1s29jop/every_agency_client_asks_the_same_question_why/
+   - Fit: Marketing agencies: matched agency plus qualified leads, outreach, sales.
+17. [A/100] Marketing agencies | /u/ZombiePlayful3212 | Market Validation
+   - URL: https://www.reddit.com/r/marketingagency/comments/1nb5qvc/market_validation/
+   - Fit: Marketing agencies: matched agency, owner plus outreach, cold outreach, leads.
+18. [A/100] Marketing agencies | /u/Less_Education_2333 | Need help with my agency plz help
+   - URL: https://www.reddit.com/r/marketingagency/comments/1i780ji/need_help_with_my_agency_plz_help/
+   - Fit: Marketing agencies: matched agency plus qualified leads, outreach, leads.
+19. [A/100] Marketing agencies | /u/Ok-Possibility-8237 | How much meetings are you guys getting per week
+   - URL: https://www.reddit.com/r/marketingagency/comments/1crtvuc/how_much_meetings_are_you_guys_getting_per_week/
+   - Fit: Marketing agencies: matched agency plus qualified leads, leads, need help.
+20. [A/100] Marketing agencies | /u/bokisha5 | Asking for advice
+   - URL: https://www.reddit.com/r/marketingagency/comments/17fn3h2/asking_for_advice/
+   - Fit: Marketing agencies: matched agency, coach plus qualified leads, leads, software.
+21. [A/100] Marketing agencies | /u/Imaginary_Bake_5820 | How do marketing agencies scale using cold email services?
+   - URL: https://www.reddit.com/r/marketingagency/comments/1t5ivcd/how_do_marketing_agencies_scale_using_cold_email/
+   - Fit: Marketing agencies: matched agency, owner plus cold email, referrals, marketing.
+22. [A/100] Marketing agencies | /u/Embarrassed_Pay1275 | Is it smarter to hire cold email services or build in-house outreach
+   - URL: https://www.reddit.com/r/marketingagency/comments/1sqmnkv/is_it_smarter_to_hire_cold_email_services_or/
+   - Fit: Marketing agencies: matched agency plus outreach, cold email.
+23. [A/100] Marketing agencies | /u/sweetpoison2000 | Where do you find international clients for video editing/graphic design services?
+   - URL: https://www.reddit.com/r/marketingagency/comments/1rji1mi/where_do_you_find_international_clients_for_video/
+   - Fit: Marketing agencies: matched agency plus outreach, cold email, marketing.
+24. [A/100] Marketing agencies | /u/Zanx_thebanx | Need help with marketing
+   - URL: https://www.reddit.com/r/marketingagency/comments/1rf4wpe/need_help_with_marketing/
+   - Fit: Marketing agencies: matched agency plus cold email, marketing, leads.
+25. [A/100] Marketing agencies | /u/Consistent_Fact_5119 | I’ve seen a huge increase in replies using this method
+   - URL: https://www.reddit.com/r/marketingagency/comments/1t7krwe/ive_seen_a_huge_increase_in_replies_using_this/
+   - Fit: Marketing agencies: matched agency plus outreach, marketing, leads.
 
 ## Review protocol
 - A: strong public signal; can enter first-touch queue after quick human skim.
