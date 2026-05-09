@@ -267,6 +267,137 @@ PLATFORM_SEARCH_TASKS = [
     },
 ]
 
+CURATED_PLATFORM_CANDIDATES = [
+    {
+        "author": "留学姜姜酱",
+        "platform": "B站",
+        "source_url": "https://www.bilibili.com/read/cv42798174/",
+        "industry_label": "B站候选 / 留学机构测评",
+        "title": "26fall 留学中介推荐专栏",
+        "signal_summary": "B站专栏发布 26fall 留学中介推荐和机构梯队内容，适合核对是否可做机构线索包合作或内容号合作。",
+    },
+    {
+        "author": "留学中介大揭秘",
+        "platform": "B站",
+        "source_url": "https://www.bilibili.com/video/BV12pL3zcE7G/",
+        "industry_label": "B站候选 / 留学中介测评",
+        "title": "启德、立思辰英国留学境外服务对比",
+        "signal_summary": "B站视频号定位留学中介测评和避坑指南，适合作为渠道观察或样本分发候选。",
+    },
+    {
+        "author": "Tony哥的留学圈",
+        "platform": "B站",
+        "source_url": "https://www.bilibili.com/video/BV1Wu4y1n73c/",
+        "industry_label": "B站候选 / 留学服务创始人",
+        "title": "新媒体赋能留学服务访谈",
+        "signal_summary": "公开视频介绍留学服务、新媒体和英国名校申请相关内容，适合核对是否为机构负责人或合作渠道。",
+    },
+    {
+        "author": "殷博士说留学",
+        "platform": "B站",
+        "source_url": "https://www.bilibili.com/video/BV1Dq4y1q72b/",
+        "industry_label": "B站候选 / 留学顾问内容号",
+        "title": "如何与留学顾问高效沟通",
+        "signal_summary": "B站账号持续输出留学顾问沟通、申请准备和留学经验内容，可人工核对是否承接咨询。",
+    },
+    {
+        "author": "澳洲达伦哥",
+        "platform": "B站",
+        "source_url": "https://www.bilibili.com/video/BV1vt4y1e7Tm/",
+        "industry_label": "B站候选 / 澳洲留学申请",
+        "title": "留学申请转代理解析",
+        "signal_summary": "B站视频聚焦澳洲/英国留学申请和转代理问题，适合核对是否为留学服务提供者。",
+    },
+    {
+        "author": "Dr CC留学学姐",
+        "platform": "抖音",
+        "source_url": "https://www.douyin.com/user/MS4wLjABAAAA9Gz8ELtIRFPdm0WQ0-jlnjAe1rvIe7pAurOINYafu0Y5y7yylxoa1n4dhe3yI3fA",
+        "industry_label": "抖音候选 / 本硕博留学申请",
+        "title": "本硕博留学申请短视频账号",
+        "signal_summary": "公开抖音主页显示本硕博留学申请、英国/澳洲/港澳等方向，作品包含 26fall 和留学机构话题。",
+    },
+    {
+        "author": "Gabby讲留学小助手",
+        "platform": "抖音",
+        "source_url": "https://www.douyin.com/video/7524552229337058602",
+        "industry_label": "抖音候选 / 英国本科留学",
+        "title": "英国本科留学内容号",
+        "signal_summary": "公开视频标签包含 Gabby讲留学、思答教育和英国本科留学，适合人工核对机构/顾问属性。",
+    },
+    {
+        "author": "成都新东方前途出国-留学咨询",
+        "platform": "抖音",
+        "source_url": "https://www.douyin.com/user/MS4wLjABAAAAZcY56fyaZy4NAcEeDCWVU5cdRGcTujzRJALqGISbFNkzPS16iS7fSGub5Vm1DNRQ",
+        "industry_label": "抖音候选 / 认证留学机构",
+        "title": "新东方前途出国成都留学咨询账号",
+        "signal_summary": "公开抖音主页为商家认证账号，简介是一站式留学机构，适合核对是否有本地团队商务触达入口。",
+    },
+    {
+        "author": "港智优留学",
+        "platform": "知乎",
+        "source_url": "https://zhuanlan.zhihu.com/p/2029971711513318258",
+        "industry_label": "知乎候选 / 香港留学机构",
+        "title": "香港留学中介口碑排名内容",
+        "signal_summary": "知乎专栏内容以港智优留学署名，介绍香港留学服务和中介口碑，适合核对是否为机构内容号。",
+    },
+    {
+        "author": "泰勒福特 / 无忧留学测评",
+        "platform": "知乎",
+        "source_url": "https://zhuanlan.zhihu.com/p/687911990",
+        "industry_label": "知乎候选 / 英国留学中介测评",
+        "title": "北京无忧留学中介测评内容",
+        "signal_summary": "知乎专栏介绍无忧留学及顾问服务，适合作为机构名单线索，需人工核对作者和机构关系。",
+    },
+    {
+        "author": "藤顺国际教育咨询",
+        "platform": "领英",
+        "source_url": "https://www.linkedin.com/company/tensenedu",
+        "industry_label": "领英候选 / 国际教育咨询公司",
+        "title": "Tensen International study abroad consulting",
+        "signal_summary": "LinkedIn 公司页显示教育咨询、college application、career planning 等服务，适合人工核对商务触达对象。",
+    },
+    {
+        "author": "择由教育 ChoiceFree Education",
+        "platform": "领英",
+        "source_url": "https://www.linkedin.com/company/%E6%8B%A9%E7%94%B1%E6%95%99%E8%82%B2%EF%BC%88choicefree-education%EF%BC%89",
+        "industry_label": "领英候选 / 留学定制服务",
+        "title": "ChoiceFree Education study-abroad service",
+        "signal_summary": "LinkedIn 公司页介绍留学定制服务和 study-abroad 申请支持，适合核对机构负责人或顾问联系人。",
+    },
+    {
+        "author": "优弗留学",
+        "platform": "领英",
+        "source_url": "https://cn.linkedin.com/company/useful-education",
+        "industry_label": "领英候选 / 高端留学品牌",
+        "title": "优弗留学 LinkedIn 公司页",
+        "signal_summary": "LinkedIn 公司页显示高端留学、Education Counseling、Study Abroad 和 University Application 服务。",
+    },
+    {
+        "author": "融尚国际教育集团",
+        "platform": "领英",
+        "source_url": "https://www.linkedin.com/company/shang-learning",
+        "industry_label": "领英候选 / 国际教育集团",
+        "title": "Shang Learning international education advisory",
+        "signal_summary": "LinkedIn 公司页介绍 international education advisory、study abroad consulting 和 admissions 相关服务。",
+    },
+    {
+        "author": "中智留学",
+        "platform": "领英",
+        "source_url": "https://cn.linkedin.com/company/%E4%B8%8A%E6%B5%B7%E4%B8%AD%E6%99%BA%E5%9B%BD%E9%99%85%E6%95%99%E8%82%B2%E5%92%A8%E8%AF%A2%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8",
+        "industry_label": "领英候选 / 老牌留学机构",
+        "title": "上海中智国际教育咨询公司",
+        "signal_summary": "LinkedIn 公司页介绍中智留学的语言培训、留学申请、海外服务和国际学校业务。",
+    },
+    {
+        "author": "momo留学日记",
+        "platform": "贴吧",
+        "source_url": "https://tieba.baidu.com/p/9257059569",
+        "industry_label": "贴吧候选 / 留学中介内容号",
+        "title": "英国本科留学中介优劣势分析",
+        "signal_summary": "贴吧公开帖整理英国本科留学机构优劣势，适合作为内容号或机构名单线索，需人工核对作者身份。",
+    },
+]
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -406,6 +537,14 @@ def contact_message(row: dict[str, str]) -> str:
             "每条包含原帖链接、需求摘要、意向判断和建议破冰话术，不碰手机号、微信号或私信数据。"
             "我可以先发 4 条免费样本给你判断质量；如果能用，再按你的主做方向整理 30-50 条，首轮 999。"
         )
+    if row.get("fit_tier") == "platform_candidate":
+        return (
+            f"你好，我看到你在{row['platform']}做{row['title']}相关内容。"
+            "我这边在做 LeadPulse，用公开平台上的留学需求帖做人工清洗，"
+            "把原帖、需求摘要、意向判断和建议破冰话术整理成可交付样本，不碰手机号、微信号或私信数据。\n\n"
+            "如果你这边承接留学咨询/机构合作，我可以先发 4 条免费样本给你判断质量；"
+            "如果不直接承接，也可以看看是否适合做内容选题或转介绍合作。"
+        )
     if row.get("fit_tier") == "channel_partner":
         return (
             f"你好，我看到你在{row['platform']}做{row['title']}相关内容。"
@@ -450,6 +589,29 @@ def platform_task_candidates() -> list[dict[str, str]]:
     return candidates
 
 
+def platform_curated_candidates() -> list[dict[str, str]]:
+    candidates: list[dict[str, str]] = []
+    for item in CURATED_PLATFORM_CANDIDATES:
+        candidates.append(
+            {
+                "author": item["author"],
+                "platform": item["platform"],
+                "profile_url": "",
+                "source_url": item["source_url"],
+                "published_at": "",
+                "content": "",
+                "quality_score": "70",
+                "source_file": "public_web_search_candidate",
+                "industry_label": item["industry_label"],
+                "title": item["title"],
+                "signal_summary": item["signal_summary"],
+                "recommended_offer": "待核对候选：先打开公开页面确认账号身份和触达入口，确认后再作为 P0/P1 手动触达。",
+                "fit_tier": "platform_candidate",
+            }
+        )
+    return candidates
+
+
 def render_rows(candidates: list[dict[str, str]]) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     sorted_candidates = sorted(
@@ -457,6 +619,7 @@ def render_rows(candidates: list[dict[str, str]]) -> list[dict[str, str]]:
         key=lambda candidate: (
             candidate.get("fit_tier") == "direct_buyer",
             candidate.get("fit_tier") == "channel_partner",
+            candidate.get("fit_tier") == "platform_candidate",
             score_candidate(candidate),
         ),
         reverse=True,
@@ -465,7 +628,7 @@ def render_rows(candidates: list[dict[str, str]]) -> list[dict[str, str]]:
         score = score_candidate(row)
         if row.get("fit_tier") == "direct_buyer":
             priority = "P0"
-        elif row.get("fit_tier") == "channel_partner":
+        elif row.get("fit_tier") in {"channel_partner", "platform_candidate"}:
             priority = "P1"
         else:
             priority = "P2"
@@ -494,7 +657,11 @@ def render_rows(candidates: list[dict[str, str]]) -> list[dict[str, str]]:
                     else (
                         "渠道观察：只在直客联系完后处理，先判断对方是否适合合作分发或转介绍。"
                         if row.get("fit_tier") == "channel_partner"
-                        else "平台搜索任务：打开搜索入口，按筛选规则补 5-10 个真实账号，再人工升级为 P0/P1。"
+                        else (
+                            "待核对候选：打开公开页面确认账号身份、业务承接和触达入口，确认后再手动私信。"
+                            if row.get("fit_tier") == "platform_candidate"
+                            else "平台搜索任务：打开搜索入口，按筛选规则补 5-10 个真实账号，再人工升级为 P0/P1。"
+                        )
                     )
                 ),
             }
@@ -516,7 +683,7 @@ def write_md(path: Path, rows: list[dict[str, str]]) -> None:
         "# LeadPulse 国内平台手动触达队列",
         "",
         "- 触达对象：人工 curated 的留学机构、留学顾问、留学内容号、渠道号。",
-        "- 优先级：P0 是直客；P1 是渠道/媒体/观察名单；P2 是平台搜索任务，不等同于客户。",
+        "- 优先级：P0 是直客；P1 是渠道/媒体/待核对候选；P2 是平台搜索任务，不等同于客户。",
         "- 执行边界：只复制话术和打开公开来源，不自动发送私信，不抓取非公开联系方式。",
         f"- Queue rows: {len(rows)}",
         "",
@@ -566,6 +733,7 @@ def write_frontend_json(path: Path, rows: list[dict[str, str]]) -> None:
         "queue_kind": "manual_curated_first_customer_queue",
         "source_note": "这不是从 853 条数据里自动严格筛出的队列。P0/P1 是人工整理并补充公开来源的国内触达名单；P2 是各社交平台的人工搜索任务，用来补更多真实账号。",
         "platform_task_rows": sum(1 for row in rows if row.get("fit_tier") == "platform_task"),
+        "platform_candidate_rows": sum(1 for row in rows if row.get("fit_tier") == "platform_candidate"),
         "industry_mix": dict(by_industry.most_common()),
         "sample_leads": SAMPLE_LEADS,
         "rows": rows,
@@ -574,7 +742,7 @@ def write_frontend_json(path: Path, rows: list[dict[str, str]]) -> None:
 
 
 def main() -> int:
-    rows = render_rows(curated_candidates() + platform_task_candidates())
+    rows = render_rows(curated_candidates() + platform_curated_candidates() + platform_task_candidates())
     write_csv(OUT_CSV, rows)
     write_csv(TODAY_CSV, rows[:20])
     write_md(OUT_MD, rows)
