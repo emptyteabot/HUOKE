@@ -12,85 +12,144 @@ import {
   X,
 } from 'lucide-react';
 
+type LeadSignal = {
+  source: string;
+  time: string;
+  quote: string;
+  analysis: string;
+  stage: string;
+  score: number;
+  action: string;
+  tags: string[];
+};
+
+const leadSignals: LeadSignal[] = [
+  {
+    source: '小红书留言',
+    time: '刚刚',
+    quote: '做本地生活代运营的团队有没有靠谱推荐？想找能直接给报价和案例的，预算别太离谱。',
+    analysis: '明显在比较服务商，已经把“报价”和“案例”摆到台面上了，属于可以直接接触的询价阶段。',
+    stage: '比较 / 询价',
+    score: 94,
+    action: '发案例，顺手问预算和时间窗',
+    tags: ['找代运营', '要报价', '有预算'],
+  },
+  {
+    source: '行业论坛',
+    time: '3 分钟前',
+    quote: '我们公司销售团队扩到 30 人了，表格管不住线索，有没有适合中小团队的系统？最好能这周演示。',
+    analysis: '团队扩张和本周演示同时出现，说明采购节奏已经打开，适合马上推进约时间。',
+    stage: '选型中',
+    score: 91,
+    action: '直接提演示和场景样本',
+    tags: ['团队扩张', '本周演示', '选型中'],
+  },
+  {
+    source: '知乎回答区',
+    time: '7 分钟前',
+    quote: '想换一套客户管理工具，现在最关心的是迁移成本和后续培训，求真实使用过的人推荐。',
+    analysis: '不是随口问问，而是在认真算迁移和培训成本，属于准备替换前的高质量意图。',
+    stage: '准备替换',
+    score: 88,
+    action: '给迁移方案和落地流程',
+    tags: ['准备替换', '关心成本', '求推荐'],
+  },
+  {
+    source: '海外 SaaS 社区',
+    time: '12 分钟前',
+    quote: 'We are planning to replace our CRM and rebuild the sales workflow. Looking for a team of around 20 people.',
+    analysis: '对方已经在重建销售流程，需求不是了解概念，而是找能落地的方案。',
+    stage: '方案比较',
+    score: 85,
+    action: '发流程图和实施节奏',
+    tags: ['CRM 选型', '销售流程', '明确需求'],
+  },
+  {
+    source: '微信群截图',
+    time: '1 分钟前',
+    quote: '谁有靠谱的获客系统？老板要求这个月看到线索质量，别再给我关键词垃圾链接了。',
+    analysis: '验收周期很近，而且已经明确排斥垃圾线索，属于要结果的强需求。',
+    stage: '结果导向',
+    score: 90,
+    action: '先给样本，再讲结果',
+    tags: ['急需线索', '本月验收', '排斥垃圾'],
+  },
+  {
+    source: '公众号评论',
+    time: '5 分钟前',
+    quote: '文章里提到的那个私域成交工具能私信报价吗？我们教育团队想先试一轮。',
+    analysis: '主动问价格，还愿意先试一轮，说明已经过了“看看而已”的阶段。',
+    stage: '试单',
+    score: 87,
+    action: '私信报价，顺手约时间',
+    tags: ['私信报价', '教育团队', '先试一轮'],
+  },
+  {
+    source: '海外营销社区',
+    time: '6 分钟前',
+    quote: 'We need someone to filter out buyers, not just scrape posts. Looking for people with real budget.',
+    analysis: '对方要的不是信息，而是能筛出有预算的人，属于采购前的高意向诉求。',
+    stage: '采购前',
+    score: 93,
+    action: '先给筛选逻辑和样本',
+    tags: ['有预算', '要线索', '非名单'],
+  },
+  {
+    source: '小红书评论',
+    time: '14 分钟前',
+    quote: '这类服务一般多少钱？我们品牌号刚起步，想找人代跑一批精准客户。',
+    analysis: '询价非常直接，而且提到了“精准客户”，不是路过围观，是真的要启动。',
+    stage: '询价',
+    score: 86,
+    action: '先给起步方案和样本',
+    tags: ['询价', '代跑需求', '精准客户'],
+  },
+  {
+    source: '行业社群',
+    time: '2 分钟前',
+    quote: '求推荐靠谱的销售自动化工具，能不能先看样本？合适的话可以直接约时间聊。',
+    analysis: '先看样本再决定，说明只差确认质量，推进速度会很快。',
+    stage: '样本确认',
+    score: 89,
+    action: '发样本，跟进约时间',
+    tags: ['看样本', '约时间', '销售自动化'],
+  },
+  {
+    source: '海外营销社区',
+    time: '6 分钟前',
+    quote: 'We want a team that can find people with actual budget, not just random names.',
+    analysis: '对结果要求很明确，已经不是普通咨询，而是找人来直接承担获客结果。',
+    stage: '结果确认',
+    score: 92,
+    action: '给结果样本和交付边界',
+    tags: ['有预算', '要结果', '强目标'],
+  },
+  {
+    source: '知识星球',
+    time: '10 分钟前',
+    quote: '有没有能监控同行评论区的方案？主要想找正在问价格、问推荐的人。',
+    analysis: '问题非常聚焦，目标就是抓正在比较的人，属于清晰的工具采购需求。',
+    stage: '工具采购',
+    score: 83,
+    action: '讲监控范围和样本质量',
+    tags: ['评论区', '问价格', '问推荐'],
+  },
+  {
+    source: '贴吧帖子',
+    time: '16 分钟前',
+    quote: '公司要找外包做获客，老板说先拿一批样本看质量，有做过的朋友吗？',
+    analysis: '先样本后判断，标准试单心态，后续很容易推进到正式合作。',
+    stage: '试单前',
+    score: 84,
+    action: '先给一批真实样本',
+    tags: ['外包获客', '看质量', '采购前'],
+  },
+];
+
 const signalColumns = [
-  [
-    {
-      source: '小红书留言',
-      time: '刚刚',
-      content: '做本地生活代运营的团队有没有靠谱推荐？想找能直接给报价和案例的，预算别太离谱。',
-      tags: ['找代运营', '要报价', '有预算'],
-    },
-    {
-      source: '行业论坛',
-      time: '3 分钟前',
-      content: '我们公司销售团队扩到 30 人了，表格管不住线索，有没有适合中小团队的系统？最好能这周演示。',
-      tags: ['团队扩张', '本周演示', '选型中'],
-    },
-    {
-      source: '知乎回答区',
-      time: '7 分钟前',
-      content: '想换一套客户管理工具，现在最关心的是迁移成本和后续培训，求真实使用过的人推荐。',
-      tags: ['准备替换', '关心成本', '求推荐'],
-    },
-    {
-      source: 'Reddit / SaaS',
-      time: '12 分钟前',
-      content: '我们准备换 CRM，销售流程和报价跟进都要重新搭。有没有适合 20 人团队的方案？',
-      tags: ['CRM 选型', '销售流程', '明确需求'],
-    },
-  ],
-  [
-    {
-      source: '微信群截图',
-      time: '1 分钟前',
-      content: '谁有靠谱的获客系统？老板要求这个月看到线索质量，别再给我关键词垃圾链接了。',
-      tags: ['急需线索', '本月验收', '排斥垃圾'],
-    },
-    {
-      source: '公众号评论',
-      time: '5 分钟前',
-      content: '文章里提到的那个私域成交工具能私信报价吗？我们教育团队想先试一轮。',
-      tags: ['私信报价', '教育团队', '先试一轮'],
-    },
-    {
-      source: 'V2EX',
-      time: '9 分钟前',
-      content: '有没有能把论坛里的购买意图整理出来的工具？我们不想再人工翻帖子了。',
-      tags: ['减少人工', '购买意图', '工具采购'],
-    },
-    {
-      source: '小红书评论',
-      time: '14 分钟前',
-      content: '这类服务一般多少钱？我们品牌号刚起步，想找人代跑一批精准客户。',
-      tags: ['询价', '代跑需求', '精准客户'],
-    },
-  ],
-  [
-    {
-      source: '行业社群',
-      time: '2 分钟前',
-      content: '求推荐靠谱的销售自动化工具，能不能先看样本？合适的话可以直接约时间聊。',
-      tags: ['看样本', '约时间', '销售自动化'],
-    },
-    {
-      source: 'Reddit / Marketing',
-      time: '6 分钟前',
-      content: '我们想找一个团队帮忙筛出真正有预算的线索，不要名单，要能联系的人。',
-      tags: ['有预算', '要线索', '非名单'],
-    },
-    {
-      source: '知识星球',
-      time: '10 分钟前',
-      content: '有没有能监控同行评论区的方案？主要想找正在问价格、问推荐的人。',
-      tags: ['评论区', '问价格', '问推荐'],
-    },
-    {
-      source: '贴吧帖子',
-      time: '16 分钟前',
-      content: '公司要找外包做获客，老板说先拿一批样本看质量，有做过的朋友吗？',
-      tags: ['外包获客', '看质量', '采购前'],
-    },
-  ],
+  leadSignals.slice(0, 4),
+  leadSignals.slice(4, 8),
+  leadSignals.slice(8, 12),
 ];
 
 const workflow = [
@@ -129,7 +188,7 @@ const valueCards = [
     icon: Send,
     title: '无缝推送到您的系统',
     detail:
-      '发现商机后，立刻通过企业微信、飞书通知团队，或通过标准 API 将结构化数据连同原文链接，直接推入您的 CRM。',
+      '发现商机后，立刻通过企业微信、飞书通知团队，或直接推入您的 CRM，原文链接和关键信息一并带上。',
   },
 ];
 
@@ -299,7 +358,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="lead-feed relative h-[560px] overflow-hidden bg-slate-50/45 p-3 sm:p-5">
+              <div className="lead-feed relative h-[620px] overflow-hidden bg-slate-50/45 p-3 sm:p-5">
               <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-white/95 to-transparent" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-white/95 to-transparent" />
 
@@ -308,24 +367,41 @@ export default function HomePage() {
                   const animationClass =
                     columnIndex === 0 ? 'lead-scroll' : columnIndex === 1 ? 'lead-scroll-reverse' : 'lead-scroll-slow';
                   return (
-                    <div key={columnIndex} className="h-[520px] overflow-hidden">
+                    <div key={columnIndex} className="h-[580px] overflow-hidden">
                       <div className={`${animationClass} space-y-3`}>
                         {[...column, ...column].map((signal, index) => (
-                          <article key={`${signal.source}-${index}`} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600">
-                                <MessageSquareText className="h-3.5 w-3.5 text-blue-600" />
-                                {signal.source}
+                          <article
+                            key={`${signal.source}-${index}`}
+                            className={[
+                              'rounded-lg border bg-white p-4 shadow-sm',
+                              signal.score >= 90 ? 'border-amber-200 shadow-[0_12px_28px_rgba(15,23,42,0.07)]' : 'border-slate-200',
+                            ].join(' ')}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600">
+                                  <MessageSquareText className="h-3.5 w-3.5 text-blue-600" />
+                                  {signal.source}
+                                </div>
+                                <div className="mt-1 text-xs text-slate-400">{signal.time}</div>
                               </div>
-                              <span className="text-xs text-slate-400">{signal.time}</span>
+                              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                                评分 {signal.score}
+                              </span>
                             </div>
-                            <p className="mt-3 text-sm leading-7 text-slate-700">“{signal.content}”</p>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {signal.tags.map((tag) => (
-                                <span key={tag} className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-500">
-                                  {tag}
-                                </span>
-                              ))}
+
+                            <p className="mt-3 text-sm leading-7 text-slate-800">“{signal.quote}”</p>
+
+                            <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-3">
+                              <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400">AI 分析</div>
+                              <p className="mt-2 text-sm leading-7 text-slate-700">{signal.analysis}</p>
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                              <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500">
+                                阶段：{signal.stage}
+                              </span>
+                              <span className="text-xs font-semibold text-slate-700">{signal.action}</span>
                             </div>
                           </article>
                         ))}
@@ -342,9 +418,7 @@ export default function HomePage() {
       <section id="product" className="relative z-10 border-y border-slate-200/70 bg-white/86 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-extrabold leading-tight text-slate-950 sm:text-4xl">
-              我们不爬数据，我们提取真相。
-            </h2>
+            <h2 className="text-3xl font-extrabold leading-tight text-slate-950 sm:text-4xl">我们不爬数据，我们提取真相。</h2>
             <p className="mt-5 text-lg leading-8 text-slate-600">
               传统的舆情工具只会给你丢来一堆包含关键词的垃圾链接。LeadPulse 的 AI 引擎真正理解上下文，只把那些真的准备掏钱的客户送到你面前。
             </p>
