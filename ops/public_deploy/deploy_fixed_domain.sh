@@ -22,6 +22,38 @@ DEPLOY_META="$RUNTIME_DIR/fixed_domain_runtime.json"
 
 mkdir -p "$RUNTIME_DIR"
 
+stop_pid_tree() {
+  local pid="${1:-}"
+  if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
+    return 0
+  fi
+
+  pkill -TERM -P "$pid" 2>/dev/null || true
+  kill "$pid" 2>/dev/null || true
+  sleep 2
+
+  pkill -KILL -P "$pid" 2>/dev/null || true
+  kill -KILL "$pid" 2>/dev/null || true
+}
+
+stop_port_listeners() {
+  local port="$1"
+  local pid cwd cmd pids
+  pids="$(ss -ltnp 2>/dev/null | awk -v port=":$port" '$4 ~ port { print $0 }' | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' | sort -u)"
+
+  for pid in $pids; do
+    cwd="$(readlink -f "/proc/$pid/cwd" 2>/dev/null || true)"
+    cmd="$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null || true)"
+
+    if [[ "$cwd" == "$APP_DIR"* || "$cwd" == /opt/leadpulse/frontend-b2b* || "$cmd" == *"next-server"* || "$cmd" == *"next start"* ]]; then
+      stop_pid_tree "$pid"
+    else
+      echo "Refusing to stop unrelated process on port $port: pid=$pid cwd=$cwd cmd=$cmd" >&2
+      exit 1
+    fi
+  done
+}
+
 if [ ! -d "$REPO_ROOT/.git" ]; then
   echo "Repo not found: $REPO_ROOT" >&2
   exit 1
@@ -83,16 +115,14 @@ cd "$APP_DIR"
 
 if [ -f "$PID_FILE" ]; then
   OLD_PID="$(cat "$PID_FILE" 2>/dev/null || true)"
-  if [ -n "${OLD_PID:-}" ] && kill -0 "$OLD_PID" 2>/dev/null; then
-    kill "$OLD_PID" || true
-    sleep 2
-  fi
+  stop_pid_tree "$OLD_PID"
 fi
 
 pkill -f "next start --hostname $HOST --port $PORT" || true
+stop_port_listeners "$PORT"
 sleep 2
 
-nohup npm run start -- --hostname "$HOST" --port "$PORT" >"$NEXT_STDOUT" 2>"$NEXT_STDERR" &
+nohup node node_modules/next/dist/bin/next start --hostname "$HOST" --port "$PORT" >"$NEXT_STDOUT" 2>"$NEXT_STDERR" &
 NEW_PID=$!
 echo "$NEW_PID" > "$PID_FILE"
 
