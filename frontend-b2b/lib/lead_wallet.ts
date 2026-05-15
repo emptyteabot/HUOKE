@@ -27,7 +27,7 @@ function toInt(value: string | undefined, fallback: number): number {
 }
 
 export function freeExportLimit(): number {
-  return Math.max(0, toInt(process.env.FREE_EXPORT_LIMIT, 0));
+  return Math.max(0, toInt(process.env.FREE_EXPORT_LIMIT, 3));
 }
 
 export function exportCreditCost(): number {
@@ -39,7 +39,7 @@ export function linkUnlockHours(): number {
 }
 
 export function defaultCredits(): number {
-  return Math.max(0, toInt(process.env.DEFAULT_EXPORT_CREDITS, 0));
+  return Math.max(0, toInt(process.env.DEFAULT_EXPORT_CREDITS, 60));
 }
 
 function signingSecret(): string {
