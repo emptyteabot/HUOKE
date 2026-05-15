@@ -5,9 +5,12 @@ REPO_ROOT="${REPO_ROOT:-$HOME/LeadPulse}"
 APP_DIR="$REPO_ROOT/frontend-b2b"
 RUNTIME_DIR="$APP_DIR/runtime-logs"
 PID_FILE="$RUNTIME_DIR/next.pid"
+M2M_PID_FILE="$RUNTIME_DIR/m2m.pid"
 DEPLOY_META="$RUNTIME_DIR/fixed_domain_runtime.json"
 PORT="${PORT:-3005}"
 HOST="${HOST:-127.0.0.1}"
+M2M_PORT="${M2M_PORT:-8008}"
+M2M_HOST="${M2M_HOST:-127.0.0.1}"
 
 if [ -f "$DEPLOY_META" ]; then
   cat "$DEPLOY_META"
@@ -32,3 +35,20 @@ fi
 
 echo
 curl -I "http://$HOST:$PORT" || true
+
+echo
+if [ -f "$M2M_PID_FILE" ]; then
+  M2M_PID="$(cat "$M2M_PID_FILE" 2>/dev/null || true)"
+  echo "m2m_pid=$M2M_PID"
+  if [ -n "${M2M_PID:-}" ] && kill -0 "$M2M_PID" 2>/dev/null; then
+    echo "m2m_process=running"
+  else
+    echo "m2m_process=stopped"
+  fi
+else
+  echo "m2m_pid=missing"
+  echo "m2m_process=unknown"
+fi
+
+echo
+curl -I "http://$M2M_HOST:$M2M_PORT/health" || true

@@ -1,5 +1,22 @@
 services:
   - type: web
+    name: leadpulse-m2m
+    runtime: python
+    rootDir: m2m_backend
+    plan: free
+    autoDeploy: false
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn leadpulse_m2m.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: LEADPULSE_SITE_URL
+        value: https://leadpulse.cc.cd
+      - key: LEADPULSE_MIN_BUDGET_USD
+        value: "3000"
+      - key: LEADPULSE_DISCOVERY_TIMEZONE
+        value: Asia/Shanghai
+
+  - type: web
     name: leadpulse-growth
     runtime: node
     rootDir: frontend-b2b
@@ -10,6 +27,8 @@ services:
     healthCheckPath: /
     envVars:
       - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: LEADPULSE_M2M_BACKEND_URL
         sync: false
       - key: NEXT_PUBLIC_BOOKING_URL
         sync: false
