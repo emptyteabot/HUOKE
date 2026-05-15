@@ -217,7 +217,7 @@ async def xunhupay_notify(request: Request) -> Response:
 
 @app.get("/api/v1/xunhupay/callback")
 def xunhupay_callback() -> RedirectResponse:
-    return RedirectResponse(url=f"{settings.site_url}/dashboard/billing?payment=return", status_code=302)
+    return RedirectResponse(url=f"{settings.site_url}/pay?payment=return", status_code=302)
 
 
 @app.post("/api/v1/alipay/notify")

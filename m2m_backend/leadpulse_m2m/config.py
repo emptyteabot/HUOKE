@@ -44,7 +44,7 @@ class Settings:
     xunhu_app_secret: str = _env("LEADPULSE_XUNHU_APP_SECRET", "")
     xunhu_gateway_url: str = _env("LEADPULSE_XUNHU_GATEWAY_URL", "https://api.xunhupay.com/payment/do.html")
     xunhu_notify_url: str = _env("LEADPULSE_XUNHU_NOTIFY_URL", f"{site_url}/api/v1/xunhupay/notify")
-    xunhu_return_url: str = _env("LEADPULSE_XUNHU_RETURN_URL", f"{site_url}/api/v1/xunhupay/callback")
+    xunhu_return_url: str = _env("LEADPULSE_XUNHU_RETURN_URL", f"{site_url}/pay?payment=return")
     xunhu_order_title: str = _env("LEADPULSE_XUNHU_ORDER_TITLE", "LeadPulse 算力积分充值")
     llm_api_key: str = _env("LEADPULSE_LLM_API_KEY", _env("OPENAI_API_KEY", ""))
     llm_base_url: str = _env("LEADPULSE_LLM_BASE_URL", "https://api.openai.com/v1")
