@@ -36,10 +36,15 @@ stop_pid_tree() {
   kill -KILL "$pid" 2>/dev/null || true
 }
 
+port_listener_pids() {
+  local port="$1"
+  ss -ltnp 2>/dev/null | awk -v port=":$port" '$4 ~ port { print $0 }' | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' | sort -u
+}
+
 stop_port_listeners() {
   local port="$1"
   local pid cwd cmd pids
-  pids="$(ss -ltnp 2>/dev/null | awk -v port=":$port" '$4 ~ port { print $0 }' | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' | sort -u)"
+  pids="$(port_listener_pids "$port")"
 
   for pid in $pids; do
     cwd="$(readlink -f "/proc/$pid/cwd" 2>/dev/null || true)"
@@ -52,6 +57,16 @@ stop_port_listeners() {
       exit 1
     fi
   done
+
+  for _ in $(seq 1 10); do
+    if [ -z "$(port_listener_pids "$port")" ]; then
+      return 0
+    fi
+    sleep 1
+  done
+
+  echo "Port $port is still occupied after stop attempt: $(port_listener_pids "$port")" >&2
+  exit 1
 }
 
 if [ ! -d "$REPO_ROOT/.git" ]; then
@@ -154,6 +169,13 @@ if ! curl -fsS "http://$HOST:$PORT" >/dev/null 2>&1; then
   exit 1
 fi
 
+LISTENER_PID="$(port_listener_pids "$PORT" | head -n 1)"
+if [ -z "$LISTENER_PID" ]; then
+  echo "Next.js health check passed but no listener pid was found on $HOST:$PORT" >&2
+  exit 1
+fi
+echo "$LISTENER_PID" > "$PID_FILE"
+
 COMMIT_SHA="$(git rev-parse HEAD)"
 BUILD_TIME="$(date '+%Y-%m-%d %H:%M:%S')"
 
@@ -165,7 +187,7 @@ cat > "$DEPLOY_META" <<EOF
   "host": "$HOST",
   "m2m_port": $M2M_PORT,
   "m2m_host": "$M2M_HOST",
-  "pid": $NEW_PID,
+  "pid": $LISTENER_PID,
   "m2m_pid": $NEW_M2M_PID,
   "deployed_at": "$BUILD_TIME"
 }
@@ -173,7 +195,7 @@ EOF
 
 echo "LeadPulse fixed domain deploy complete"
 echo "commit=$COMMIT_SHA"
-echo "pid=$NEW_PID"
+echo "pid=$LISTENER_PID"
 echo "m2m_pid=$NEW_M2M_PID"
 echo "port=$PORT"
 echo "m2m_port=$M2M_PORT"
