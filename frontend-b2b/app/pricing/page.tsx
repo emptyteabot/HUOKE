@@ -1,93 +1,132 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Check, ShieldCheck } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 import { MarketingPageShell } from '../../components/marketing-page-shell';
-import { CREDITS_POLICY_CARDS, PRICING_CEILING_NOTE, TARGET_AUDIENCE_ONE_LINER, getCreditPackages } from '../../lib/pricing';
+import { getCreditPackages } from '../../lib/pricing';
 
 export const metadata: Metadata = {
-  title: 'LP Coin 充值包',
-  description: 'LeadPulse 采用预充值积分制，按线索过滤结果扣费，不做自动续费订阅。',
+  title: '方案与定价',
+  description: '先确认 LeadPulse 的线索质量，再决定是否充值放量。',
 };
+
+const planFeatures: Record<string, string[]> = {
+  trial: ['查看真实线索样本', '看到来源和上下文', '判断客户是否真的有需求', '不用先付款'],
+  icebreaker: ['小额验证一个方向', '适合创始人亲自试跑', '看清关键词和平台质量', '到账后自动发放'],
+  standard: ['持续查看高意向线索', '购买信号 AI 标签', '来源和上下文完整保留', '筛选、状态管理、一键导出'],
+  enterprise: ['适合高频筛选', '多渠道线索池', '配合销售团队持续回收', '余额充足时稳定放量'],
+};
+
+const chooseCards = [
+  {
+    title: '不确定行不行？',
+    dot: 'bg-slate-300',
+    detail: '直接先用免费体验额度。如果你卖的东西比较冷门，或者不知道客户平时在哪讨论，先看样本最稳妥。',
+  },
+  {
+    title: '团队有执行力？',
+    dot: 'bg-blue-500',
+    detail: '选标准包。每天花 10 分钟在工作台看新线索，遇到合适的直接分配给销售去私信或触达。',
+  },
+  {
+    title: '只要现成结果？',
+    dot: 'bg-slate-800',
+    detail: '选企业包。你提要求，我们把规则、过滤、复核和交付边界整理清楚，再稳定放量。',
+  },
+];
 
 export default function PricingPage() {
   const packages = getCreditPackages();
 
   return (
     <MarketingPageShell
-      eyebrow="LP Coin 充值包"
-      title="不卖月费，只卖能被扣账验证的线索结果。"
-      description="国内 B 端不缺工具账号，缺的是确定性线索。LeadPulse 采用先充值、后调用、按结果扣费。"
-      typeLine="免费体验先跑通；充值包用于持续提取高意向商机。"
-      primaryCta={{ href: '/pay?package=standard', label: '充值 LP Coin' }}
-      secondaryCta={{ href: '/dashboard/billing', label: '查看余额' }}
+      eyebrow="方案与定价"
+      title={
+        <>
+          先确认线索质量，
+          <br />
+          <span className="text-gradient">再决定投入。</span>
+        </>
+      }
+      description="从免费样本开始，判断公开平台线索是否适合你的业务。确认有效后，再选择小额试跑、标准放量，或让我们先代跑一轮。"
+      typeLine="先验证，再充值；余额不足就停，不搞默认自动续费。"
+      primaryCta={{ href: '/book', label: '免费查看样本' }}
+      secondaryCta={{ href: '/pay?package=standard', label: '直接充值' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <div className="grid gap-4 lg:grid-cols-4">
-          {packages.map((item) => (
-            <article key={item.id} className={item.highlight ? 'lead-card border-slate-950 bg-white p-6' : 'lead-card p-6'}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-sm font-extrabold text-slate-950">{item.name}</div>
-                  <h2 className="mt-3 text-4xl font-extrabold tracking-tight text-slate-950">￥{item.priceCny}</h2>
-                  <div className="mt-1 text-sm font-semibold text-slate-500">{item.credits} LP Coin</div>
-                </div>
-                {item.highlight ? <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-bold text-white">推荐</span> : null}
-              </div>
-
-              <p className="mt-4 text-sm leading-7 text-slate-600">{item.description}</p>
-
-              <div className="mt-6 space-y-3">
-                {[item.bestFor, `赠送 ${item.bonusCredits} LP Coin`, item.requiresPayment ? '到账后自动发放' : '新账户自动发放'].map(
-                  (feature) => (
-                    <div key={feature} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                      <span>{feature}</span>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {packages.map((item) => {
+            const isFeatured = item.id === 'standard';
+            return (
+              <article
+                key={item.id}
+                className={
+                  isFeatured
+                    ? 'relative flex h-full flex-col overflow-hidden rounded-[24px] border border-slate-800 bg-slate-950 p-7 text-white shadow-2xl shadow-slate-900/20'
+                    : 'lead-glass flex h-full flex-col rounded-[24px] p-7'
+                }
+              >
+                {isFeatured ? (
+                  <>
+                    <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 rounded-full bg-blue-500/20 blur-[70px]" />
+                    <div className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-lg bg-blue-500 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+                      推荐
                     </div>
-                  ),
-                )}
-              </div>
+                  </>
+                ) : null}
 
-              <Link href={item.paymentUrl} className="lead-button lead-button-secondary mt-6 w-full text-sm">
-                {item.ctaLabel}
-              </Link>
-            </article>
-          ))}
+                <div className="relative z-10 mt-2">
+                  <h2 className={isFeatured ? 'text-lg font-bold text-white' : 'text-lg font-bold text-slate-950'}>{item.name}</h2>
+                  <div className="mt-3 flex items-baseline gap-1">
+                    <span className={isFeatured ? 'text-5xl font-extrabold text-white' : 'text-4xl font-extrabold text-slate-950'}>
+                      ￥{item.priceCny}
+                    </span>
+                    <span className={isFeatured ? 'text-sm font-medium text-blue-200' : 'text-sm font-medium text-slate-500'}>
+                      {item.requiresPayment ? ' / 包' : ' / 体验'}
+                    </span>
+                  </div>
+                  <p className={isFeatured ? 'mt-4 text-sm font-light leading-7 text-slate-300' : 'mt-4 text-sm font-light leading-7 text-slate-500'}>
+                    适合：{item.bestFor}
+                  </p>
+                </div>
+
+                <ul className="relative z-10 mt-7 flex-1 space-y-4">
+                  {(planFeatures[item.id] || []).map((feature) => (
+                    <li key={feature} className={isFeatured ? 'flex items-start gap-3 text-sm text-slate-200' : 'flex items-start gap-3 text-sm text-slate-700'}>
+                      <CheckCircle2 className={isFeatured ? 'mt-0.5 h-5 w-5 shrink-0 text-blue-400' : 'mt-0.5 h-5 w-5 shrink-0 text-slate-300'} />
+                      <span className="leading-relaxed">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href={item.paymentUrl}
+                  className={
+                    isFeatured
+                      ? 'relative z-10 mt-8 inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-4 font-semibold text-slate-950 transition hover:bg-blue-50'
+                      : 'mt-8 inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50'
+                  }
+                >
+                  {item.id === 'trial' ? '免费查看样本' : item.ctaLabel}
+                </Link>
+              </article>
+            );
+          })}
         </div>
       </section>
 
-      <section className="mx-auto mt-8 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="grid gap-8 xl:grid-cols-[1.02fr_0.98fr]">
-          <section className="lead-card p-6">
-            <div className="text-sm font-extrabold text-slate-950">为什么这样定价</div>
-            <p className="mt-4 text-sm leading-7 text-slate-600">{TARGET_AUDIENCE_ONE_LINER}</p>
-            <p className="mt-3 text-sm leading-7 text-slate-600">{PRICING_CEILING_NOTE}</p>
-            <div className="mt-6 grid gap-3">
-              {['噪声拦截费：-1 LP Coin / 条', '高优线索提取费：-50 LP Coin / 条', '对赌失败免单：无效高优线索退回 50 LP Coin'].map(
-                (row) => (
-                  <div key={row} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold leading-7 text-slate-700">
-                    {row}
-                  </div>
-                ),
-              )}
-            </div>
-          </section>
-
-          <section className="lead-card p-6">
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="h-5 w-5 text-slate-800" />
-              <div className="text-sm font-extrabold text-slate-950">计费规则</div>
-            </div>
-
-            <div className="mt-6 space-y-4">
-              {CREDITS_POLICY_CARDS.map((card) => (
-                <article key={card.title} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-                  <h3 className="text-lg font-extrabold text-slate-950">{card.title}</h3>
-                  <div className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm leading-7 text-slate-600">{card.description}</div>
-                </article>
-              ))}
-            </div>
-          </section>
+      <section className="mx-auto max-w-5xl border-t border-slate-200/60 px-4 pb-20 pt-16 sm:px-6 lg:px-8">
+        <h2 className="text-center text-2xl font-bold text-slate-950">怎么选？</h2>
+        <div className="mt-8 grid gap-8 md:grid-cols-3">
+          {chooseCards.map((card) => (
+            <article key={card.title}>
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-950">
+                <span className={`h-1.5 w-1.5 rounded-full ${card.dot}`} />
+                {card.title}
+              </h3>
+              <p className="text-sm font-light leading-7 text-slate-500">{card.detail}</p>
+            </article>
+          ))}
         </div>
       </section>
     </MarketingPageShell>

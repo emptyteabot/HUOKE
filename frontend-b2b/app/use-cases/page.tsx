@@ -43,7 +43,7 @@ const loops = [
   },
   {
     title: '承接到预约和充值',
-    description: '同一条路径把线索推进到 Discovery Call、LP Coin 充值和后续交付。',
+    description: '同一条路径把线索推进到预约电话、充值试跑和后续交付。',
     icon: ArrowRight,
   },
 ];
@@ -55,7 +55,7 @@ export default function UseCasesPage() {
       title="适合想从公开讨论里提前截获需求的团队。"
       description="LeadPulse 不适合所有行业。它最适合客单价足够、客户会在公开平台提问，并且销售愿意主动跟进的业务。"
       typeLine="先用免费额度验证一个场景，再决定是否放量。"
-      primaryCta={{ href: '/register?plan=free', label: '领取体验额度' }}
+      primaryCta={{ href: '/book', label: '免费查看线索样本' }}
       secondaryCta={{ href: '/book', label: '预约 15 分钟' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -79,7 +79,7 @@ export default function UseCasesPage() {
       <section className="mx-auto mt-8 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
           <section className="lead-card p-6">
-            <div className="lead-pill">Operating Loop</div>
+            <div className="lead-pill">工作闭环</div>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">同一套动作，适配不同团队。</h2>
             <div className="mt-6 space-y-4">
               {loops.map((item) => {
@@ -100,20 +100,20 @@ export default function UseCasesPage() {
           </section>
 
           <section className="lead-card p-6">
-            <div className="lead-pill">Entry Point</div>
+            <div className="lead-pill">选择入口</div>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">选择最适合你的入口。</h2>
             <p className="mt-4 text-sm leading-7 text-slate-600">
-              如果还在验证需求，先领体验额度。如果已经有明确场景和预算，直接充值 LP Coin。边界不清楚，就先预约电话。
+              如果还在验证需求，先看真实样本。如果已经有明确场景和预算，直接充值试跑。边界不清楚，就先预约电话。
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Link href="/register?plan=free" className="lead-button lead-button-primary">
-                领取体验额度
+              <Link href="/book" className="lead-button lead-button-primary">
+                免费查看线索样本
               </Link>
               <Link href="/book" className="lead-button lead-button-secondary">
                 预约 15 分钟
               </Link>
               <Link href="/pay?package=standard" className="lead-button lead-button-secondary">
-                充值 LP Coin
+                直接充值试跑
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

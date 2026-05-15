@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 
 import { withBasePath } from '../lib/base-path';
@@ -77,10 +76,10 @@ export function BookingRequestForm() {
   };
 
   return (
-    <div className="lead-card p-6">
-      <h3 className="text-2xl font-extrabold text-slate-950">提交预约请求</h3>
-      <p className="mt-2 text-sm leading-7 text-slate-600">
-        留一个方便沟通的时间段。我们先判断你的业务是否适合从公开讨论里提取高意向线索，不会一上来硬推方案。
+    <div className="lead-glass rounded-[24px] border border-white/80 p-6 shadow-xl shadow-slate-200/20 md:p-8">
+      <h3 className="text-xl font-bold text-slate-950">提交预约请求</h3>
+      <p className="mt-2 text-sm font-light leading-7 text-slate-600">
+        留一个方便沟通的时间段。我们先判断你的业务是否适合从公开讨论里提取高意向线索。
       </p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -91,18 +90,18 @@ export function BookingRequestForm() {
               className="lead-input"
               value={formState.name}
               onChange={(event) => updateField('name', event.target.value)}
-              placeholder="创始人 / 负责人"
+              placeholder="您的称呼"
               required
             />
           </label>
           <label className="space-y-2 text-sm font-semibold text-slate-700">
-            <span>邮箱</span>
+            <span>邮箱 / 微信号</span>
             <input
               type="email"
               className="lead-input"
               value={formState.email}
               onChange={(event) => updateField('email', event.target.value)}
-              placeholder="you@company.com"
+              placeholder="方便联系的方式"
               required
             />
           </label>
@@ -110,12 +109,12 @@ export function BookingRequestForm() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2 text-sm font-semibold text-slate-700">
-            <span>公司 / 项目</span>
+            <span>公司 / 项目名称</span>
             <input
               className="lead-input"
               value={formState.company}
               onChange={(event) => updateField('company', event.target.value)}
-              placeholder="产品名或团队名"
+              placeholder="您代表的业务"
             />
           </label>
           <label className="space-y-2 text-sm font-semibold text-slate-700">
@@ -152,12 +151,12 @@ export function BookingRequestForm() {
         </div>
 
         <label className="space-y-2 text-sm font-semibold text-slate-700">
-          <span>背景补充</span>
+          <span>背景补充（选填）</span>
           <textarea
             className="lead-input lead-textarea"
             value={formState.context}
             onChange={(event) => updateField('context', event.target.value)}
-            placeholder="简单说一下你卖什么、想找哪类客户、现在最大的获客难点是什么。"
+            placeholder="简单说明一下您想解决的问题，让我们的沟通更高效。"
           />
         </label>
 
@@ -197,15 +196,7 @@ export function BookingRequestForm() {
         </button>
 
         <p className="text-xs leading-6 text-slate-500">
-          提交后会进入预约队列并触发通知。详情可查看
-          <Link href="/privacy" className="mx-1 underline underline-offset-4 hover:text-slate-900">
-            隐私说明
-          </Link>
-          和
-          <Link href="/terms" className="ml-1 underline underline-offset-4 hover:text-slate-900">
-            服务条款
-          </Link>
-          。
+          提交后会进入预约队列。我们只用这些信息判断是否适合继续，不做无关打扰。
         </p>
       </form>
     </div>

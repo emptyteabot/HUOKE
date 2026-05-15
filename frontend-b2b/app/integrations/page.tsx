@@ -18,7 +18,7 @@ const nativeGroups = [
   },
   {
     title: '充值与余额',
-    description: '线索提取和扣费统一落到 LP Coin 余额，避免人工催款和应收账款。',
+    description: '线索提取和扣费统一落到余额，避免人工催款和应收账款。',
     points: ['充值订单', '余额变化', '扣费记录'],
     icon: CreditCard,
   },
@@ -91,7 +91,7 @@ export default function IntegrationsPage() {
                 <Workflow className="h-5 w-5 text-slate-800" />
               </div>
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">Workflow Stack</div>
+                <div className="text-[11px] font-bold tracking-[0.24em] text-slate-500">工作流</div>
                 <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-950">从公开信号到销售动作</h2>
               </div>
             </div>
@@ -128,7 +128,7 @@ export default function IntegrationsPage() {
                 预约集成诊断
               </Link>
               <Link href="/pay?package=standard" className="lead-button lead-button-secondary">
-                充值 LP Coin
+                直接充值试跑
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

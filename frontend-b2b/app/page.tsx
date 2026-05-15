@@ -298,13 +298,13 @@ export default function HomePage() {
 
           <nav className="hidden items-center gap-7 text-sm font-medium text-slate-500 md:flex">
             <Link href="#product" className="transition hover:text-slate-950">
-              产品
+              工作流
             </Link>
             <Link href="/pricing" className="transition hover:text-slate-950">
-              定价
+              方案与定价
             </Link>
-            <Link href="/privacy" className="transition hover:text-slate-950">
-              隐私政策
+            <Link href="/faq" className="transition hover:text-slate-950">
+              常见问题
             </Link>
           </nav>
 
@@ -312,7 +312,7 @@ export default function HomePage() {
             href="/book"
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
           >
-            立即获取线索
+            开始免费体验
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

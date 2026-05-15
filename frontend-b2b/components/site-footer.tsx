@@ -3,10 +3,10 @@ import { Activity } from 'lucide-react';
 
 export function SiteFooter() {
   return (
-    <footer className="relative z-10 border-t border-slate-200/70 bg-white px-4 py-10 text-sm text-slate-500 sm:px-6 lg:px-8">
+    <footer className="relative z-10 border-t border-slate-100 bg-white px-4 py-12 text-sm text-slate-500 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold text-slate-950">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-950 text-white">
+          <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-slate-950 text-white">
             <Activity className="h-3.5 w-3.5" />
           </span>
           LeadPulse
@@ -18,9 +18,6 @@ export function SiteFooter() {
           </Link>
           <Link href="/pricing" className="transition hover:text-slate-950">
             定价
-          </Link>
-          <Link href="/dashboard/billing" className="transition hover:text-slate-950">
-            余额
           </Link>
           <Link href="/privacy" className="transition hover:text-slate-950">
             隐私政策

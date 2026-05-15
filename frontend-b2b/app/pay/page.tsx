@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShieldCheck } from 'lucide-react';
+import { CheckCircle2, ShieldCheck } from 'lucide-react';
 
 import { LpCoinCheckout } from '../../components/lp-coin-checkout';
 import { SiteFooter } from '../../components/site-footer';
@@ -14,7 +14,7 @@ type SearchParams = Promise<{
 }>;
 
 export const metadata: Metadata = {
-  title: '充值 LP Coin',
+  title: '充值试跑',
   description: 'LeadPulse 采用预充值积分制：先充值，后提取，高意向线索按结果扣费。',
 };
 
@@ -26,16 +26,18 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
   return (
     <main className="lead-surface relative min-h-screen overflow-hidden text-slate-950">
       <div className="lead-grid-bg pointer-events-none absolute inset-0" />
-      <SiteHeader ctaHref="/dashboard/billing" ctaLabel="查看余额" />
+      <SiteHeader ctaHref="/book" ctaLabel="先预约判断" />
 
-      <section className="relative z-10 mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="max-w-4xl">
-          <p className="lead-pill">LP Coin</p>
-          <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-slate-950 md:text-5xl">
-            先充值，后提取。只为确定性线索付费。
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto max-w-4xl text-center lead-fade-up">
+          <p className="lead-pill mx-auto">充值试跑</p>
+          <h1 className="mt-5 text-[2.5rem] font-extrabold leading-[1.1] tracking-tight text-slate-950 md:text-[3.5rem]">
+            确认要跑线索，
+            <br />
+            再<span className="text-gradient">充值放量。</span>
           </h1>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
-            LeadPulse 不卖月费订阅。1 LP Coin = 1 元人民币。自动收银台到账后发放积分，接口异常时可用备用收款码兜底。
+          <p className="mx-auto mt-5 max-w-3xl text-lg font-light leading-8 text-slate-600">
+            先看样本，确认线索质量和行业方向。确定继续后再充值试跑，到账后自动发放积分，余额不足就停止提取。
           </p>
         </div>
 
@@ -49,7 +51,7 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
           <LpCoinCheckout packages={packages} defaultPackageId={selectedPackage === 'trial' ? 'standard' : selectedPackage} />
         </div>
 
-        <section className="lead-card mt-10 p-6">
+        <section className="lead-glass mt-10 rounded-[24px] p-6">
           <div className="flex items-center gap-3">
             <ShieldCheck className="h-5 w-5 text-slate-800" />
             <h2 className="text-xl font-extrabold text-slate-950">免费体验额度仍然保留</h2>
@@ -57,9 +59,14 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
           <p className="mt-4 text-sm leading-7 text-slate-600">
             新用户默认有 60 LP Coin 和 3 次免费导出。额度用完后再充值即可，不会自动续费。
           </p>
-          <Link href="/dashboard/billing" className="lead-button lead-button-secondary mt-5 text-sm">
-            查看当前余额
-          </Link>
+          <div className="mt-5 grid gap-3 text-sm leading-7 text-slate-600 md:grid-cols-3">
+            {['新用户默认有 60 积分', '前 3 次导出先体验', '不做默认自动续费'].map((item) => (
+              <div key={item} className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white/70 px-4 py-3">
+                <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
         </section>
       </section>
 
