@@ -1,7 +1,7 @@
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
 
-const dbPath = path.join(process.cwd(), '..', 'data', 'leadpulse_state.sqlite');
+const statePath = path.join(process.cwd(), '..', 'data', 'leadpulse_state.json');
 const namespaces = [
   'intake:design_partner',
   'intake:booking_request',
@@ -15,14 +15,23 @@ const namespaces = [
   'ops:agent_runtime_snapshot',
 ];
 
-const db = new DatabaseSync(dbPath);
+function readDocuments() {
+  if (!existsSync(statePath)) {
+    return [];
+  }
 
-const rows = namespaces.map((namespace) => {
-  const row = db.prepare('SELECT COUNT(*) AS count FROM documents WHERE namespace = ?').get(namespace);
-  return {
-    namespace,
-    count: row.count,
-  };
-});
+  try {
+    const parsed = JSON.parse(readFileSync(statePath, 'utf-8'));
+    return Array.isArray(parsed?.documents) ? parsed.documents : [];
+  } catch {
+    return [];
+  }
+}
+
+const documents = readDocuments();
+const rows = namespaces.map((namespace) => ({
+  namespace,
+  count: documents.filter((item) => item.namespace === namespace).length,
+}));
 
 console.table(rows);

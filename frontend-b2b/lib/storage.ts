@@ -1,6 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, statSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'fs';
 import path from 'path';
-import { DatabaseSync } from 'node:sqlite';
 
 type LegacyImportOptions = {
   legacyFilePath?: string;
@@ -8,59 +7,112 @@ type LegacyImportOptions = {
   syncLegacyOnChange?: boolean;
 };
 
-const dataDir = path.join(process.cwd(), '..', 'data');
-const dbPath = path.join(dataDir, 'leadpulse_state.sqlite');
+type StoredDocument = {
+  namespace: string;
+  id: string;
+  payload: string;
+  created_at: string;
+  updated_at: string;
+};
 
-let dbInstance: DatabaseSync | null = null;
+type StateFile = {
+  meta: Record<string, string>;
+  documents: StoredDocument[];
+};
+
+const dataDir = path.join(process.cwd(), '..', 'data');
+const statePath = path.join(dataDir, 'leadpulse_state.json');
+
+let stateInstance: StateFile | null = null;
 
 function nowIso() {
   return new Date().toISOString();
 }
 
-function getDb() {
-  if (dbInstance) {
-    return dbInstance;
+function emptyState(): StateFile {
+  return {
+    meta: {},
+    documents: [],
+  };
+}
+
+function readStateFromDisk(): StateFile {
+  if (!existsSync(statePath)) {
+    return emptyState();
+  }
+
+  try {
+    const parsed = JSON.parse(readFileSync(statePath, 'utf-8')) as Partial<StateFile>;
+    return {
+      meta: parsed.meta && typeof parsed.meta === 'object' ? parsed.meta : {},
+      documents: Array.isArray(parsed.documents)
+        ? parsed.documents.filter(
+            (item): item is StoredDocument =>
+              Boolean(item) &&
+              typeof item.namespace === 'string' &&
+              typeof item.id === 'string' &&
+              typeof item.payload === 'string',
+          )
+        : [],
+    };
+  } catch {
+    return emptyState();
+  }
+}
+
+function getState() {
+  if (stateInstance) {
+    return stateInstance;
   }
 
   mkdirSync(dataDir, { recursive: true });
-  dbInstance = new DatabaseSync(dbPath);
-  dbInstance.exec(`
-    PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS documents (
-      namespace TEXT NOT NULL,
-      id TEXT NOT NULL,
-      payload TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      PRIMARY KEY (namespace, id)
-    );
-    CREATE TABLE IF NOT EXISTS meta (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL
-    );
-  `);
+  stateInstance = readStateFromDisk();
+  return stateInstance;
+}
 
-  return dbInstance;
+function persistState() {
+  if (!stateInstance) {
+    return;
+  }
+
+  mkdirSync(dataDir, { recursive: true });
+  const tmpPath = `${statePath}.tmp`;
+  writeFileSync(tmpPath, `${JSON.stringify(stateInstance, null, 2)}\n`, 'utf-8');
+  renameSync(tmpPath, statePath);
 }
 
 function getMeta(key: string) {
-  const db = getDb();
-  const row = db.prepare('SELECT value FROM meta WHERE key = ?').get(key) as { value: string } | undefined;
-  return row?.value || '';
+  const state = getState();
+  return state.meta[key] || '';
 }
 
 function setMeta(key: string, value: string) {
-  const db = getDb();
-  db.prepare(`
-    INSERT INTO meta (key, value)
-    VALUES (?, ?)
-    ON CONFLICT(key) DO UPDATE SET value = excluded.value
-  `).run(key, value);
+  const state = getState();
+  state.meta[key] = value;
+  persistState();
 }
 
 function clearNamespace(namespace: string) {
-  const db = getDb();
-  db.prepare('DELETE FROM documents WHERE namespace = ?').run(namespace);
+  const state = getState();
+  state.documents = state.documents.filter((item) => item.namespace !== namespace);
+  persistState();
+}
+
+function upsertStoredDocument(document: StoredDocument) {
+  const state = getState();
+  const existingIndex = state.documents.findIndex(
+    (item) => item.namespace === document.namespace && item.id === document.id,
+  );
+
+  if (existingIndex >= 0) {
+    state.documents[existingIndex] = {
+      ...state.documents[existingIndex],
+      ...document,
+      created_at: state.documents[existingIndex].created_at || document.created_at,
+    };
+  } else {
+    state.documents.push(document);
+  }
 }
 
 function importLegacyCollection(namespace: string, options: LegacyImportOptions = {}) {
@@ -71,27 +123,25 @@ function importLegacyCollection(namespace: string, options: LegacyImportOptions 
 
   try {
     const raw = readFileSync(legacyFilePath, 'utf-8');
-    const db = getDb();
-    const insert = db.prepare(`
-      INSERT OR REPLACE INTO documents (namespace, id, payload, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
     const upsertOne = (item: Record<string, unknown>) => {
       const id = String(item.id || legacyIdResolver?.(item) || '').trim();
       if (!id) {
         return;
       }
+
       const createdAt = String(item.createdAt || nowIso());
       const updatedAt = String(item.updatedAt || item.createdAt || nowIso());
-      insert.run(namespace, id, JSON.stringify(item), createdAt, updatedAt);
+      upsertStoredDocument({
+        namespace,
+        id,
+        payload: JSON.stringify(item),
+        created_at: createdAt,
+        updated_at: updatedAt,
+      });
     };
 
     const parsed = JSON.parse(raw) as Record<string, unknown> | Array<Record<string, unknown>>;
     if (Array.isArray(parsed)) {
-      if (parsed.length === 0) {
-        return;
-      }
       for (const item of parsed) {
         upsertOne(item);
       }
@@ -102,7 +152,7 @@ function importLegacyCollection(namespace: string, options: LegacyImportOptions 
       upsertOne(parsed);
     }
   } catch {
-    // If legacy import fails, keep the namespace empty and let callers continue.
+    // Legacy files are best-effort imports. Runtime writes still continue.
   }
 }
 
@@ -132,15 +182,19 @@ export async function ensureNamespace(namespace: string, options: LegacyImportOp
   if (legacyMtime) {
     setMeta(legacyMtimeKey, legacyMtime);
   }
+  persistState();
 }
 
 export async function readNamespace<T>(namespace: string, options: LegacyImportOptions = {}) {
   await ensureNamespace(namespace, options);
-  const db = getDb();
-  const rows = db
-    .prepare('SELECT payload FROM documents WHERE namespace = ? ORDER BY created_at ASC, id ASC')
-    .all(namespace) as Array<{ payload: string }>;
-  return rows.map((row) => JSON.parse(row.payload) as T);
+  const state = getState();
+  return state.documents
+    .filter((item) => item.namespace === namespace)
+    .sort((left, right) => {
+      const timeDiff = left.created_at.localeCompare(right.created_at);
+      return timeDiff || left.id.localeCompare(right.id);
+    })
+    .map((item) => JSON.parse(item.payload) as T);
 }
 
 export async function getNamespaceRecordById<T>(
@@ -149,10 +203,8 @@ export async function getNamespaceRecordById<T>(
   options: LegacyImportOptions = {},
 ) {
   await ensureNamespace(namespace, options);
-  const db = getDb();
-  const row = db
-    .prepare('SELECT payload FROM documents WHERE namespace = ? AND id = ?')
-    .get(namespace, id) as { payload: string } | undefined;
+  const state = getState();
+  const row = state.documents.find((item) => item.namespace === namespace && item.id === id);
   return row ? (JSON.parse(row.payload) as T) : null;
 }
 
@@ -162,21 +214,19 @@ export async function upsertNamespaceRecord<T extends { id: string }>(
   options: LegacyImportOptions = {},
 ) {
   await ensureNamespace(namespace, options);
-  const db = getDb();
-  const existing = db
-    .prepare('SELECT created_at FROM documents WHERE namespace = ? AND id = ?')
-    .get(namespace, record.id) as { created_at: string } | undefined;
-
+  const state = getState();
+  const existing = state.documents.find((item) => item.namespace === namespace && item.id === record.id);
   const createdAt = String((record as Record<string, unknown>).createdAt || existing?.created_at || nowIso());
   const updatedAt = String((record as Record<string, unknown>).updatedAt || nowIso());
 
-  db.prepare(`
-    INSERT INTO documents (namespace, id, payload, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?)
-    ON CONFLICT(namespace, id) DO UPDATE SET
-      payload = excluded.payload,
-      updated_at = excluded.updated_at
-  `).run(namespace, record.id, JSON.stringify(record), createdAt, updatedAt);
+  upsertStoredDocument({
+    namespace,
+    id: record.id,
+    payload: JSON.stringify(record),
+    created_at: createdAt,
+    updated_at: updatedAt,
+  });
+  persistState();
 
   return record;
 }

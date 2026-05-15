@@ -1,16 +1,55 @@
 import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { DatabaseSync } from 'node:sqlite';
 
 const repoRoot = path.resolve(process.cwd());
 const dataDir = path.join(repoRoot, '..', 'data');
-const dbPath = path.join(dataDir, 'leadpulse_state.sqlite');
+const statePath = path.join(dataDir, 'leadpulse_state.json');
 const namespace = 'commerce:redeem_codes';
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function readState() {
+  if (!existsSync(statePath)) {
+    return { meta: {}, documents: [] };
+  }
+
+  try {
+    const parsed = JSON.parse(readFileSync(statePath, 'utf-8'));
+    return {
+      meta: parsed && typeof parsed.meta === 'object' ? parsed.meta : {},
+      documents: Array.isArray(parsed?.documents) ? parsed.documents : [],
+    };
+  } catch {
+    return { meta: {}, documents: [] };
+  }
+}
+
+function writeState(state) {
+  mkdirSync(dataDir, { recursive: true });
+  const tmpPath = `${statePath}.tmp`;
+  writeFileSync(tmpPath, `${JSON.stringify(state, null, 2)}\n`, 'utf-8');
+  renameSync(tmpPath, statePath);
+}
+
+function upsertDocument(state, document) {
+  const existingIndex = state.documents.findIndex(
+    (item) => item.namespace === document.namespace && item.id === document.id,
+  );
+
+  if (existingIndex >= 0) {
+    state.documents[existingIndex] = {
+      ...state.documents[existingIndex],
+      ...document,
+      created_at: state.documents[existingIndex].created_at || document.created_at,
+    };
+  } else {
+    state.documents.push(document);
+  }
 }
 
 function generateCode(length = 12) {
@@ -64,28 +103,10 @@ function parseArgs() {
   return args;
 }
 
-function ensureDb(db) {
-  db.exec(`
-    PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS documents (
-      namespace TEXT NOT NULL,
-      id TEXT NOT NULL,
-      payload TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      PRIMARY KEY (namespace, id)
-    );
-    CREATE TABLE IF NOT EXISTS meta (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL
-    );
-  `);
-}
-
-function existingCodes(db) {
-  const rows = db.prepare('SELECT payload FROM documents WHERE namespace = ?').all(namespace);
+function existingCodes(state) {
   return new Set(
-    rows
+    state.documents
+      .filter((item) => item.namespace === namespace)
       .map((row) => {
         try {
           const payload = JSON.parse(String(row.payload || '{}'));
@@ -99,13 +120,8 @@ function existingCodes(db) {
 }
 
 const args = parseArgs();
-const db = new DatabaseSync(dbPath);
-ensureDb(db);
-const insert = db.prepare(`
-  INSERT INTO documents (namespace, id, payload, created_at, updated_at)
-  VALUES (?, ?, ?, ?, ?)
-`);
-const seen = existingCodes(db);
+const state = readState();
+const seen = existingCodes(state);
 const created = [];
 
 for (let index = 0; index < args.count; index += 1) {
@@ -139,8 +155,15 @@ for (let index = 0; index < args.count; index += 1) {
     fulfillmentSourceId: `redeem_${randomUUID().slice(0, 8)}`,
   };
 
-  insert.run(namespace, payload.id, JSON.stringify(payload), now, now);
+  upsertDocument(state, {
+    namespace,
+    id: payload.id,
+    payload: JSON.stringify(payload),
+    created_at: now,
+    updated_at: now,
+  });
   created.push(payload);
 }
 
+writeState(state);
 console.log(JSON.stringify({ created }, null, 2));

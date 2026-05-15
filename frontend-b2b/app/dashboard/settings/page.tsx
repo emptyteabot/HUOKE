@@ -245,7 +245,7 @@ export default function SettingsPage() {
           {statusCard({
             label: "Supabase",
             value: supabaseReady ? "ready" : "fallback",
-            helper: supabaseReady ? "leads API 可走远端表作为后备数据源。" : "当前更偏本地导出器 / snapshot / sqlite 状态库。",
+            helper: supabaseReady ? "leads API 可走远端表作为后备数据源。" : "当前更偏本地导出器 / snapshot 状态库。",
             tone: supabaseReady ? "good" : "neutral",
           })}
           {statusCard({
