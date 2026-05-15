@@ -1,22 +1,30 @@
-﻿import DashboardNav from "@/components/dashboard-nav";
+import Link from 'next/link';
+import { Activity } from 'lucide-react';
+
+import DashboardNav from '@/components/dashboard-nav';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="lp-shell">
-      <header className="lp-card" style={{ padding: 16, marginBottom: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <div>
-            <div className="lp-badge" style={{ marginBottom: 8 }}>Workspace Console</div>
-            <div style={{ fontWeight: 800, fontSize: 20 }}>LeadPulse · Revenue Workspace</div>
-            <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>
-              Leads / Messages / Tasks / Billing / Fulfillment
-            </div>
+    <main className="lead-surface relative min-h-screen overflow-hidden text-slate-950">
+      <div className="lead-grid-bg pointer-events-none absolute inset-0" />
+      <div className="relative z-10 lp-shell">
+        <header className="lp-card mb-4 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <Link href="/" className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-950 text-white">
+                <Activity className="h-4 w-4" />
+              </span>
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">LeadPulse</div>
+                <div className="mt-1 text-lg font-extrabold text-slate-950">线索作战台</div>
+              </div>
+            </Link>
+            <DashboardNav />
           </div>
-          <DashboardNav />
-        </div>
-      </header>
+        </header>
 
-      {children}
-    </div>
+        {children}
+      </div>
+    </main>
   );
 }

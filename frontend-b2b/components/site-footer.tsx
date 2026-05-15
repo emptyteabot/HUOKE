@@ -1,33 +1,33 @@
 import Link from 'next/link';
+import { Activity } from 'lucide-react';
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-black/5 px-6 py-8 text-sm text-[#86868b]">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-md">
-          <div className="text-slate-900 font-semibold">LeadPulse</div>
-          <div className="mt-2 leading-7">
-            帮你先看一轮真实样本，再决定自己做还是交给我们代跑。
-          </div>
-        </div>
+    <footer className="relative z-10 border-t border-slate-200/70 bg-white px-4 py-10 text-sm text-slate-500 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <Link href="/" className="flex items-center gap-2 font-bold text-slate-950">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-950 text-white">
+            <Activity className="h-3.5 w-3.5" />
+          </span>
+          LeadPulse
+        </Link>
 
-        <div className="flex flex-wrap gap-4 lg:gap-6">
+        <div className="flex flex-wrap gap-6 font-semibold">
           <Link href="/product" className="transition hover:text-slate-950">
-            产品介绍
+            产品
           </Link>
           <Link href="/pricing" className="transition hover:text-slate-950">
-            收费方式
+            定价
           </Link>
-          <Link href="/faq" className="transition hover:text-slate-950">
-            常见问题
+          <Link href="/dashboard/billing" className="transition hover:text-slate-950">
+            余额
           </Link>
           <Link href="/privacy" className="transition hover:text-slate-950">
-            隐私
-          </Link>
-          <Link href="/terms" className="transition hover:text-slate-950">
-            条款
+            隐私政策
           </Link>
         </div>
+
+        <div>2026 LeadPulse. 专注精准获客.</div>
       </div>
     </footer>
   );

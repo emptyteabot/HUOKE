@@ -1,27 +1,24 @@
 import type { Metadata } from 'next';
-import { Banknote, Cloud, CreditCard, FileJson2, GitFork, LineChart, MessageSquareQuote, ServerCog } from 'lucide-react';
+import { BellRing, CreditCard, Filter, LineChart, MessageSquareQuote, Send } from 'lucide-react';
 
 import { MarketingPageShell } from '../../components/marketing-page-shell';
 import { CREDITS_POLICY_CARDS, PRICING_CEILING_NOTE, getPricingPlans } from '../../lib/pricing';
 
 export const metadata: Metadata = {
   title: '平台',
-  description: 'LeadPulse 平台页：支付、credits、导出、部署、消息和经营数据的统一平台。',
+  description: 'LeadPulse 平台页：线索筛选、LP Coin、导出、通知和经营数据的统一工作台。',
 };
 
 const stackItems = [
-  { title: '公开站点', detail: '首页、演示、预约、付款和信任页统一输出。', icon: ServerCog },
-  { title: '结构化信息', detail: '定价、FAQ、SEO、条款和隐私保持同一口径。', icon: FileJson2 },
-  { title: '定价系统', detail: 'Free / Pro / Max 与 credits 逻辑统一。', icon: CreditCard },
+  { title: '公开讨论监听', detail: '看见论坛、评论区、社群和问答里的真实需求。', icon: MessageSquareQuote },
+  { title: '意图过滤', detail: '过滤垃圾链接，只保留求推荐、问报价、找服务商的信号。', icon: Filter },
+  { title: '积分扣费', detail: '噪声低价扣费，高意向线索按结果扣费。', icon: CreditCard },
 ];
 
 const modules = [
-  { title: 'Credits 引擎', description: '把动作消耗统一折算成 credits。', icon: CreditCard },
-  { title: '支付', description: '首笔确认、续费、取消和邀请奖励都在一个口径里。', icon: Banknote },
-  { title: '导出与 GitHub', description: '代码和资产可以留在你手里。', icon: GitFork },
-  { title: '部署', description: '页面和控制台走同一套部署链路。', icon: Cloud },
-  { title: '消息', description: '草稿、发送、退订和发送日志全部统一。', icon: MessageSquareQuote },
-  { title: '经营指标', description: '新增、回本、留存和退款统一回到系统里。', icon: LineChart },
+  { title: '线索池', description: '保留原文链接、上下文、评分和下一步动作。', icon: LineChart },
+  { title: '通知', description: '把高意向线索推给飞书、企业微信或销售负责人。', icon: BellRing },
+  { title: '导出', description: '余额和权限满足时导出线索，用于私信或 CRM 跟进。', icon: Send },
 ];
 
 export default function PlatformPage() {
@@ -30,24 +27,21 @@ export default function PlatformPage() {
   return (
     <MarketingPageShell
       eyebrow="平台"
-      title="把支付、credits 和执行都收成一个平台"
-      description="平台价值不在于模块更多，而在于口径更统一、动作更顺、资产更可复用。"
-      primaryCta={{ href: '/pay?plan=pro', label: '看定价与 credits' }}
-      secondaryCta={{ href: '/start?plan=pro', label: '打开启动页' }}
+      title="把线索、扣费和推进动作收成一个工作台。"
+      description="平台价值不在于模块更多，而在于每条高意向线索都有来源、判断、扣费和下一步动作。"
+      primaryCta={{ href: '/pricing', label: '查看充值包' }}
+      secondaryCta={{ href: '/dashboard/leads', label: '打开线索池' }}
     >
-      <section className="mx-auto max-w-7xl px-6 py-2 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="grid gap-4 lg:grid-cols-3">
           {stackItems.map((item) => {
             const Icon = item.icon;
             return (
-              <article
-                key={item.title}
-                className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]"
-              >
-                <div className="rounded-2xl border border-black/10 bg-[#f7f7f2] p-3 w-fit">
+              <article key={item.title} className="lead-card p-6">
+                <div className="w-fit rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <Icon className="h-5 w-5 text-slate-800" />
                 </div>
-                <h2 className="mt-5 text-xl font-semibold tracking-tight text-slate-950">{item.title}</h2>
+                <h2 className="mt-5 text-xl font-extrabold tracking-tight text-slate-950">{item.title}</h2>
                 <p className="mt-3 text-sm leading-7 text-slate-600">{item.detail}</p>
               </article>
             );
@@ -55,19 +49,16 @@ export default function PlatformPage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-10 max-w-7xl px-6 py-6 lg:px-8">
+      <section className="mx-auto mt-8 max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-4 xl:grid-cols-3">
           {modules.map((item) => {
             const Icon = item.icon;
             return (
-              <article
-                key={item.title}
-                className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]"
-              >
-                <div className="rounded-2xl border border-black/10 bg-[#f7f7f2] p-3 w-fit">
+              <article key={item.title} className="lead-card p-6">
+                <div className="w-fit rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <Icon className="h-5 w-5 text-slate-800" />
                 </div>
-                <h2 className="mt-5 text-xl font-semibold tracking-tight text-slate-950">{item.title}</h2>
+                <h2 className="mt-5 text-xl font-extrabold tracking-tight text-slate-950">{item.title}</h2>
                 <p className="mt-3 text-sm leading-7 text-slate-600">{item.description}</p>
               </article>
             );
@@ -75,40 +66,36 @@ export default function PlatformPage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-10 max-w-7xl px-6 pb-10 lg:px-8">
+      <section className="mx-auto mt-8 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[0.98fr_1.02fr]">
-          <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Pricing</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">三档价格，同一套平台逻辑</h2>
+          <section className="lead-card p-6">
+            <div className="lead-pill">Pricing</div>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">三档充值包，同一套扣费逻辑。</h2>
             <p className="mt-3 text-sm leading-7 text-slate-600">{PRICING_CEILING_NOTE}</p>
             <div className="mt-6 space-y-4">
               {pricingPlans.map((plan) => (
-                <article key={plan.id} className="interactive-panel rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
+                <article key={plan.id} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">{plan.name}</div>
-                      <div className="mt-2 text-2xl font-semibold text-slate-950">{plan.price}</div>
+                      <div className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">{plan.name}</div>
+                      <div className="mt-2 text-2xl font-extrabold text-slate-950">{plan.price}</div>
                       <p className="mt-3 text-sm leading-7 text-slate-600">{plan.goodFor}</p>
                     </div>
-                    {plan.highlight ? (
-                      <div className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium text-slate-700">主力方案</div>
-                    ) : null}
+                    {plan.highlight ? <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700">主力包</div> : null}
                   </div>
                 </article>
               ))}
             </div>
           </section>
 
-          <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Credits</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">把复杂规则讲成产品规则</h2>
+          <section className="lead-card p-6">
+            <div className="lead-pill">Credits</div>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">把复杂规则讲成产品规则。</h2>
             <div className="mt-6 space-y-4">
               {CREDITS_POLICY_CARDS.map((card) => (
-                <article key={card.title} className="interactive-panel rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
-                  <h3 className="text-lg font-semibold text-slate-950">{card.title}</h3>
-                  <div className="mt-4 rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm leading-7 text-slate-600">
-                    {card.description}
-                  </div>
+                <article key={card.title} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+                  <h3 className="text-lg font-extrabold text-slate-950">{card.title}</h3>
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm leading-7 text-slate-600">{card.description}</div>
                 </article>
               ))}
             </div>

@@ -21,11 +21,11 @@ export function FunnelStrip({
   steps,
 }: Props) {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
-      <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="lead-card p-5">
         <div className="max-w-2xl">
-          <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">{eyebrow}</div>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{title}</h2>
+          <div className="lead-pill">{eyebrow}</div>
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950">{title}</h2>
           <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
         </div>
 
@@ -34,14 +34,17 @@ export function FunnelStrip({
             <Link
               key={step.title}
               href={step.href}
-              className={`interactive-button rounded-[1.4rem] border px-5 py-4 ${
+              className={[
+                'rounded-lg border px-5 py-4 transition',
                 step.active
-                  ? 'border-black/10 bg-[#eef1f5] text-slate-950 shadow-[0_16px_48px_rgba(15,23,42,0.08)]'
-                  : 'border-black/5 bg-[#f8f8f4] text-slate-700 hover:border-black/10 hover:bg-white hover:text-slate-950'
-              }`}
+                  ? 'border-slate-950 bg-slate-950 text-white shadow-[0_16px_48px_rgba(15,23,42,0.12)]'
+                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-white hover:text-slate-950',
+              ].join(' ')}
             >
-              <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">{step.label}</div>
-              <div className="mt-2 text-base font-semibold">{step.title}</div>
+              <div className={step.active ? 'text-[11px] font-bold uppercase tracking-[0.24em] text-slate-300' : 'text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500'}>
+                {step.label}
+              </div>
+              <div className="mt-2 text-base font-extrabold">{step.title}</div>
             </Link>
           ))}
         </div>

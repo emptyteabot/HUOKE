@@ -5,9 +5,9 @@ import { MarketingPageShell } from '../../components/marketing-page-shell';
 import { readAgentWorkspace } from '../../lib/agent-os';
 
 export const metadata: Metadata = {
-  title: 'Agents',
+  title: '执行层',
   description:
-    'LeadPulse 的多-agent 结构：Scout、Closer、Content、Ops，再加 OpenClaw、RAG、MCP、browser fallback 和 loop engine。',
+    '把可调用能力、运行边界和人工接管点放在一页里，别让系统看起来像一堆散开的名词。',
 };
 
 function statusTone(status: 'healthy' | 'watch' | 'blocked' | 'ready') {
@@ -17,9 +17,9 @@ function statusTone(status: 'healthy' | 'watch' | 'blocked' | 'ready') {
 }
 
 function runtimeLabel(status: 'ready' | 'watch' | 'blocked') {
-  if (status === 'ready') return 'Ready';
-  if (status === 'watch') return 'Watch';
-  return 'Blocked';
+  if (status === 'ready') return '正常';
+  if (status === 'watch') return '观察';
+  return '阻断';
 }
 
 export const dynamic = 'force-dynamic';
@@ -37,9 +37,9 @@ export default async function AgentsPage() {
 
   return (
     <MarketingPageShell
-      eyebrow="Agent Stack"
-      title="像 OpenClaw / Manus 那样讲 agent，但把它做成你能卖的产品结构"
-      description="LeadPulse 不只是多开几个模型，而是把 Scout、Closer、Content、Ops 拆成明确边界，再用 OpenClaw、RAG、MCP、browser fallback 和自动循环把它们真正串起来。"
+      eyebrow="执行层"
+      title="把能力拆清楚，再把动作串起来。"
+      description="系统要能卖，先得能看懂自己到底在做什么：谁负责发现，谁负责跟进，谁负责记录，谁负责接管。"
       primaryCta={{ href: '/dashboard/ai', label: '打开 Agent OS' }}
       secondaryCta={{ href: '/proof', label: '看执行证明' }}
     >
@@ -68,8 +68,8 @@ export default async function AgentsPage() {
       <section className="mx-auto mt-10 max-w-7xl px-6 py-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
           <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Runtime</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">每一层能力都要讲清楚，不要只说“我们有 AI”</h2>
+            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">运行层</div>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">每一层都要有明确职责</h2>
             <div className="mt-6 space-y-4">
               {runtime?.layers.map((layer) => (
                 <article key={layer.id} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
@@ -92,8 +92,8 @@ export default async function AgentsPage() {
           </section>
 
           <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Registry</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">四个 agent，四条赚钱链路</h2>
+            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">清单</div>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">每个能力都对应一条结果链路</h2>
             <div className="mt-6 space-y-4">
               {workspace.agents.map((agent) => (
                 <article key={agent.id} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
@@ -104,7 +104,7 @@ export default async function AgentsPage() {
                       <p className="mt-3 text-sm leading-7 text-slate-600">{agent.summary}</p>
                     </div>
                     <span className={`rounded-full border px-3 py-1 text-xs font-medium ${statusTone(agent.health)}`}>
-                      {agent.health === 'healthy' ? 'Healthy' : agent.health === 'watch' ? 'Watch' : 'Blocked'}
+                      {agent.health === 'healthy' ? '正常' : agent.health === 'watch' ? '观察' : '阻断'}
                     </span>
                   </div>
 

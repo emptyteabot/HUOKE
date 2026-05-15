@@ -1,16 +1,7 @@
 import Link from "next/link";
 
-import {
-  CREDITS_POLICY,
-  TARGET_AUDIENCE_ONE_LINER,
-  getPricingPlans,
-} from "@/lib/pricing";
-import {
-  defaultCredits,
-  exportCreditCost,
-  freeExportLimit,
-  linkUnlockHours,
-} from "@/lib/lead_wallet";
+import { CREDITS_POLICY, TARGET_AUDIENCE_ONE_LINER, getPricingPlans } from "@/lib/pricing";
+import { defaultCredits, exportCreditCost, freeExportLimit, linkUnlockHours } from "@/lib/lead_wallet";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 function hasValue(value: string | undefined) {
@@ -90,9 +81,8 @@ export default function SettingsPage() {
   const bookingUrl = String(process.env.NEXT_PUBLIC_BOOKING_URL || `${SITE_URL}/book`).trim();
   const supportEmail = String(process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "").trim();
   const basePath = String(process.env.NEXT_PUBLIC_BASE_PATH || "/").trim() || "/";
-  const paymentProvider = String(process.env.LEADPULSE_PAYMENT_PROVIDER || "wechat").trim().toLowerCase();
-  const hasInternalKey =
-    hasValue(process.env.LEADPULSE_INTERNAL_ACCESS_KEY) || hasValue(process.env.LEADPULSE_AUTOMATION_KEY);
+  const paymentProvider = String(process.env.LEADPULSE_PAYMENT_PROVIDER || "xunhupay").trim().toLowerCase();
+  const hasInternalKey = hasValue(process.env.LEADPULSE_INTERNAL_ACCESS_KEY) || hasValue(process.env.LEADPULSE_AUTOMATION_KEY);
   const hasAutomationKey = hasValue(process.env.LEADPULSE_AUTOMATION_KEY);
   const hasWalletSecret = hasValue(process.env.WALLET_SIGNING_SECRET);
   const walletSecretIsDefault = String(process.env.WALLET_SIGNING_SECRET || "").trim() === "";
@@ -115,24 +105,12 @@ export default function SettingsPage() {
   const notificationCount = notificationTargets.filter((item) => item.enabled).length;
 
   const actionItems: string[] = [];
-  if (!hasWalletSecret) {
-    actionItems.push("补上 WALLET_SIGNING_SECRET，避免 wallet 继续落到开发默认密钥。");
-  }
-  if (!hasInternalKey) {
-    actionItems.push("补上 LEADPULSE_INTERNAL_ACCESS_KEY 或 LEADPULSE_AUTOMATION_KEY，否则生产下 dashboard 会直接被 middleware 拦住。");
-  }
-  if (!smtpReady) {
-    actionItems.push("补齐 SMTP 配置，当前 messages 页能看队列，但不能稳定原生发信。");
-  }
-  if (paymentProvider === "stripe" && !stripeWebhookReady) {
-    actionItems.push("Stripe 已被选为收款 provider，但 webhook secret 未配置，到账闭环不完整。");
-  }
-  if (notificationCount === 0) {
-    actionItems.push("至少接一个 intake fan-out 目标，避免 booking / payment 线索只留在本地状态库。");
-  }
-  if (!supabaseReady) {
-    actionItems.push("如果要把 leads API 稳定切到远端数据源，补齐 Supabase URL 与 key。");
-  }
+  if (!hasWalletSecret) actionItems.push("补上 WALLET_SIGNING_SECRET，避免 wallet 落到开发默认密钥。");
+  if (!hasInternalKey) actionItems.push("补上 LEADPULSE_INTERNAL_ACCESS_KEY 或 LEADPULSE_AUTOMATION_KEY，否则非本地环境会被 middleware 拦住。");
+  if (!smtpReady) actionItems.push("补齐 SMTP 配置，当前消息页能看队列，但不能稳定原生发信。");
+  if (paymentProvider === "stripe" && !stripeWebhookReady) actionItems.push("如果继续使用当前支付通道，回调密钥还没接好。");
+  if (notificationCount === 0) actionItems.push("至少接一个通知目标，避免 booking / payment 线索只留在本地状态库。");
+  if (!supabaseReady) actionItems.push("如果要稳定切远端数据源，补齐 Supabase URL 与 key。");
 
   const accessMode = hasInternalKey ? "key-gated" : "missing";
   const walletPolicySummary = `${freeExportLimit()} free exports / ${exportCreditCost()} credits per export / unlock ${linkUnlockHours()}h`;
@@ -144,19 +122,15 @@ export default function SettingsPage() {
           <div>
             <div style={{ fontWeight: 700 }}>Workspace Settings</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>
-              这里只读现有站点、定价、环境和 console 接入状态，不展示 secret 原文，也不改共享壳子。
+              这里只读现有站点、定价、环境和 console 接入状态，不展示 secret 原文。
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Link href="/internal-login" className="lp-btn">
               Internal Login
             </Link>
-            <Link
-              href="/pay?plan=pro"
-              className="lp-btn"
-              style={{ background: "white", color: "#163861", border: "1px solid #cddcf0" }}
-            >
-              Commerce Entry
+            <Link href="/pay?package=standard" className="lp-btn" style={{ background: "white", color: "#163861", border: "1px solid #cddcf0" }}>
+              打开充值页
             </Link>
           </div>
         </div>
@@ -171,23 +145,21 @@ export default function SettingsPage() {
             tone: "good",
           })}
           {statusCard({
-            label: "Console",
+            label: "控制台",
             value: accessMode,
-            helper: hasInternalKey
-              ? "dashboard / ops / proof 等路径走 internal-login + cookie gate。"
-              : "没有 internal key 时，非本地环境会被 middleware 阻断。",
+            helper: hasInternalKey ? "dashboard / ops / proof 等路径走 internal-login + cookie gate。" : "没有 internal key 时，非本地环境会被 middleware 拦住。",
             tone: hasInternalKey ? "good" : "warn",
           })}
           {statusCard({
             label: "Wallet",
             value: walletPolicySummary,
-            helper: `guest 默认 credits：${defaultCredits()}。当前 billing 页会直接按这套规则读 wallet。`,
+            helper: `guest 默认 credits：${defaultCredits()}。billing 页会按这套规则读 wallet。`,
             tone: hasWalletSecret && !walletSecretIsDefault ? "good" : "warn",
           })}
           {statusCard({
             label: "Payments",
             value: paymentProvider,
-            helper: paymentProvider === "stripe" ? "支付意向会创建 Stripe Checkout。" : "当前走人工确认 / 兑换码开通路径。",
+            helper: paymentProvider === "stripe" ? "支付意向会创建收银台页面。" : "当前走人工确认 / 兑换码开通路径。",
             tone: paymentProvider === "stripe" ? "good" : "neutral",
           })}
         </div>
@@ -196,33 +168,18 @@ export default function SettingsPage() {
       <section className="lp-card" style={{ padding: 16 }}>
         <div style={{ fontWeight: 700, marginBottom: 12 }}>Workspace Identity</div>
         <div className="lp-grid lp-grid-2" style={{ gap: 14 }}>
-          <div
-            style={{
-              border: "1px solid #d7e3f7",
-              borderRadius: 18,
-              background: "#fbfdff",
-              padding: 16,
-            }}
-          >
+          <div style={{ border: "1px solid #d7e3f7", borderRadius: 18, background: "#fbfdff", padding: 16 }}>
             <div style={{ fontWeight: 700 }}>{SITE_NAME}</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, lineHeight: 1.7, marginTop: 8 }}>{SITE_DESCRIPTION}</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, lineHeight: 1.7, marginTop: 10 }}>
               <div>站点地址：{siteUrl}</div>
               <div>预约入口：{bookingUrl}</div>
               <div>支持邮箱：{supportEmail || "未配置"}</div>
-              <div>目标受众：{TARGET_AUDIENCE_ONE_LINER}</div>
             </div>
           </div>
 
-          <div
-            style={{
-              border: "1px solid #d7e3f7",
-              borderRadius: 18,
-              background: "#f4f8ff",
-              padding: 16,
-            }}
-          >
-            <div style={{ fontWeight: 700 }}>Console Paths</div>
+          <div style={{ border: "1px solid #d7e3f7", borderRadius: 18, background: "#f4f8ff", padding: 16 }}>
+            <div style={{ fontWeight: 700 }}>入口路径</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, lineHeight: 1.7, marginTop: 8 }}>
               <div>入口：/dashboard、/ops、/proof、/agents、/cases、/investors</div>
               <div>登录：/internal-login</div>
@@ -236,13 +193,7 @@ export default function SettingsPage() {
 
       <section className="lp-card" style={{ padding: 16 }}>
         <div style={{ fontWeight: 700, marginBottom: 12 }}>Commercial Model</div>
-        <div
-          style={{
-            display: "grid",
-            gap: 14,
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          }}
-        >
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
           {pricingPlans.map((plan) => (
             <article
               key={plan.id}
@@ -278,19 +229,11 @@ export default function SettingsPage() {
 
       <section className="lp-card" style={{ padding: 16 }}>
         <div style={{ fontWeight: 700, marginBottom: 12 }}>Runtime Readiness</div>
-        <div
-          style={{
-            display: "grid",
-            gap: 14,
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          }}
-        >
+        <div className="lp-grid lp-grid-4">
           {statusCard({
             label: "Wallet Signing",
             value: hasWalletSecret ? "configured" : "missing",
-            helper: hasWalletSecret
-              ? "wallet cookie 能按自定义 secret 签名。"
-              : "当前会回落到代码内默认 secret，生产不够稳。",
+            helper: hasWalletSecret ? "wallet cookie 能按自定义 secret 签名。" : "当前会回落到代码内默认 secret，生产不够稳。",
             tone: hasWalletSecret && !walletSecretIsDefault ? "good" : "warn",
           })}
           {statusCard({
@@ -306,43 +249,18 @@ export default function SettingsPage() {
             tone: supabaseReady ? "good" : "neutral",
           })}
           {statusCard({
-            label: "Stripe",
-            value: stripeReady ? "enabled" : "disabled",
-            helper: stripeReady
-              ? stripeWebhookReady
-                ? "secret 与 webhook 都已配置。"
-                : "secret 已配置，但 webhook 还没接好。"
-              : "当前主要走人工收款或兑换码路径。",
-            tone: stripeReady && stripeWebhookReady ? "good" : stripeReady ? "warn" : "neutral",
-          })}
-          {statusCard({
-            label: "Notifications",
-            value: `${notificationCount} target${notificationCount === 1 ? "" : "s"}`,
-            helper: notificationTargets.map((item) => `${item.label}:${item.enabled ? "on" : "off"}`).join(" ｜ "),
-            tone: notificationCount > 0 ? "good" : "warn",
-          })}
-          {statusCard({
-            label: "Automation Key",
-            value: hasAutomationKey ? "configured" : "missing",
-            helper: hasAutomationKey
-              ? "flush / automation routes 可做后台触发。"
-              : "没有 automation key 时，只能靠内部 access key 保护 console。",
-            tone: hasAutomationKey ? "good" : "neutral",
+            label: "Payments",
+            value: paymentProvider,
+            helper: paymentProvider === "stripe" ? (stripeWebhookReady ? "回调与密钥都已配置。" : "密钥已配置，但回调还没接好。") : "当前主要走人工收款或兑换码路径。",
+            tone: paymentProvider === "stripe" && stripeWebhookReady ? "good" : paymentProvider === "stripe" ? "warn" : "neutral",
           })}
         </div>
       </section>
 
       <section className="lp-card" style={{ padding: 16 }}>
         <div style={{ fontWeight: 700, marginBottom: 12 }}>Credits Policy Snapshot</div>
-        <div className="lp-grid lp-grid-2" style={{ gap: 14 }}>
-          <div
-            style={{
-              border: "1px solid #d7e3f7",
-              borderRadius: 18,
-              background: "#fbfdff",
-              padding: 16,
-            }}
-          >
+        <div className="lp-grid lp-grid-2">
+          <div style={{ border: "1px solid #d7e3f7", borderRadius: 18, background: "#fbfdff", padding: 16 }}>
             <div style={{ fontWeight: 700 }}>当前规则</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, lineHeight: 1.8, marginTop: 8 }}>
               <div>默认 guest credits：{defaultCredits()}</div>
@@ -352,14 +270,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div
-            style={{
-              border: "1px solid #d7e3f7",
-              borderRadius: 18,
-              background: "#f4f8ff",
-              padding: 16,
-            }}
-          >
+          <div style={{ border: "1px solid #d7e3f7", borderRadius: 18, background: "#f4f8ff", padding: 16 }}>
             <div style={{ fontWeight: 700 }}>产品承诺</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, lineHeight: 1.8, marginTop: 8 }}>
               {CREDITS_POLICY.slice(0, 3).map((item) => (

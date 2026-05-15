@@ -1,13 +1,10 @@
-import base64
 from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from cryptography.hazmat.primitives import serialization
 
 from leadpulse_m2m import billing as billing_module
+from leadpulse_m2m import funnel as funnel_module
 from leadpulse_m2m.main import app
 
 
@@ -16,17 +13,6 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def isolate_billing_store(tmp_path, monkeypatch):
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("utf-8")
-    public_pem = private_key.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    ).decode("utf-8")
-
     fake_settings = SimpleNamespace(
         site_url="https://leadpulseagi.com",
         service_name="LeadPulse M2M Acquisition Gateway",
@@ -41,26 +27,38 @@ def isolate_billing_store(tmp_path, monkeypatch):
         noise_charge_credits=1,
         high_value_charge_credits=50,
         refund_credits=50,
-        alipay_app_id="test-app-id",
-        alipay_public_key=public_pem,
-        alipay_app_private_key=private_pem,
-        alipay_notify_url="https://leadpulseagi.com/api/v1/alipay/notify",
-        alipay_return_url="https://leadpulseagi.com/api/v1/alipay/callback",
-        alipay_order_subject="LeadPulse LP Coin Recharge",
+        xunhu_app_id="test-app-id",
+        xunhu_app_secret="test-secret",
+        xunhu_gateway_url="https://pay.example.test/payment/do.html",
+        xunhu_notify_url="https://leadpulseagi.com/api/v1/xunhupay/notify",
+        xunhu_return_url="https://leadpulseagi.com/api/v1/xunhupay/callback",
+        xunhu_order_title="LeadPulse 算力积分充值",
     )
 
     monkeypatch.setattr(billing_module, "settings", fake_settings)
+
+    class FakePayResponse:
+        def __init__(self, payload: dict[str, str]):
+            self.payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self.payload
+
+    def fake_post(url, data=None, timeout=None, **_kwargs):
+        assert url == fake_settings.xunhu_gateway_url
+        assert timeout == 12
+        assert data["hash"] == billing_module.xunhu_sign(data, fake_settings.xunhu_app_secret)
+        return FakePayResponse({"errcode": "0", "url": f"https://pay.example.test/{data['trade_order_id']}"})
+
+    monkeypatch.setattr(billing_module.requests, "post", fake_post)
     yield
 
 
-def sign_alipay_fields(fields: dict[str, str]) -> str:
-    content = billing_module._canonical_content(fields, {"sign", "sign_type"})
-    signature = billing_module._private_key().sign(
-        content.encode("utf-8"),
-        padding.PKCS1v15(),
-        hashes.SHA256(),
-    )
-    return base64.b64encode(signature).decode("ascii")
+def sign_xunhu_fields(fields: dict[str, str]) -> str:
+    return billing_module.xunhu_sign(fields, "test-secret")
 
 
 def qualified_lead_payload():
@@ -120,6 +118,56 @@ def test_dynamic_funnel_returns_question_for_missing_budget():
     payload = response.json()
     assert payload["required_next_action"] == "answer_question"
     assert payload["question"]["id"] == "budget"
+
+
+def test_dynamic_funnel_can_use_llm_question_with_schema_validation(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": (
+                                '{"id":"ai_budget_probe","type":"money",'
+                                '"prompt":"如果 LeadPulse 本月能交付高意向商机，你能投入多少预算？",'
+                                '"intent":"确认本月可投入预算","required":true,"options":[]}'
+                            )
+                        }
+                    }
+                ]
+            }
+
+    def fake_post(*args, **kwargs):
+        return FakeResponse()
+
+    monkeypatch.setattr(
+        funnel_module,
+        "settings",
+        SimpleNamespace(
+            llm_api_key="test-key",
+            llm_base_url="https://llm.example/v1",
+            llm_model="test-model",
+            llm_timeout_seconds=1,
+        ),
+    )
+    monkeypatch.setattr(funnel_module.requests, "post", fake_post)
+
+    response = client.post(
+        "/api/v2/funnel/next-question",
+        json={
+            "lead": {
+                "contact": {"name": "Visitor"},
+                "context": "我想找更精准的销售线索。",
+            }
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["question"]["id"] == "ai_budget_probe"
+    assert payload["question"]["type"] == "money"
 
 
 def test_mcp_tools_call_check_fit():
@@ -223,76 +271,95 @@ def test_billing_insufficient_credits_fails():
     assert response.json()["detail"] == "insufficient_credits"
 
 
-def test_alipay_notify_invalid_signature_returns_fail():
+def test_xunhupay_notify_invalid_signature_returns_fail():
     response = client.post(
-        "/api/v1/alipay/notify",
+        "/api/v1/xunhupay/notify",
         data={
-            "out_trade_no": "lp_order_missing",
-            "trade_status": "TRADE_SUCCESS",
-            "total_amount": "99.00",
-            "sign": "bad-signature",
+            "appid": "test-app-id",
+            "trade_order_id": "lp_order_missing",
+            "status": "OD",
+            "total_fee": "99.00",
+            "hash": "bad-signature",
         },
     )
     assert response.status_code == 200
     assert response.text == "fail"
 
 
-def test_alipay_notify_signed_amount_mismatch_does_not_credit_wallet():
+def test_xunhupay_notify_signed_amount_mismatch_does_not_credit_wallet():
     created = client.post(
         "/api/v2/billing/orders",
-        json={"user_id": "alipay_mismatch_test", "package_id": "icebreaker"},
+        json={"user_id": "xunhu_mismatch_test", "package_id": "icebreaker"},
     )
     assert created.status_code == 200
     order = created.json()["order"]
     assert order["price_cny"] == "99"
 
     fields = {
-        "app_id": "test-app-id",
-        "charset": "utf-8",
-        "sign_type": "RSA2",
-        "trade_no": "202605150001",
-        "out_trade_no": order["order_id"],
-        "trade_status": "TRADE_SUCCESS",
-        "total_amount": "0.01",
+        "appid": "test-app-id",
+        "transaction_id": "202605150001",
+        "trade_order_id": order["order_id"],
+        "status": "OD",
+        "total_fee": "0.01",
     }
-    fields["sign"] = sign_alipay_fields(fields)
+    fields["hash"] = sign_xunhu_fields(fields)
 
-    notify = client.post("/api/v1/alipay/notify", data=fields)
+    notify = client.post("/api/v1/xunhupay/notify", data=fields)
     assert notify.status_code == 200
     assert notify.text == "fail"
 
-    wallet = client.get("/api/v2/billing/wallet", params={"user_id": "alipay_mismatch_test"})
+    wallet = client.get("/api/v2/billing/wallet", params={"user_id": "xunhu_mismatch_test"})
     assert wallet.status_code == 200
     assert wallet.json()["wallet"]["credits"] == 60
 
 
-def test_alipay_notify_signed_success_is_idempotent_recharge():
+def test_xunhupay_notify_signed_success_is_idempotent_recharge():
     created = client.post(
         "/api/v2/billing/orders",
-        json={"user_id": "alipay_success_test", "package_id": "icebreaker"},
+        json={"user_id": "xunhu_success_test", "package_id": "icebreaker"},
     )
     assert created.status_code == 200
     order = created.json()["order"]
-    assert order["pay_url"].startswith("https://openapi.alipay.com/gateway.do?")
+    assert order["pay_url"].startswith("https://pay.example.test/")
 
     fields = {
-        "app_id": "test-app-id",
-        "charset": "utf-8",
-        "sign_type": "RSA2",
-        "trade_no": "202605150002",
-        "out_trade_no": order["order_id"],
-        "trade_status": "TRADE_SUCCESS",
-        "total_amount": "99.00",
+        "appid": "test-app-id",
+        "transaction_id": "202605150002",
+        "trade_order_id": order["order_id"],
+        "status": "OD",
+        "total_fee": "99.00",
     }
-    fields["sign"] = sign_alipay_fields(fields)
+    fields["hash"] = sign_xunhu_fields(fields)
 
-    first = client.post("/api/v1/alipay/notify", data=fields)
-    second = client.post("/api/v1/alipay/notify", data=fields)
+    first = client.post("/api/v1/xunhupay/notify", data=fields)
+    second = client.post("/api/v1/xunhupay/notify", data=fields)
     assert first.status_code == 200
     assert second.status_code == 200
     assert first.text == "success"
     assert second.text == "success"
 
-    wallet = client.get("/api/v2/billing/wallet", params={"user_id": "alipay_success_test"})
+    wallet = client.get("/api/v2/billing/wallet", params={"user_id": "xunhu_success_test"})
     assert wallet.status_code == 200
     assert wallet.json()["wallet"]["credits"] == 160
+
+
+def test_legacy_alipay_notify_path_accepts_xunhupay_callback():
+    created = client.post(
+        "/api/v2/billing/orders",
+        json={"user_id": "legacy_xunhu_test", "package_id": "icebreaker"},
+    )
+    assert created.status_code == 200
+    order = created.json()["order"]
+
+    fields = {
+        "appid": "test-app-id",
+        "transaction_id": "202605150003",
+        "trade_order_id": order["order_id"],
+        "status": "OD",
+        "total_fee": "99.00",
+    }
+    fields["hash"] = sign_xunhu_fields(fields)
+
+    notify = client.post("/api/v1/alipay/notify", data=fields)
+    assert notify.status_code == 200
+    assert notify.text == "success"

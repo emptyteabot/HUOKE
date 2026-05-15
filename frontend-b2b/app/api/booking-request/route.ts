@@ -122,7 +122,7 @@ export async function POST(request: Request) {
       ok: true,
       message: '预约请求已提交，我们会尽快联系你确认时间。',
       bookingUrl: `${SITE_URL}/book`,
-      paymentUrl: `${SITE_URL}/pay?plan=pro`,
+      paymentUrl: `${SITE_URL}/pay?package=standard`,
       proofUrl: `${SITE_URL}/compare`,
       messagesUrl: `${SITE_URL}/dashboard/messages`,
     });

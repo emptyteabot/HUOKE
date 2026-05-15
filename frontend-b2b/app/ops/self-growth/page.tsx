@@ -59,7 +59,7 @@ export default async function SelfGrowthPage() {
       <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
         <div className="max-w-4xl fade-up">
           <div className="apple-pill breathing-pill px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[#86868b]">
-            Self Growth
+            自增长
           </div>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
             LeadPulse 自己给自己找客户
@@ -93,7 +93,7 @@ export default async function SelfGrowthPage() {
           <section className="interactive-panel rounded-3xl border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">Top Accounts</div>
+                <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">高优账户</div>
                 <h2 className="mt-3 text-2xl font-semibold text-slate-950">最值得打的目标</h2>
               </div>
               <div className="text-sm text-[#86868b]">按 blended score 排</div>
@@ -124,7 +124,7 @@ export default async function SelfGrowthPage() {
 
           <section className="space-y-8">
             <div className="interactive-panel rounded-3xl border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">Outreach Queue</div>
+                <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">外联队列</div>
               <h2 className="mt-3 text-2xl font-semibold text-slate-950">外联队列</h2>
               <div className="mt-6 space-y-4">
                 {queue.map((item) => (
@@ -145,7 +145,7 @@ export default async function SelfGrowthPage() {
                       {item.sequence.slice(0, 2).map((step) => (
                         <div key={`${item.queue_id}-${step.step}`} className="rounded-2xl border border-black/5 bg-white px-4 py-3">
                           <div className="text-xs uppercase tracking-[0.18em] text-[#86868b]">
-                            Day {step.day_offset} · {step.channel}
+                          第 {step.day_offset} 天 · {step.channel}
                           </div>
                           <p className="mt-2 text-sm leading-6 text-slate-700">{step.message}</p>
                         </div>
@@ -157,7 +157,7 @@ export default async function SelfGrowthPage() {
             </div>
 
             <div className="interactive-panel rounded-3xl border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">Content Backlog</div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">内容选题</div>
               <h2 className="mt-3 text-2xl font-semibold text-slate-950">内容选题</h2>
               <div className="mt-6 space-y-4">
                 {backlog.slice(0, 6).map((item) => (
@@ -183,7 +183,7 @@ export default async function SelfGrowthPage() {
         <section className="mt-10 interactive-panel rounded-3xl border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">Report</div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">战报</div>
               <h2 className="mt-3 text-2xl font-semibold text-slate-950">最新战报</h2>
             </div>
             <Link href="/dashboard/fulfillment" className="interactive-button inline-flex items-center text-sm font-semibold text-slate-700 hover:text-slate-950">

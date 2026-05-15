@@ -363,10 +363,10 @@ export default async function StartPage({ searchParams }: { searchParams: Search
             <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Intake template</p>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">启动资料</p>
                   <h2 className="mt-3 text-2xl font-semibold text-slate-950">把这些信息一次发齐</h2>
                 </div>
-                <CopyTextButton value={intakeTemplate} label="复制模板" />
+                <CopyTextButton value={intakeTemplate} label="复制资料" />
               </div>
               <pre className="mt-6 overflow-x-auto rounded-3xl border border-black/5 bg-[#f8f8f4] p-5 text-sm leading-7 text-slate-700">
                 {intakeTemplate}

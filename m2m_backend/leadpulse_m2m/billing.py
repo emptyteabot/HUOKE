@@ -1,9 +1,9 @@
 ﻿from __future__ import annotations
 
-import base64
-import json
+import hashlib
 import sqlite3
 import threading
+import time
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
@@ -11,10 +11,8 @@ from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import urlencode
 
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from pydantic import BaseModel, ConfigDict, Field
+import requests
 
 from .config import settings
 
@@ -99,38 +97,18 @@ class WalletChargeResult(BaseModel):
     reason: str
 
 
-class AlipayNotifyPayload(BaseModel):
+class XunhuNotifyPayload(BaseModel):
     model_config = ConfigDict(extra="ignore", str_strip_whitespace=True, populate_by_name=True)
 
-    notify_time: str | None = None
-    notify_type: str | None = None
-    notify_id: str | None = None
-    app_id: str | None = None
-    charset: str | None = None
-    version: str | None = None
-    sign_type: str | None = None
-    sign: str | None = None
-    trade_no: str | None = None
-    out_trade_no: str | None = None
-    out_biz_no: str | None = None
-    buyer_id: str | None = None
-    buyer_logon_id: str | None = None
-    seller_id: str | None = None
-    seller_email: str | None = None
-    trade_status: str | None = None
-    total_amount: str | None = None
-    receipt_amount: str | None = None
-    invoice_amount: str | None = None
-    buyer_pay_amount: str | None = None
-    point_amount: str | None = None
-    refund_fee: str | None = None
-    subject: str | None = None
-    body: str | None = None
-    gmt_create: str | None = None
-    gmt_payment: str | None = None
-    gmt_refund: str | None = None
-    passback_params: str | None = None
-    invoice_id: str | None = None
+    appid: str | None = None
+    trade_order_id: str | None = None
+    transaction_id: str | None = None
+    total_fee: str | None = None
+    status: str | None = None
+    hash: str | None = None
+    open_order_id: str | None = None
+    time: str | None = None
+    nonce_str: str | None = None
 
 
 PACKAGE_DEFINITIONS = (
@@ -446,7 +424,7 @@ def create_recharge_order(request: BillingOrderRequest) -> dict[str, Any]:
                 paid_at="",
             )
 
-            pay_url = build_alipay_pay_url(order)
+            pay_url = build_xunhu_pay_url(order)
             order = order.model_copy(update={"pay_url": pay_url})
             conn.execute(
                 """
@@ -515,116 +493,82 @@ def list_orders(user_id: str | None = None, limit: int = 50) -> list[BillingOrde
             conn.close()
 
 
-def build_alipay_pay_url(order: BillingOrderRecord) -> str:
-    if not settings.alipay_app_id or not settings.alipay_app_private_key or not settings.alipay_public_key:
+def xunhu_sign(params: dict[str, Any], secret: str) -> str:
+    keys = sorted(key for key, value in params.items() if key != "hash" and value not in (None, ""))
+    content = "&".join(f"{key}={params[key]}" for key in keys)
+    return hashlib.md5(f"{content}{secret}".encode("utf-8")).hexdigest()
+
+
+def verify_xunhu_signature(params: dict[str, str]) -> bool:
+    received = str(params.get("hash") or "").strip().lower()
+    secret = str(settings.xunhu_app_secret or "").strip()
+    if not received or not secret:
+        return False
+    calculated = xunhu_sign(params, secret)
+    return calculated == received
+
+
+def _extract_xunhu_pay_url(payload: dict[str, Any]) -> str:
+    candidates = [
+        payload.get("url"),
+        payload.get("pay_url"),
+        payload.get("payment_url"),
+        payload.get("mweb_url"),
+        payload.get("qrcode"),
+        payload.get("qr_code"),
+        payload.get("code_url"),
+    ]
+    nested = payload.get("data")
+    if isinstance(nested, dict):
+        candidates.extend(
+            [
+                nested.get("url"),
+                nested.get("pay_url"),
+                nested.get("payment_url"),
+                nested.get("mweb_url"),
+                nested.get("qrcode"),
+                nested.get("qr_code"),
+                nested.get("code_url"),
+            ]
+        )
+    for candidate in candidates:
+        value = str(candidate or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def build_xunhu_pay_url(order: BillingOrderRecord) -> str:
+    if not settings.xunhu_app_id or not settings.xunhu_app_secret:
         return ""
 
-    biz_content = {
-        "out_trade_no": order.order_id,
-        "product_code": "FAST_INSTANT_TRADE_PAY",
-        "total_amount": f"{order.price_cny:.2f}",
-        "subject": settings.alipay_order_subject,
-        "passback_params": order.user_id,
-    }
     params = {
-        "app_id": settings.alipay_app_id,
-        "method": "alipay.trade.page.pay",
-        "charset": "utf-8",
-        "sign_type": "RSA2",
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "version": "1.0",
-        "return_url": settings.alipay_return_url,
-        "notify_url": settings.alipay_notify_url,
-        "biz_content": json.dumps(biz_content, ensure_ascii=False, separators=(",", ":")),
+        "version": "1.1",
+        "appid": settings.xunhu_app_id,
+        "trade_order_id": order.order_id,
+        "total_fee": f"{order.price_cny:.2f}",
+        "title": settings.xunhu_order_title,
+        "time": str(int(time.time())),
+        "notify_url": settings.xunhu_notify_url,
+        "return_url": settings.xunhu_return_url,
+        "nonce_str": uuid.uuid4().hex,
     }
-    params["sign"] = _sign_params(params)
-    return f"https://openapi.alipay.com/gateway.do?{urlencode(params)}"
-
-
-def _private_key():
-    key = settings.alipay_app_private_key.strip()
-    if not key:
-        raise ValueError("ALIPAY_APP_PRIVATE_KEY missing")
-    return load_pem_private_key(_pem_key(key, "PRIVATE KEY").encode("utf-8"), password=None)
-
-
-def _public_key():
-    key = settings.alipay_public_key.strip()
-    if not key:
-        raise ValueError("ALIPAY_PUBLIC_KEY missing")
-    return serialization.load_pem_public_key(_pem_key(key, "PUBLIC KEY").encode("utf-8"))
-
-
-def _canonical_content(params: dict[str, str], exclude: set[str] | None = None) -> str:
-    exclude = exclude or set()
-    items = [
-        (key, value)
-        for key, value in params.items()
-        if key not in exclude and value is not None and str(value) != ""
-    ]
-    items.sort(key=lambda item: item[0])
-    return "&".join(f"{key}={value}" for key, value in items)
-
-
-def _sign_params(params: dict[str, str]) -> str:
-    content = _canonical_content(params)
-    signature = _private_key().sign(content.encode("utf-8"), padding.PKCS1v15(), hashes.SHA256())
-    return base64.b64encode(signature).decode("ascii")
-
-
-def _strip_pem_envelope(value: str) -> str:
-    lines = [
-        line.strip()
-        for line in str(value or "").replace("\\n", "\n").splitlines()
-        if line.strip() and not line.strip().startswith("-----BEGIN") and not line.strip().startswith("-----END")
-    ]
-    return "".join(lines)
-
-
-def _pem_key(raw: str, label: str) -> str:
-    value = str(raw or "").strip().replace("\\n", "\n")
-    if "-----BEGIN" in value:
-        return value
-
-    body = _strip_pem_envelope(value)
-    wrapped = "\n".join(body[index : index + 64] for index in range(0, len(body), 64))
-    return f"-----BEGIN {label}-----\n{wrapped}\n-----END {label}-----\n"
+    params["hash"] = xunhu_sign(params, settings.xunhu_app_secret)
+    try:
+        response = requests.post(settings.xunhu_gateway_url, data=params, timeout=12)
+        response.raise_for_status()
+        payload = response.json()
+    except Exception as exc:
+        print("LeadPulse Xunhu pay_url failed:", exc)
+        return ""
+    return _extract_xunhu_pay_url(payload) or f"{settings.xunhu_gateway_url}?{urlencode(params)}"
 
 
 def _payload_fields(payload: dict[str, Any]) -> dict[str, str]:
     return {str(key): str(value) for key, value in payload.items() if value is not None}
 
 
-def verify_alipay_signature(params: dict[str, str]) -> bool:
-    signature = str(params.get("sign") or "").strip()
-    if not signature:
-        return False
-
-    content = _canonical_content(params, {"sign", "sign_type"})
-    try:
-        _public_key().verify(
-            base64.b64decode(signature),
-            content.encode("utf-8"),
-            padding.PKCS1v15(),
-            hashes.SHA256(),
-        )
-        return True
-    except Exception:
-        return False
-
-
-def handle_alipay_notify(payload: dict[str, str]) -> dict[str, Any]:
-    fields = _payload_fields(payload)
-    if not verify_alipay_signature(fields):
-        return {"ok": False, "reason": "invalid_signature"}
-
-    notify = AlipayNotifyPayload.model_validate(fields)
-    if str(notify.trade_status or "").strip() not in {"TRADE_SUCCESS", "TRADE_FINISHED"}:
-        return {"ok": False, "reason": "trade_not_success"}
-
-    order_id = str(notify.out_trade_no or "").strip()
-    trade_no = str(notify.trade_no or "").strip()
-    amount = _decimal(notify.total_amount or "0")
+def _mark_order_paid(order_id: str, provider_trade_no: str, amount: Decimal, provider: str) -> dict[str, Any]:
     if not order_id:
         return {"ok": False, "reason": "missing_order_id"}
 
@@ -638,23 +582,7 @@ def handle_alipay_notify(payload: dict[str, str]) -> dict[str, Any]:
                 conn.rollback()
                 return {"ok": False, "reason": "order_not_found"}
 
-            order = BillingOrderRecord(
-                order_id=str(row["order_id"]),
-                user_id=str(row["user_id"]),
-                package_id=str(row["package_id"]),
-                package_name=str(row["package_name"]),
-                price_cny=_decimal(row["price_cny"]),
-                credits=int(row["credits"]),
-                status=str(row["status"]),
-                alipay_trade_no=str(row["alipay_trade_no"]),
-                pay_url=str(row["pay_url"]),
-                contact_email=str(row["contact_email"]),
-                contact_company=str(row["contact_company"]),
-                note=str(row["note"]),
-                created_at=str(row["created_at"]),
-                updated_at=str(row["updated_at"]),
-                paid_at=str(row["paid_at"]),
-            )
+            order = _order_row_to_model(row)
 
             expected_amount = _decimal(order.price_cny)
             if amount != expected_amount:
@@ -682,7 +610,7 @@ def handle_alipay_notify(payload: dict[str, str]) -> dict[str, Any]:
                 order.credits,
                 next_credits,
                 order.order_id,
-                f"Alipay recharge trade_no={trade_no}",
+                f"{provider} recharge transaction_id={provider_trade_no}",
             )
             conn.execute(
                 """
@@ -690,7 +618,7 @@ def handle_alipay_notify(payload: dict[str, str]) -> dict[str, Any]:
                 SET status = 'paid', alipay_trade_no = ?, updated_at = ?, paid_at = ?
                 WHERE order_id = ?
                 """,
-                (trade_no, _now_iso(), _now_iso(), order.order_id),
+                (provider_trade_no, _now_iso(), _now_iso(), order.order_id),
             )
             conn.commit()
             return {
@@ -705,6 +633,29 @@ def handle_alipay_notify(payload: dict[str, str]) -> dict[str, Any]:
             raise
         finally:
             conn.close()
+
+
+def handle_xunhu_notify(payload: dict[str, str]) -> dict[str, Any]:
+    fields = _payload_fields(payload)
+    if not verify_xunhu_signature(fields):
+        return {"ok": False, "reason": "invalid_signature"}
+
+    notify = XunhuNotifyPayload.model_validate(fields)
+    if settings.xunhu_app_id and str(notify.appid or "").strip() != settings.xunhu_app_id:
+        return {"ok": False, "reason": "appid_mismatch"}
+    if str(notify.status or "").strip() != "OD":
+        return {"ok": False, "reason": "trade_not_success"}
+
+    order_id = str(notify.trade_order_id or "").strip()
+    trade_no = str(notify.transaction_id or notify.open_order_id or "").strip()
+    amount = _decimal(notify.total_fee or "0")
+    return _mark_order_paid(order_id, trade_no, amount, "Xunhupay")
+
+
+def handle_alipay_notify(payload: dict[str, str]) -> dict[str, Any]:
+    # Kept as a compatibility alias because old deployed notify URLs used
+    # /api/v1/alipay/notify. The handler now accepts Xunhupay callbacks only.
+    return handle_xunhu_notify(payload)
 
 
 def charge_wallet(request: WalletChargeRequest) -> WalletChargeResult:

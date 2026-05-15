@@ -59,7 +59,7 @@ export default async function CloserPage() {
   return (
     <DashboardShell
       active="closer"
-      title="Closer War Room"
+      title="成交推进作战室"
       description="这一页只盯最接近收钱的动作：高意向待成交、closer 草稿、成交任务和最近发送。"
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -68,11 +68,11 @@ export default async function CloserPage() {
           <div className="mt-3 text-3xl font-semibold text-slate-950">{closerContacts.length}</div>
         </article>
         <article className="interactive-panel rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-          <div className="text-sm font-medium text-emerald-700">Closer 草稿</div>
+          <div className="text-sm font-medium text-emerald-700">成交推进草稿</div>
           <div className="mt-3 text-3xl font-semibold text-emerald-700">{closerDrafts.length}</div>
         </article>
         <article className="interactive-panel rounded-3xl border border-black/5 bg-white/85 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-          <div className="text-sm font-medium text-slate-500">Closer 任务</div>
+          <div className="text-sm font-medium text-slate-500">成交推进任务</div>
           <div className="mt-3 text-3xl font-semibold text-slate-950">{closerTasks.length}</div>
         </article>
         <article className="interactive-panel rounded-3xl border border-black/5 bg-white/85 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
@@ -85,7 +85,7 @@ export default async function CloserPage() {
         <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Priority deals</div>
+              <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">优先成交</div>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">当前高意向待成交</h2>
             </div>
             <Link href="/dashboard/leads" className="inline-flex items-center text-sm font-semibold text-slate-700 transition hover:text-slate-950">
@@ -145,7 +145,7 @@ export default async function CloserPage() {
         <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Closer queue</div>
+                <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">成交推进队列</div>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">成交推进草稿</h2>
             </div>
             <Link href="/dashboard/messages" className="inline-flex items-center text-sm font-semibold text-slate-700 transition hover:text-slate-950">
@@ -191,7 +191,7 @@ export default async function CloserPage() {
         <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
           <div className="flex items-center gap-3">
             <Clock3 className="h-5 w-5 text-slate-700" />
-            <h2 className="text-2xl font-semibold text-slate-950">Closer 任务</h2>
+            <h2 className="text-2xl font-semibold text-slate-950">成交推进任务</h2>
           </div>
           <div className="mt-6 space-y-4">
             {closerTasks.length ? (

@@ -5,7 +5,7 @@ import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
   title: '安全',
-  description: 'LeadPulse 安全页：节流、退订、日志、密钥和人工接管边界。',
+  description: 'LeadPulse 的安全与边界页：节流、退订、日志、密钥和人工接管。',
 };
 
 const guardrails = [
@@ -52,8 +52,8 @@ export default function SecurityPage() {
   return (
     <MarketingPageShell
       eyebrow="安全"
-      title="自动化能卖出去，前提是边界先做好"
-      description="LeadPulse 不是盲目追求全自动，而是把节流、日志、退订、密钥和人工接管一起做进产品里。"
+      title="先把边界做好，再谈自动化。"
+      description="LeadPulse 不是盲目追求全自动，而是把节流、日志、退订、密钥和人工接管一起放进产品里。"
       primaryCta={{ href: '/terms', label: '看条款' }}
       secondaryCta={{ href: '/privacy', label: '看隐私' }}
     >
@@ -79,7 +79,7 @@ export default function SecurityPage() {
 
       <section className="mx-auto mt-10 max-w-7xl px-6 pb-10 lg:px-8">
         <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-          <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Principles</div>
+          <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">原则</div>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">卖出去之前，先把自己保护好</h2>
           <div className="mt-6 grid gap-4 xl:grid-cols-2">
             {principles.map((item) => (

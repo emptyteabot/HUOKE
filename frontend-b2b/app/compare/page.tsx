@@ -5,48 +5,48 @@ import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
   title: '对比',
-  description: 'LeadPulse 对比页：和手工拼工具、纯服务、通用 AI 工具的差异。',
+  description: 'LeadPulse 和传统舆情工具、手工搜索、泛表单工具的差异。',
 };
 
 const topCards = [
   {
     title: 'LeadPulse',
-    points: ['更像产品', '更接近收款', '更适合长期复用'],
+    points: ['只看购买意图', '按结果扣费', '推进到预约和线索池'],
     icon: Sparkles,
-    badge: '更完整',
+    badge: '更接近成交',
   },
   {
-    title: '手工拼工具',
-    points: ['早期能跑', '后期会散', 'Founder 变成系统本身'],
+    title: '传统舆情工具',
+    points: ['关键词链接很多', '噪音需要人工看', '离销售动作很远'],
     icon: Layers3,
-    badge: '更零散',
+    badge: '更吵',
   },
   {
-    title: '纯服务',
-    points: ['短期能出结果', '难产品化', '资产沉淀有限'],
+    title: '泛表单工具',
+    points: ['等客户主动填', '功能很多但不聚焦', '无法捕捉公开讨论里的需求'],
     icon: ShieldCheck,
-    badge: '更依赖人',
+    badge: '更被动',
   },
 ];
 
 const rows = [
   {
-    label: '从线索到收款',
-    leadpulse: '公开页、预约、付款、消息和任务都在同一条链路里。',
-    manual: '路径分散在多个工具里。',
-    service: '流程主要留在服务商手里。',
+    label: '从讨论到线索',
+    leadpulse: '逐条分析购买意图、预算信号和下一步动作。',
+    manual: '靠人肉搜索和人工判断。',
+    service: '等客户填表或靠广告引流。',
   },
   {
-    label: '自动化边界',
-    leadpulse: '有 Guardrails、日志、节流和人工接管。',
-    manual: '大多靠手动习惯。',
-    service: '通常不可见。',
+    label: '噪音处理',
+    leadpulse: '先过滤水军、软文、吐槽和同行自卖自夸。',
+    manual: '噪音直接进入表格。',
+    service: '几乎无法处理公开讨论噪音。',
   },
   {
-    label: '资产所有权',
-    leadpulse: '页面、代码、话术和路径都能沉淀。',
-    manual: '内容散落，难复用。',
-    service: '交付常常不够结构化。',
+    label: '商业闭环',
+    leadpulse: '预算达标后进入预约、充值和线索池。',
+    manual: '后续动作散落在不同工具里。',
+    service: '只承接主动提交的人。',
   },
 ];
 
@@ -54,32 +54,27 @@ export default function ComparePage() {
   return (
     <MarketingPageShell
       eyebrow="对比"
-      title="不是做得更快，而是离收款更近"
-      description="LeadPulse 的区别不在于功能更多，而在于把分散动作收成一条可复用、可经营的路径。"
-      primaryCta={{ href: '/pay?plan=pro', label: '看定价' }}
+      title="不是链接更多，而是离成交更近。"
+      description="LeadPulse 的区别不在功能数量，而在于只保留一条获客闭环：发现购买意图、过滤噪音、推进销售动作。"
+      primaryCta={{ href: '/pricing', label: '查看充值包' }}
       secondaryCta={{ href: '/product', label: '看产品' }}
     >
-      <section className="mx-auto max-w-7xl px-6 py-4 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="grid gap-4 lg:grid-cols-3">
           {topCards.map((card) => {
             const Icon = card.icon;
             return (
-              <article
-                key={card.title}
-                className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]"
-              >
+              <article key={card.title} className="lead-card p-6">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
+                  <div className="w-fit rounded-lg border border-slate-200 bg-slate-50 p-3">
                     <Icon className="h-5 w-5 text-slate-800" />
                   </div>
-                  <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium text-slate-700">
-                    {card.badge}
-                  </span>
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700">{card.badge}</span>
                 </div>
-                <h2 className="mt-5 text-xl font-semibold tracking-tight text-slate-950">{card.title}</h2>
+                <h2 className="mt-5 text-xl font-extrabold tracking-tight text-slate-950">{card.title}</h2>
                 <div className="mt-5 space-y-3">
                   {card.points.map((point) => (
-                    <div key={point} className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3 text-sm text-slate-700">
+                    <div key={point} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                       {point}
                     </div>
                   ))}
@@ -90,33 +85,33 @@ export default function ComparePage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-10 max-w-7xl px-6 pb-10 lg:px-8">
-        <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-          <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Compare</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">你买的是系统，不是临时拼装</h2>
+      <section className="mx-auto mt-8 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="lead-card p-6">
+          <div className="lead-pill">Compare</div>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">你买的是筛选结果，不是另一堆工具。</h2>
           <div className="mt-6 space-y-4">
             {rows.map((row) => (
-              <article key={row.label} className="interactive-panel rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
-                <h3 className="text-lg font-semibold text-slate-950">{row.label}</h3>
+              <article key={row.label} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+                <h3 className="text-lg font-extrabold text-slate-950">{row.label}</h3>
                 <div className="mt-4 grid gap-3 xl:grid-cols-3">
-                  <div className="rounded-2xl border border-emerald-200 bg-white px-4 py-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                  <div className="rounded-lg border border-emerald-200 bg-white px-4 py-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-950">
                       <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                       LeadPulse
                     </div>
                     <p className="mt-3 text-sm leading-7 text-slate-600">{row.leadpulse}</p>
                   </div>
-                  <div className="rounded-2xl border border-black/5 bg-white px-4 py-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                  <div className="rounded-lg border border-slate-200 bg-white px-4 py-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-950">
                       <XCircle className="h-4 w-4 text-slate-400" />
-                      手工拼工具
+                      手工搜索
                     </div>
                     <p className="mt-3 text-sm leading-7 text-slate-600">{row.manual}</p>
                   </div>
-                  <div className="rounded-2xl border border-black/5 bg-white px-4 py-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                  <div className="rounded-lg border border-slate-200 bg-white px-4 py-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-950">
                       <XCircle className="h-4 w-4 text-slate-400" />
-                      纯服务
+                      泛表单
                     </div>
                     <p className="mt-3 text-sm leading-7 text-slate-600">{row.service}</p>
                   </div>

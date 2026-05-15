@@ -10,8 +10,8 @@ import { PROOF_CASES } from '../../lib/proof';
 import { readSelfGrowthSummary } from '../../lib/self-growth';
 
 export const metadata: Metadata = {
-  title: 'Cases',
-  description: 'LeadPulse 内部案例页：实验页、真实触达、目标池和排序提升反馈。',
+  title: '案例',
+  description: 'LeadPulse 的公开案例页：实验页、真实触达、目标池和排序提升反馈。',
 };
 
 export const dynamic = 'force-dynamic';
@@ -29,9 +29,9 @@ export default async function CasesPage() {
 
   return (
     <MarketingPageShell
-      eyebrow="Cases"
-      title="看真实案例，不看包装"
-      description="这里放的是已经在跑的实验页、触达样本和被提升的高优先目标，不是概念页。"
+      eyebrow="案例"
+      title="看真实案例，不看概念。"
+      description="这里放的是已经在跑的实验页、触达样本和被提升的高优先目标。"
       primaryCta={{ href: '/proof', label: '看执行证明' }}
       secondaryCta={{ href: '/experiments', label: '看实验页' }}
     >
@@ -67,7 +67,7 @@ export default async function CasesPage() {
       <section className="mx-auto mt-10 max-w-7xl px-6 py-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Live cases</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">样本</div>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">真实触达样本</h2>
             <div className="mt-6 space-y-4">
               {PROOF_CASES.map((item) => (
@@ -84,7 +84,7 @@ export default async function CasesPage() {
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Experiments</div>
+                <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">实验页</div>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">当前实验页</h2>
               </div>
               <Link href="/experiments" className="interactive-button inline-flex items-center text-sm font-semibold text-slate-700 hover:text-slate-950">
@@ -111,7 +111,7 @@ export default async function CasesPage() {
       <section className="mx-auto mt-4 max-w-7xl px-6 pb-10 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Rerank feedback</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">排序反馈</div>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">被提升的高优先目标</h2>
             <div className="mt-6 space-y-4">
               {boostedContacts.length ? (
@@ -139,7 +139,7 @@ export default async function CasesPage() {
           </section>
 
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Recent signals</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">最近信号</div>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">最近的公开触达记录</h2>
             <div className="mt-6 space-y-4">
               {outreachEvents.slice(0, 4).map((item) => (

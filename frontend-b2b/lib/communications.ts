@@ -360,7 +360,7 @@ function buildPaymentDrafts(record: PaymentRecord) {
 
 function buildBookingDrafts(record: BookingRecord) {
   const bookingUrl = withSiteUrl('/book');
-  const paymentUrl = withSiteUrl('/pay?plan=pro');
+  const paymentUrl = withSiteUrl('/pay?package=standard');
   const detailsUrl = withSiteUrl('/product');
   const fields = baseFields(record, 'booking_request', 'medium');
   const context = String(record.context || '').trim() || '把当前瓶颈和最短回款路径判断清楚';
@@ -388,7 +388,7 @@ function buildBookingDrafts(record: BookingRecord) {
         '2. 最近 1-2 个成交或丢单案例；',
         '3. 当前支付方式、上线流程和主要流量入口。',
         '',
-        `如果你已经判断清楚，也可以直接开通 Pro：${paymentUrl}`,
+        `如果你已经判断清楚，也可以直接充值 LP Coin：${paymentUrl}`,
         `产品详情：${detailsUrl}`,
         '',
         '— LeadPulse',
@@ -422,13 +422,13 @@ function buildBookingDrafts(record: BookingRecord) {
         `我这边还在等 ${fields.company} 确认最终时间。`,
         '如果你现在最关心的其实不是聊天，而是更快上线、接支付、拿到第一批线索，那也可以直接从 Pro 开始。',
         '',
-        `开通 Pro：${paymentUrl}`,
+        `充值 LP Coin：${paymentUrl}`,
         `产品详情：${detailsUrl}`,
         '',
         '— LeadPulse',
       ].join('\n'),
       ctaUrl: paymentUrl,
-      ctaLabel: '直接开通 Pro',
+      ctaLabel: '直接充值 LP Coin',
       readyAt: dueFromNow(48),
     }),
   ];
@@ -436,7 +436,7 @@ function buildBookingDrafts(record: BookingRecord) {
 
 function buildDesignPartnerDrafts(record: DesignPartnerRecord) {
   const bookingUrl = withSiteUrl('/book');
-  const paymentUrl = withSiteUrl('/pay?plan=pro');
+  const paymentUrl = withSiteUrl('/pay?package=standard');
   const detailsUrl = withSiteUrl('/compare');
   const fields = baseFields(
     record,
@@ -461,7 +461,7 @@ function buildDesignPartnerDrafts(record: DesignPartnerRecord) {
         `我会先看三件事：1）${segment} 的 ICP 是否够清楚；2）支付是否能接；3）当前瓶颈 ${bottleneck} 是否适合用 credits-first 方案来解。`,
         '',
         `如果判断合适，我建议先约 15 分钟诊断：${bookingUrl}`,
-        `如果你已经明确要主力方案，也可以直接开 Pro：${paymentUrl}`,
+        `如果你已经明确要主力方案，也可以直接充值 LP Coin：${paymentUrl}`,
         `产品详情：${detailsUrl}`,
         '',
         '— LeadPulse',
@@ -495,7 +495,7 @@ function buildDesignPartnerDrafts(record: DesignPartnerRecord) {
         `如果 ${fields.company} 还在看 Design Partner 是否适合，我建议不要继续空想，直接用 15 分钟把是否值得做判断清楚。`,
         '',
         `预约：${bookingUrl}`,
-        `或者直接开 Pro：${paymentUrl}`,
+        `或者直接充值 LP Coin：${paymentUrl}`,
         `产品详情：${detailsUrl}`,
         '',
         '— LeadPulse',

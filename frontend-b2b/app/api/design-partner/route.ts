@@ -127,7 +127,7 @@ export async function POST(request: Request) {
     return Response.json({
       ok: true,
       bookingUrl: process.env.NEXT_PUBLIC_BOOKING_URL || `${SITE_URL}/book`,
-      paymentUrl: process.env.NEXT_PUBLIC_PRO_PAYMENT_URL || `${SITE_URL}/pay?plan=pro`,
+      paymentUrl: process.env.NEXT_PUBLIC_PRO_PAYMENT_URL || `${SITE_URL}/pay?package=standard`,
       proofUrl: `${SITE_URL}/compare`,
       messagesUrl: `${SITE_URL}/dashboard/messages`,
     });

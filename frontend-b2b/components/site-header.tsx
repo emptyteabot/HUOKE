@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Activity, ArrowRight } from 'lucide-react';
 
 type Props = {
   ctaHref?: string;
@@ -6,26 +7,24 @@ type Props = {
 };
 
 const navItems = [
-  { href: '/product', label: '产品介绍' },
-  { href: '/pricing', label: '收费方式' },
+  { href: '/product', label: '工作流' },
+  { href: '/pricing', label: '充值包' },
   { href: '/faq', label: '常见问题' },
+  { href: '/dashboard/leads', label: '线索池' },
 ];
 
-export function SiteHeader({ ctaHref = '/book', ctaLabel = '免费拿样本' }: Props) {
+export function SiteHeader({ ctaHref = '/book', ctaLabel = '立即获取线索' }: Props) {
   return (
-    <header className="sticky top-0 z-40 border-b border-black/5 bg-[#f5f5f7]/92 backdrop-blur-2xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-white text-sm font-semibold text-slate-900 shadow-sm">
-            LP
-          </div>
-          <div>
-            <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">LeadPulse</div>
-            <div className="mt-1 text-base font-semibold text-slate-950">帮你找到正在找服务的人</div>
-          </div>
+    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/68 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex min-w-0 items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white shadow-sm">
+            <Activity className="h-4 w-4" />
+          </span>
+          <span className="truncate text-xl font-extrabold tracking-tight text-slate-950">LeadPulse</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm text-[#86868b] lg:flex">
+        <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-500 lg:flex">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href} className="transition hover:text-slate-950">
               {item.label}
@@ -33,11 +32,10 @@ export function SiteHeader({ ctaHref = '/book', ctaLabel = '免费拿样本' }: 
           ))}
         </nav>
 
-        <Link
-          href={ctaHref}
-          className="interactive-button inline-flex rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbfb]"
-        >
-          {ctaLabel}
+        <Link href={ctaHref} className="lead-button lead-button-primary min-h-10 px-5 text-sm">
+          <span className="hidden sm:inline">{ctaLabel}</span>
+          <span className="sm:hidden">获取线索</span>
+          <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
     </header>

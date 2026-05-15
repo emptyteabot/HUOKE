@@ -164,7 +164,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Sea
     <DashboardShell
       active="messages"
       title="消息草稿库"
-      description="新线索进来后，LeadPulse 会自动产出首封确认、私信和后续跟进模板。你只要复制、发送、记录，不要每次从零写。"
+      description="新线索进来后，LeadPulse 会自动产出首封确认、私信和后续跟进话术。你只要复制、发送、记录，不要每次从零写。"
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="interactive-panel rounded-3xl border border-black/5 bg-white/85 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
@@ -184,7 +184,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Sea
           <div className="mt-3 text-3xl font-semibold text-slate-950">{summary.sent}</div>
         </article>
         <article className="interactive-panel rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-          <div className="text-sm font-medium text-emerald-700">Closer 待发</div>
+          <div className="text-sm font-medium text-emerald-700">成交推进待发</div>
           <div className="mt-3 text-3xl font-semibold text-emerald-700">{summary.closerReady}</div>
         </article>
       </div>
@@ -197,7 +197,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Sea
           </span>
         </div>
         <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          `Closer` 成交推进草稿会自动置顶，优先于普通确认信和普通跟进。
+          成交推进草稿会自动置顶，优先于普通确认信和普通跟进。
         </div>
         <form action="/dashboard/messages" className="flex flex-col gap-3 xl:flex-row xl:items-center">
           <div className="flex flex-wrap gap-2">
@@ -256,7 +256,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Sea
           <section className="interactive-panel rounded-3xl border border-emerald-200 bg-emerald-50/60 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-700">Closer queue</div>
+                <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-700">成交推进队列</div>
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">成交优先草稿</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
                   这些草稿来自 `handoff_to_closer`，优先级高于普通确认信和普通跟进。
@@ -297,7 +297,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Sea
                           {statusLabel(draft.deliveryState)}
                         </div>
                         <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                          Closer 优先
+                          成交优先
                         </div>
                       </div>
                     </div>
@@ -376,7 +376,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Sea
                     </div>
                     {(draft.templateKey === 'intelligence-closer-email' || draft.templateKey === 'intelligence-closer-dm') ? (
                       <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                        Closer 优先
+                        成交优先
                       </div>
                     ) : null}
                   </div>

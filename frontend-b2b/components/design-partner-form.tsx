@@ -27,7 +27,7 @@ const initialState: FormState = {
   email: '',
   company: '',
   website: '',
-  segment: 'study_abroad_agency',
+  segment: 'b2b_service',
   monthlyRevenue: '',
   bottleneck: '',
 };
@@ -72,7 +72,7 @@ export function DesignPartnerForm({ variant = 'embedded' }: Props) {
         throw new Error(payload.error || '提交失败，请稍后再试。');
       }
 
-      setSuccessMessage('已收到。下一步建议先预约 15 分钟诊断通话；如果你已经确定，也可以直接支付 Pro 先开跑。');
+      setSuccessMessage('已收到。下一步建议先预约 15 分钟诊断；如果你已经确定，也可以直接充值 LP Coin 开始试跑。');
       setSuccessPayload(payload);
       setFormState(initialState);
     } catch (submissionError) {
@@ -84,38 +84,29 @@ export function DesignPartnerForm({ variant = 'embedded' }: Props) {
 
   const bookingUrl = successPayload.bookingUrl || fallbackBookingUrl;
   const paymentUrl = successPayload.paymentUrl || fallbackPaymentUrl;
-  const proofUrl = successPayload.proofUrl || '/compare';
+  const proofUrl = successPayload.proofUrl || '/product';
 
   return (
-    <div
-      className={`rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)] ${
-        isPage ? 'w-full max-w-2xl' : ''
-      }`}
-    >
+    <div className={`lead-card p-6 ${isPage ? 'w-full max-w-2xl' : ''}`}>
       <div className="mb-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Design Partner Intake</p>
-        <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">申请 LeadPulse 14 天设计伙伴</h3>
+        <p className="lead-pill">免费体验</p>
+        <h3 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950">先看一批与你业务相关的线索样本</h3>
         <p className="mt-3 text-sm leading-7 text-slate-600">
-          这不是泛泛报名表，而是 founder 用来判断你现在该先跑 Free、直接上 Pro，还是应该先把漏斗和支付准备度补齐。
+          这不是泛报名表。告诉我们你卖什么、想找谁，LeadPulse 会根据你的业务方向整理一批可追溯的公开讨论线索。
         </p>
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>姓名</span>
-            <input
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
-              value={formState.name}
-              onChange={(event) => updateField('name', event.target.value)}
-              required
-            />
+            <input className="lead-input" value={formState.name} onChange={(event) => updateField('name', event.target.value)} required />
           </label>
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>邮箱</span>
             <input
               type="email"
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               value={formState.email}
               onChange={(event) => updateField('email', event.target.value)}
               required
@@ -124,19 +115,14 @@ export function DesignPartnerForm({ variant = 'embedded' }: Props) {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>公司 / 项目</span>
-            <input
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
-              value={formState.company}
-              onChange={(event) => updateField('company', event.target.value)}
-              required
-            />
+            <input className="lead-input" value={formState.company} onChange={(event) => updateField('company', event.target.value)} required />
           </label>
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>网站</span>
             <input
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               value={formState.website}
               onChange={(event) => updateField('website', event.target.value)}
               placeholder="https://..."
@@ -145,26 +131,21 @@ export function DesignPartnerForm({ variant = 'embedded' }: Props) {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>行业</span>
-            <select
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
-              value={formState.segment}
-              onChange={(event) => updateField('segment', event.target.value)}
-            >
-              <option value="study_abroad_agency">留学机构</option>
-              <option value="immigration_consulting">移民咨询</option>
-              <option value="job_search_service">求职服务</option>
-              <option value="b2b_consulting">B2B 咨询</option>
-              <option value="premium_training">高客单培训</option>
+            <select className="lead-input" value={formState.segment} onChange={(event) => updateField('segment', event.target.value)}>
+              <option value="b2b_service">B2B 服务</option>
+              <option value="local_agency">本地生活 / 代运营</option>
+              <option value="education_service">教育 / 咨询</option>
               <option value="ai_agency">AI Agency</option>
-              <option value="micro_saas_founder">AI Builder Founder</option>
+              <option value="saas">SaaS / 软件</option>
+              <option value="outsourcing">外包获客团队</option>
             </select>
           </label>
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>当前月收入区间</span>
             <select
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               value={formState.monthlyRevenue}
               onChange={(event) => updateField('monthlyRevenue', event.target.value)}
               required
@@ -178,61 +159,40 @@ export function DesignPartnerForm({ variant = 'embedded' }: Props) {
           </label>
         </div>
 
-        <label className="space-y-2 text-sm text-slate-700">
+        <label className="space-y-2 text-sm font-semibold text-slate-700">
           <span>现在最大的获客瓶颈</span>
           <textarea
-            className="min-h-32 w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+            className="lead-input lead-textarea"
             value={formState.bottleneck}
             onChange={(event) => updateField('bottleneck', event.target.value)}
-            placeholder="例如：线索主要靠转介绍；销售依赖创始人；内容有流量但没有预约。"
+            placeholder="例如：线索主要靠转介绍；销售每天被垃圾链接淹没；内容有流量但没有预约。"
             required
           />
         </label>
 
-        {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
-        ) : null}
+        {error ? <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
 
         {successMessage ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
             <p>{successMessage}</p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <a
-                className="inline-flex items-center rounded-2xl border border-black/10 bg-white px-4 py-2 font-semibold text-slate-900 shadow-sm transition hover:border-black/15 hover:bg-[#fbfbf8]"
-                href={bookingUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                预约诊断通话
+              <a className="rounded-full border border-black/10 bg-white px-4 py-2 font-bold text-slate-900" href={bookingUrl}>
+                预约诊断电话
               </a>
               {paymentUrl ? (
-                <a
-                  className="inline-flex items-center rounded-2xl border border-black/10 bg-white px-4 py-2 font-semibold text-slate-900 shadow-sm transition hover:border-black/15 hover:bg-[#fbfbf8]"
-                  href={paymentUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  直接支付 Pro
+                <a className="rounded-full border border-black/10 bg-white px-4 py-2 font-bold text-slate-900" href={paymentUrl}>
+                  直接充值
                 </a>
               ) : null}
-              <a
-                className="inline-flex items-center rounded-2xl border border-black/10 bg-white px-4 py-2 font-semibold text-slate-900 shadow-sm transition hover:border-black/15 hover:bg-[#fbfbf8]"
-                href={proofUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                看产品详情
+              <a className="rounded-full border border-black/10 bg-white px-4 py-2 font-bold text-slate-900" href={proofUrl}>
+                看工作流
               </a>
             </div>
           </div>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-base font-semibold text-slate-900 shadow-sm transition hover:border-black/15 hover:bg-[#fbfbf8] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {submitting ? '提交中...' : '申请设计伙伴'}
+        <button type="submit" disabled={submitting} className="lead-button lead-button-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
+          {submitting ? '提交中...' : '提交并等待样本'}
         </button>
 
         <p className="text-xs leading-6 text-slate-500">

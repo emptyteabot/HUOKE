@@ -1,147 +1,96 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  ArrowRight,
-  BriefcaseBusiness,
-  Building2,
-  GraduationCap,
-  MessageSquareMore,
-  Rocket,
-  SearchCheck,
-  UserRound,
-} from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, Building2, GraduationCap, MessageSquareMore, SearchCheck } from 'lucide-react';
 
 import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
-  title: 'Use Cases',
-  description:
-    'LeadPulse use cases for founders, agencies, service teams, and education operators who need an AI Lead Capture & Conversion OS instead of another point tool.',
+  title: '适用场景',
+  description: 'LeadPulse 适合需要从公开讨论里提取高意向线索的服务团队、销售团队和工作室。',
 };
 
 const personas = [
   {
-    title: 'Indie SaaS and AI tool founders',
-    description:
-      'You need to find real buying intent in public posts, comments, and platform conversations before you waste cycles on broad outbound.',
-    outcome: 'Move from public intent to demo requests, paid pilots, and onboarding faster.',
-    icon: Rocket,
-  },
-  {
-    title: 'Agency and studio operators',
-    description:
-      'You already know how to sell. The bottleneck is spotting the right conversations early and turning them into repeatable handoff and payment steps.',
-    outcome: 'Qualify faster, avoid noisy leads, and keep the whole path inside one operating layer.',
+    title: 'B2B 服务团队',
+    description: '你已经知道怎么成交，瓶颈是更早看见正在找方案、问报价、要推荐的人。',
+    outcome: '减少无效外呼，把销售精力放在明确有需求的人身上。',
     icon: BriefcaseBusiness,
   },
   {
-    title: 'High-ticket education or consulting teams',
-    description:
-      'You sell through trust and timing. LeadPulse helps you spot urgent questions, budget signals, and buying language before the inquiry goes cold.',
-    outcome: 'Reduce missed demand and push more qualified conversations into booked diagnostics.',
-    icon: GraduationCap,
+    title: '外包获客工作室',
+    description: '你需要持续交付高质量线索，而不是给客户一堆关键词链接。',
+    outcome: '用可追溯的原文和 AI 分析支撑交付质量。',
+    icon: Building2,
   },
   {
-    title: 'Lean growth teams inside service businesses',
-    description:
-      'Your team needs a standard SaaS workflow for capture, review, routing, follow-up, and kickoff without building a custom RevOps stack first.',
-    outcome: 'Operate a smaller team with clearer lead views, task flow, and revenue handoff.',
-    icon: Building2,
+    title: '教育 / 咨询团队',
+    description: '你卖的是信任和时机，需要在客户提问最热的时候进入对话。',
+    outcome: '把求推荐、问价格、想试一轮的人推进诊断电话。',
+    icon: GraduationCap,
   },
 ];
 
 const loops = [
   {
-    title: 'Capture the right signal',
-    description:
-      'Start with public demand expressions like "who should we use", "how much", "need help", "any recommendation", or explicit problem statements.',
+    title: '捕捉真实信号',
+    description: '从“求推荐”“多少钱”“有没有靠谱服务商”“谁能帮我做”等公开需求开始。',
     icon: SearchCheck,
   },
   {
-    title: 'Qualify before outreach',
-    description:
-      'LeadPulse filters noisy accounts, competitor chatter, and low-intent traffic before your team exports links, writes drafts, or starts follow-up.',
-    icon: UserRound,
-  },
-  {
-    title: 'Convert inside one path',
-    description:
-      'The same system carries the lead toward booking, payment, and kickoff so your team is not stitching together five different tools by hand.',
+    title: '触达前先筛选',
+    description: '先过滤噪声、同行软文和低意图讨论，再让销售接手。',
     icon: MessageSquareMore,
   },
-];
-
-const scenarioRows = [
   {
-    label: 'When you need more than social listening',
-    detail:
-      'Use LeadPulse when the real business need is not "knowing what people said", but moving fast enough to capture the revenue hidden in those conversations.',
-  },
-  {
-    label: 'When you need more than DM automation',
-    detail:
-      'Use LeadPulse when automated replies are not enough, and you need qualification, routing, payment, and kickoff to stay attached to the same lead record.',
-  },
-  {
-    label: 'When you need more than an outbound sequencer',
-    detail:
-      'Use LeadPulse when the hard part is sourcing the right high-intent people from public demand signals, not just sending another sequence.',
+    title: '承接到预约和充值',
+    description: '同一条路径把线索推进到 Discovery Call、LP Coin 充值和后续交付。',
+    icon: ArrowRight,
   },
 ];
 
 export default function UseCasesPage() {
   return (
     <MarketingPageShell
-      eyebrow="Use cases"
-      title="Who LeadPulse is built for"
-      description="LeadPulse is an AI Lead Capture & Conversion OS for teams that do not just want visibility. They want a standard SaaS workflow from public intent to booking, payment, and onboarding."
-      typeLine="Use cases for a shorter revenue path"
-      primaryCta={{ href: '/register?plan=free', label: '先开 Free' }}
+      eyebrow="适用场景"
+      title="适合想从公开讨论里提前截获需求的团队。"
+      description="LeadPulse 不适合所有行业。它最适合客单价足够、客户会在公开平台提问，并且销售愿意主动跟进的业务。"
+      typeLine="先用免费额度验证一个场景，再决定是否放量。"
+      primaryCta={{ href: '/register?plan=free', label: '领取体验额度' }}
       secondaryCta={{ href: '/book', label: '预约 15 分钟' }}
     >
-      <section className="mx-auto max-w-7xl px-6 py-2 lg:px-8">
-        <div className="grid gap-4 xl:grid-cols-2">
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="grid gap-4 xl:grid-cols-3">
           {personas.map((item) => {
             const Icon = item.icon;
             return (
-              <article
-                key={item.title}
-                className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="w-fit rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
-                    <Icon className="h-5 w-5 text-slate-800" />
-                  </div>
-                  <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium text-slate-700">
-                    AI Lead Capture & Conversion OS
-                  </span>
+              <article key={item.title} className="lead-card p-6">
+                <div className="w-fit rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <Icon className="h-5 w-5 text-slate-800" />
                 </div>
-                <h2 className="mt-5 text-xl font-semibold tracking-tight text-slate-950">{item.title}</h2>
+                <h2 className="mt-5 text-xl font-extrabold tracking-tight text-slate-950">{item.title}</h2>
                 <p className="mt-3 text-sm leading-7 text-slate-600">{item.description}</p>
-                <div className="mt-5 rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm leading-7 text-slate-700">
-                  {item.outcome}
-                </div>
+                <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">{item.outcome}</div>
               </article>
             );
           })}
         </div>
       </section>
 
-      <section className="mx-auto mt-10 max-w-7xl px-6 pb-10 lg:px-8">
+      <section className="mx-auto mt-8 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
-          <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Operating loop</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">The same core motion, mapped across different teams</h2>
+          <section className="lead-card p-6">
+            <div className="lead-pill">Operating Loop</div>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">同一套动作，适配不同团队。</h2>
             <div className="mt-6 space-y-4">
               {loops.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <article key={item.title} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
+                  <article key={item.title} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl border border-black/10 bg-white p-3">
+                      <div className="rounded-lg border border-slate-200 bg-white p-3">
                         <Icon className="h-5 w-5 text-slate-800" />
                       </div>
-                      <h3 className="text-lg font-semibold text-slate-950">{item.title}</h3>
+                      <h3 className="text-lg font-extrabold text-slate-950">{item.title}</h3>
                     </div>
                     <p className="mt-4 text-sm leading-7 text-slate-600">{item.description}</p>
                   </article>
@@ -150,71 +99,25 @@ export default function UseCasesPage() {
             </div>
           </section>
 
-          <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">When LeadPulse fits best</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Use it when the bottleneck is conversion continuity</h2>
-            <div className="mt-6 space-y-4">
-              {scenarioRows.map((item) => (
-                <article key={item.label} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
-                  <h3 className="text-lg font-semibold text-slate-950">{item.label}</h3>
-                  <div className="mt-4 rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm leading-7 text-slate-600">
-                    {item.detail}
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            <div className="mt-6 rounded-3xl border border-black/5 bg-white px-5 py-5">
-              <h3 className="text-lg font-semibold text-slate-950">Choose your starting motion</h3>
-              <div className="mt-4 grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm text-slate-700">
-                  Free: validate one use case.
-                </div>
-                <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm text-slate-700">
-                  Book: align the workflow with your funnel.
-                </div>
-                <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-4 text-sm text-slate-700">
-                  Pro: launch the full conversion operating loop.
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 pb-12 lg:px-8">
-        <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-          <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr] xl:items-center">
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">CTA</div>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Pick the entry point that matches your team</h2>
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                If you are still validating demand, start Free. If you already have inbound signals and need a tighter conversion path, go straight to Pro. If the workflow boundary is the real question, book a short call first.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 xl:justify-end">
-              <Link
-                href="/register?plan=free"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8]"
-              >
-                先开 Free
+          <section className="lead-card p-6">
+            <div className="lead-pill">Entry Point</div>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">选择最适合你的入口。</h2>
+            <p className="mt-4 text-sm leading-7 text-slate-600">
+              如果还在验证需求，先领体验额度。如果已经有明确场景和预算，直接充值 LP Coin。边界不清楚，就先预约电话。
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link href="/register?plan=free" className="lead-button lead-button-primary">
+                领取体验额度
               </Link>
-              <Link
-                href="/book"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-[#fbfbf8] hover:text-slate-950"
-              >
+              <Link href="/book" className="lead-button lead-button-secondary">
                 预约 15 分钟
               </Link>
-              <Link
-                href="/pay?plan=pro"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-[#fbfbf8] hover:text-slate-950"
-              >
-                开通 Pro
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <Link href="/pay?package=standard" className="lead-button lead-button-secondary">
+                充值 LP Coin
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-          </div>
+          </section>
         </div>
       </section>
     </MarketingPageShell>

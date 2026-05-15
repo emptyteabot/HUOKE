@@ -76,7 +76,7 @@ export default async function OpsPage() {
       <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
         <div className="max-w-4xl fade-up">
           <div className="apple-pill breathing-pill px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[#86868b]">
-            Founder Operating System
+            经营工作台
           </div>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
             经营层只回答四个问题

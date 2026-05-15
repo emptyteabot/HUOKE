@@ -10,7 +10,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Sea
   const resolved = await searchParams;
   const params = new URLSearchParams();
 
-  params.set("plan", resolved.plan === "free" ? "free" : "pro");
+  params.set("plan", resolved.plan === "max" ? "max" : "free");
   if (resolved.company) params.set("company", String(resolved.company).trim());
   if (resolved.email) params.set("email", String(resolved.email).trim());
 

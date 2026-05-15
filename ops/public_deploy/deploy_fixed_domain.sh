@@ -64,6 +64,13 @@ git fetch origin
 git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
+export LEADPULSE_SITE_URL="${LEADPULSE_SITE_URL:-https://leadpulseagi.com}"
+export LEADPULSE_M2M_BACKEND_URL="${LEADPULSE_M2M_BACKEND_URL:-http://$M2M_HOST:$M2M_PORT}"
+export LEADPULSE_PAYMENT_PROVIDER="${LEADPULSE_PAYMENT_PROVIDER:-xunhupay}"
+export LEADPULSE_XUNHU_GATEWAY_URL="${LEADPULSE_XUNHU_GATEWAY_URL:-https://api.xunhupay.com/payment/do.html}"
+export LEADPULSE_XUNHU_NOTIFY_URL="${LEADPULSE_XUNHU_NOTIFY_URL:-$LEADPULSE_SITE_URL/api/v1/xunhupay/notify}"
+export LEADPULSE_XUNHU_RETURN_URL="${LEADPULSE_XUNHU_RETURN_URL:-$LEADPULSE_SITE_URL/api/v1/xunhupay/callback}"
+
 cd "$APP_DIR"
 npm ci
 npm run build
@@ -90,9 +97,6 @@ fi
 
 pkill -f "uvicorn leadpulse_m2m.main:app --host $M2M_HOST --port $M2M_PORT" || true
 sleep 2
-
-export LEADPULSE_SITE_URL="${LEADPULSE_SITE_URL:-https://leadpulseagi.com}"
-export LEADPULSE_M2M_BACKEND_URL="${LEADPULSE_M2M_BACKEND_URL:-http://$M2M_HOST:$M2M_PORT}"
 
 cd "$M2M_DIR"
 nohup "$M2M_VENV/bin/python" -m uvicorn leadpulse_m2m.main:app --host "$M2M_HOST" --port "$M2M_PORT" >"$M2M_STDOUT" 2>"$M2M_STDERR" &

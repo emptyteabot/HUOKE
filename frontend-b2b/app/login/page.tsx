@@ -11,7 +11,7 @@ export default function LoginPage() {
           <div className="mx-auto apple-pill breathing-pill flex h-14 w-14 items-center justify-center rounded-[28px]">
             <LayoutDashboard className="h-7 w-7 text-[#0071e3]" />
           </div>
-          <h1 className="mt-5 text-3xl font-semibold text-slate-950">LeadPulse Console</h1>
+          <h1 className="mt-5 text-3xl font-semibold text-slate-950">LeadPulse 线索作战台</h1>
           <div className="mt-3 text-sm leading-6">
             <TypewriterDecor text="这是内部控制台入口，不是面向客户的普通产品登录页。" />
           </div>
@@ -23,7 +23,7 @@ export default function LoginPage() {
             <p className="text-sm font-semibold text-slate-900">内部控制台入口</p>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            这里用于 founder / operator 查看线索、消息、任务和账单。公开用户默认应从官网、价格页或预约页进入。
+            这里用于查看线索、消息、任务和余额。公开用户默认从官网、充值页或预约页进入。
           </p>
         </div>
 

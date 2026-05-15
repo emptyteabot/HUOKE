@@ -75,20 +75,20 @@ export function RedeemCodeForm({ defaultCompany = '', initialCode = '' }: Props)
   }
 
   return (
-    <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+    <div className="lead-card p-6">
       <div>
-        <p className="font-mono text-[11px] tracking-[0.28em] text-slate-500">兑换开通</p>
-        <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">已经拿到开通码，就在这里继续</h3>
+        <p className="lead-pill">兑换开通</p>
+        <h3 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950">已经拿到开通码，就在这里继续</h3>
         <p className="mt-3 text-sm leading-7 text-slate-600">
-          你付完款后会拿到开通码。把开通码填进来，就可以继续进入下一步。
+          把开通码填进来，系统会核销兑换码、生成启动交付包，并把你带到启动页。
         </p>
       </div>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-        <label className="space-y-2 text-sm text-slate-700">
+        <label className="space-y-2 text-sm font-semibold text-slate-700">
           <span>兑换码</span>
           <input
-            className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+            className="lead-input"
             value={formState.code}
             onChange={(event) => updateField('code', event.target.value.toUpperCase())}
             placeholder="例如：ABCD-EFGH-JKLM"
@@ -97,52 +97,31 @@ export function RedeemCodeForm({ defaultCompany = '', initialCode = '' }: Props)
         </label>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>邮箱</span>
-            <input
-              type="email"
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
-              value={formState.email}
-              onChange={(event) => updateField('email', event.target.value)}
-              required
-            />
+            <input type="email" className="lead-input" value={formState.email} onChange={(event) => updateField('email', event.target.value)} required />
           </label>
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>公司 / 项目</span>
-            <input
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
-              value={formState.company}
-              onChange={(event) => updateField('company', event.target.value)}
-              required
-            />
+            <input className="lead-input" value={formState.company} onChange={(event) => updateField('company', event.target.value)} required />
           </label>
         </div>
 
-        <label className="space-y-2 text-sm text-slate-700">
+        <label className="space-y-2 text-sm font-semibold text-slate-700">
           <span>产品链接</span>
           <input
             type="url"
             placeholder="https://..."
-            className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+            className="lead-input"
             value={formState.productUrl}
             onChange={(event) => updateField('productUrl', event.target.value)}
           />
         </label>
 
-        {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
-        ) : null}
-        {success ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {success}
-          </div>
-        ) : null}
+        {error ? <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
+        {success ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div> : null}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="interactive-button inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-base font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8] disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <button type="submit" disabled={loading} className="lead-button lead-button-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
           {loading ? '正在兑换...' : '兑换并开通'}
         </button>
       </form>

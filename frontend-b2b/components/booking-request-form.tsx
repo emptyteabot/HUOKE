@@ -77,29 +77,29 @@ export function BookingRequestForm() {
   };
 
   return (
-    <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-      <h3 className="text-2xl font-semibold text-slate-950">提交预约请求</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-600">
-        留一个你方便的时间段。我们会先看你的情况合不合适，不会一上来就硬推方案。
+    <div className="lead-card p-6">
+      <h3 className="text-2xl font-extrabold text-slate-950">提交预约请求</h3>
+      <p className="mt-2 text-sm leading-7 text-slate-600">
+        留一个方便沟通的时间段。我们先判断你的业务是否适合从公开讨论里提取高意向线索，不会一上来硬推方案。
       </p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>姓名</span>
             <input
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               value={formState.name}
               onChange={(event) => updateField('name', event.target.value)}
               placeholder="创始人 / 负责人"
               required
             />
           </label>
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>邮箱</span>
             <input
               type="email"
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               value={formState.email}
               onChange={(event) => updateField('email', event.target.value)}
               placeholder="you@company.com"
@@ -109,43 +109,39 @@ export function BookingRequestForm() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>公司 / 项目</span>
             <input
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               value={formState.company}
               onChange={(event) => updateField('company', event.target.value)}
               placeholder="产品名或团队名"
             />
           </label>
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>希望时间</span>
             <input
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               value={formState.preferredTime}
               onChange={(event) => updateField('preferredTime', event.target.value)}
-              placeholder="例如：3 月 19 日 20:00 - 22:00"
+              placeholder="例如：5 月 19 日 20:00 - 22:00"
               required
             />
           </label>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>时区</span>
             <input
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               value={formState.timezone}
               onChange={(event) => updateField('timezone', event.target.value)}
             />
           </label>
-          <label className="space-y-2 text-sm text-slate-700">
+          <label className="space-y-2 text-sm font-semibold text-slate-700">
             <span>偏好联系渠道</span>
-            <select
-              className="w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
-              value={formState.channel}
-              onChange={(event) => updateField('channel', event.target.value)}
-            >
+            <select className="lead-input" value={formState.channel} onChange={(event) => updateField('channel', event.target.value)}>
               {channelOptions.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -155,37 +151,31 @@ export function BookingRequestForm() {
           </label>
         </div>
 
-        <label className="space-y-2 text-sm text-slate-700">
+        <label className="space-y-2 text-sm font-semibold text-slate-700">
           <span>背景补充</span>
           <textarea
-            className="min-h-28 w-full rounded-2xl border border-black/10 bg-[#fafaf7] px-4 py-3 text-slate-900 outline-none transition focus:border-black/20"
+            className="lead-input lead-textarea"
             value={formState.context}
             onChange={(event) => updateField('context', event.target.value)}
-            placeholder="简单说一下你是做什么的、最想找到哪类客户、现在最大的难点是什么。"
+            placeholder="简单说一下你卖什么、想找哪类客户、现在最大的获客难点是什么。"
           />
         </label>
 
-        {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
-          </div>
-        ) : null}
+        {error ? <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
 
         {success ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
             <p>{success}</p>
-            <p className="mt-2 text-emerald-700/90">
-              如果你已经想先自己试，也可以直接去看软件版。
-            </p>
+            <p className="mt-2 text-emerald-700/90">如果你已经想先自己试，也可以直接去看充值包和线索池。</p>
             <div className="mt-4 flex flex-wrap gap-3">
               {successPayload.paymentUrl ? (
                 <a
                   href={successPayload.paymentUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center rounded-2xl border border-emerald-200 bg-white px-4 py-2 font-semibold text-emerald-700 transition hover:bg-emerald-100/40"
+                  className="rounded-full border border-emerald-200 bg-white px-4 py-2 font-bold text-emerald-700 transition hover:bg-emerald-100/40"
                 >
-                  去看软件版
+                  查看充值包
                 </a>
               ) : null}
               {successPayload.proofUrl ? (
@@ -193,30 +183,26 @@ export function BookingRequestForm() {
                   href={successPayload.proofUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center rounded-2xl border border-emerald-200 bg-white px-4 py-2 font-semibold text-emerald-700 transition hover:bg-emerald-100/40"
+                  className="rounded-full border border-emerald-200 bg-white px-4 py-2 font-bold text-emerald-700 transition hover:bg-emerald-100/40"
                 >
-                  看产品详情
+                  查看样本说明
                 </a>
               ) : null}
             </div>
           </div>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="interactive-button inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-5 py-3 font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbfb] disabled:opacity-60"
-        >
+        <button type="submit" disabled={loading} className="lead-button lead-button-primary w-full disabled:opacity-60">
           {loading ? '提交中...' : '提交预约请求'}
         </button>
 
-        <p className="text-xs leading-5 text-slate-500">
+        <p className="text-xs leading-6 text-slate-500">
           提交后会进入预约队列并触发通知。详情可查看
-          <Link href="/privacy" className="mx-1 underline hover:text-slate-900">
+          <Link href="/privacy" className="mx-1 underline underline-offset-4 hover:text-slate-900">
             隐私说明
           </Link>
           和
-          <Link href="/terms" className="ml-1 underline hover:text-slate-900">
+          <Link href="/terms" className="ml-1 underline underline-offset-4 hover:text-slate-900">
             服务条款
           </Link>
           。

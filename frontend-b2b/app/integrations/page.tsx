@@ -1,119 +1,78 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  ArrowRight,
-  BellRing,
-  CreditCard,
-  GitBranch,
-  Mail,
-  ShieldCheck,
-  Webhook,
-  Workflow,
-} from 'lucide-react';
+import { ArrowRight, BellRing, CreditCard, Mail, Send, ShieldCheck, Webhook, Workflow } from 'lucide-react';
 
 import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
-  title: 'Integrations',
-  description:
-    'LeadPulse integrations page for an AI Lead Capture & Conversion OS spanning webhook fan-out, payment routing, GitHub sync, email workflows, and operator handoff.',
+  title: '集成',
+  description: 'LeadPulse 集成页：把高意向线索推送到飞书、企业微信、Webhook、CRM 和销售工作流。',
 };
 
 const nativeGroups = [
   {
-    title: 'Webhook fan-out and ops notifications',
-    description:
-      'Lead submissions and commercial signals can fan out into webhook-driven ops flows so the system does not stop at form collection.',
-    points: ['Webhook delivery', 'Slack/Feishu style notification flows', 'Ops visibility for intake and follow-up'],
+    title: 'Webhook 与通知',
+    description: '高意向线索生成后，可以推送到飞书、企业微信或你的内部接口。',
+    points: ['原文链接', 'AI 分析', '评分与下一步动作'],
     icon: Webhook,
   },
   {
-    title: 'Payment and onboarding handoff',
-    description:
-      'LeadPulse links payment intent, confirmation, redeem or start flows, and onboarding steps so revenue events stay connected to delivery.',
-    points: ['Payment intent capture', 'Stripe-ready path where configured', 'Kickoff and onboarding routing'],
+    title: '充值与余额',
+    description: '线索提取和扣费统一落到 LP Coin 余额，避免人工催款和应收账款。',
+    points: ['充值订单', '余额变化', '扣费记录'],
     icon: CreditCard,
   },
   {
-    title: 'Code export and GitHub sync',
-    description:
-      'The product is designed so assets do not stay trapped in a black box. Teams can move code, site assets, and workflow output into version-controlled delivery.',
-    points: ['Code export', 'GitHub sync path', 'Deployment-oriented handoff'],
-    icon: GitBranch,
+    title: '销售接手',
+    description: '把该跟进的人、该说的话、该约的电话，放到销售能立刻执行的位置。',
+    points: ['线索池', '消息草稿', '任务流转'],
+    icon: Send,
   },
 ];
 
 const workflowCards = [
   {
-    title: 'Capture layer',
-    detail:
-      'Public signal detection, intake endpoints, and observation events feed the same operating model instead of creating disconnected data islands.',
+    title: '发现层',
+    detail: '公开讨论、评论区、社群和问答里的需求表达进入同一套判断模型。',
   },
   {
-    title: 'Routing layer',
-    detail:
-      'Tasks, communication drafts, and notification handoff sit in the middle so every qualified signal gets an obvious next action.',
+    title: '路由层',
+    detail: '任务、消息草稿和通知处在中间层，确保每条合格线索都有下一步。',
   },
   {
-    title: 'Conversion layer',
-    detail:
-      'Booking, payment, and kickoff are part of the workflow. That is the difference between a tool that watches leads and a system that moves them.',
+    title: '成交层',
+    detail: '预约、充值、交付和复盘继续挂在同一条线索路径上。',
   },
   {
-    title: 'Operator layer',
-    detail:
-      'LeadPulse is productized, but still pragmatic. It keeps room for human review, manual confirmation, and founder-operated execution where needed.',
-  },
-];
-
-const boundaryRows = [
-  {
-    label: 'What is integrated today',
-    detail:
-      'LeadPulse already connects the commercial path: intake, webhook fan-out, task automation, payment routing, start/onboarding flow, and GitHub-oriented asset export.',
-  },
-  {
-    label: 'What stays human on purpose',
-    detail:
-      'Channels that require judgment, manual confirmation, or operator review are not hidden behind fake "full automation" claims. The product keeps the workflow explicit.',
-  },
-  {
-    label: 'Why this matters',
-    detail:
-      'A standard SaaS experience is not just a grid of logos. It is a clear understanding of what is native, what is assisted, and what your team can trust in production.',
+    title: '人工层',
+    detail: '需要判断、确认和售后的环节保留人工接管，不包装成假自动化。',
   },
 ];
 
 export default function IntegrationsPage() {
   return (
     <MarketingPageShell
-      eyebrow="Integrations"
-      title="Integrations that move leads toward revenue"
-      description="LeadPulse is an AI Lead Capture & Conversion OS. The integrations story is not about showing the biggest marketplace. It is about connecting capture, routing, payment, and kickoff in one production path."
-      typeLine="Native where it matters. Explicit where humans still decide."
+      eyebrow="集成"
+      title="集成的目的不是堆 Logo，而是把线索推向成交。"
+      description="LeadPulse 的集成逻辑很简单：发现商机后，立刻把结构化结果、原文链接和下一步动作送到你的团队或系统。"
+      typeLine="能自动推送的自动推送，需要人工判断的明确交给人。"
       primaryCta={{ href: '/book', label: '预约集成诊断' }}
-      secondaryCta={{ href: '/pay?plan=pro', label: '开通 Pro' }}
+      secondaryCta={{ href: '/pricing', label: '查看充值包' }}
     >
-      <section className="mx-auto max-w-7xl px-6 py-2 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="grid gap-4 xl:grid-cols-3">
           {nativeGroups.map((item) => {
             const Icon = item.icon;
             return (
-              <article
-                key={item.title}
-                className="interactive-panel rounded-[2rem] border border-black/5 bg-white/88 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]"
-              >
-                <div className="w-fit rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
+              <article key={item.title} className="lead-card p-6">
+                <div className="w-fit rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <Icon className="h-5 w-5 text-slate-800" />
                 </div>
-                <h2 className="mt-5 text-xl font-semibold tracking-tight text-slate-950">{item.title}</h2>
+                <h2 className="mt-5 text-xl font-extrabold tracking-tight text-slate-950">{item.title}</h2>
                 <p className="mt-3 text-sm leading-7 text-slate-600">{item.description}</p>
                 <div className="mt-5 space-y-3">
                   {item.points.map((point) => (
-                    <div
-                      key={point}
-                      className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3 text-sm text-slate-700"
-                    >
+                    <div key={point} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                       {point}
                     </div>
                   ))}
@@ -124,93 +83,56 @@ export default function IntegrationsPage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-10 max-w-7xl px-6 pb-10 lg:px-8">
+      <section className="mx-auto mt-8 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[0.96fr_1.04fr]">
-          <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+          <section className="lead-card p-6">
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl border border-black/10 bg-[#f7f7f2] p-3">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <Workflow className="h-5 w-5 text-slate-800" />
               </div>
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">Workflow stack</div>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">The public signal to revenue workflow</h2>
+                <div className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">Workflow Stack</div>
+                <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-950">从公开信号到销售动作</h2>
               </div>
             </div>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               {workflowCards.map((card) => (
-                <article key={card.title} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
-                  <h3 className="text-lg font-semibold text-slate-950">{card.title}</h3>
+                <article key={card.title} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+                  <h3 className="text-lg font-extrabold text-slate-950">{card.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-slate-600">{card.detail}</p>
                 </article>
               ))}
             </div>
           </section>
 
-          <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Integration boundaries</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Clear boundaries beat fake automation claims</h2>
-            <div className="mt-6 space-y-4">
-              {boundaryRows.map((row) => (
-                <article key={row.label} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
-                  <h3 className="text-lg font-semibold text-slate-950">{row.label}</h3>
-                  <div className="mt-4 rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm leading-7 text-slate-600">
-                    {row.detail}
-                  </div>
-                </article>
-              ))}
-            </div>
-
+          <section className="lead-card p-6">
+            <div className="lead-pill">边界</div>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">清楚边界，比假装全自动更重要。</h2>
             <div className="mt-6 grid gap-3 md:grid-cols-3">
-              <div className="rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm text-slate-700">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">
                 <BellRing className="mb-3 h-5 w-5 text-slate-800" />
-                Notification and operator loops stay visible.
+                通知和人工接管保持可见。
               </div>
-              <div className="rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm text-slate-700">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">
                 <Mail className="mb-3 h-5 w-5 text-slate-800" />
-                Communication flow stays tied to the lead path.
+                沟通内容绑定原始线索。
               </div>
-              <div className="rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm text-slate-700">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">
                 <ShieldCheck className="mb-3 h-5 w-5 text-slate-800" />
-                Commercial state changes stay explicit and auditable.
+                充值、扣费和退款可追踪。
               </div>
             </div>
-          </section>
-        </div>
-      </section>
 
-      <section className="mx-auto max-w-7xl px-6 pb-12 lg:px-8">
-        <div className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-          <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-center">
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">CTA</div>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Connect the workflow before you add more tools</h2>
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                If your stack is already fragmented, start by clarifying the conversion path. Book a call if you need the boundary mapped. Start Free if you want to validate first. Go Pro if you already know the workflow is real.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 xl:justify-end">
-              <Link
-                href="/register?plan=free"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbf8]"
-              >
-                先开 Free
-              </Link>
-              <Link
-                href="/book"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-[#fbfbf8] hover:text-slate-950"
-              >
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link href="/book" className="lead-button lead-button-primary">
                 预约集成诊断
               </Link>
-              <Link
-                href="/pay?plan=pro"
-                className="interactive-button inline-flex items-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-black/15 hover:bg-[#fbfbf8] hover:text-slate-950"
-              >
-                开通 Pro
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <Link href="/pay?package=standard" className="lead-button lead-button-secondary">
+                充值 LP Coin
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-          </div>
+          </section>
         </div>
       </section>
     </MarketingPageShell>

@@ -49,6 +49,11 @@ export function publicMcpDiscovery() {
       availability: `${SITE_URL}/api/v2/availability`,
       booking: `${SITE_URL}/api/v2/booking`,
       dynamicInterview: `${SITE_URL}/api/v2/funnel/next-question`,
+      billingPackages: `${SITE_URL}/api/v2/billing/packages`,
+      billingWallet: `${SITE_URL}/api/v2/billing/wallet`,
+      billingOrders: `${SITE_URL}/api/v2/billing/orders`,
+      xunhupayNotify: `${SITE_URL}/api/v1/xunhupay/notify`,
+      xunhupayCallback: `${SITE_URL}/api/v1/xunhupay/callback`,
     },
     tools: toolNames.map((name) => ({
       name,

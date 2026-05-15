@@ -85,8 +85,8 @@ def discovery_document() -> dict[str, Any]:
             "billingPackages": _public_url("/api/v2/billing/packages"),
             "billingWallet": _public_url("/api/v2/billing/wallet"),
             "billingOrders": _public_url("/api/v2/billing/orders"),
-            "alipayNotify": _public_url("/api/v1/alipay/notify"),
-            "alipayCallback": _public_url("/api/v1/alipay/callback"),
+            "xunhupayNotify": _public_url("/api/v1/xunhupay/notify"),
+            "xunhupayCallback": _public_url("/api/v1/xunhupay/callback"),
         },
         "tools": TOOL_DEFINITIONS,
     }
@@ -190,8 +190,7 @@ def billing_charge(request: billing.WalletChargeRequest, _: None = Depends(_requ
     return result.model_dump(mode="json", by_alias=True)
 
 
-@app.post("/api/v1/alipay/notify")
-async def alipay_notify(request: Request) -> Response:
+async def _read_form_or_json_payload(request: Request) -> dict[str, str]:
     raw = (await request.body()).decode("utf-8", "ignore")
     payload = {key: value for key, value in parse_qsl(raw, keep_blank_values=True)}
     if not payload:
@@ -201,19 +200,34 @@ async def alipay_notify(request: Request) -> Response:
             body = {}
         if isinstance(body, dict):
             payload = {str(key): str(value) for key, value in body.items()}
+    return payload
 
+
+@app.post("/api/v1/xunhupay/notify")
+async def xunhupay_notify(request: Request) -> Response:
+    payload = await _read_form_or_json_payload(request)
     try:
-        result = billing.handle_alipay_notify(payload)
+        result = billing.handle_xunhu_notify(payload)
     except Exception as exc:
-        print("LeadPulse Alipay notify failed:", exc)
+        print("LeadPulse Xunhupay notify failed:", exc)
         return Response("fail", media_type="text/plain")
 
     return Response("success" if result.get("ok") else "fail", media_type="text/plain")
 
 
-@app.get("/api/v1/alipay/callback")
-def alipay_callback() -> RedirectResponse:
+@app.get("/api/v1/xunhupay/callback")
+def xunhupay_callback() -> RedirectResponse:
     return RedirectResponse(url=f"{settings.site_url}/dashboard/billing?payment=return", status_code=302)
+
+
+@app.post("/api/v1/alipay/notify")
+async def alipay_notify_compat(request: Request) -> Response:
+    return await xunhupay_notify(request)
+
+
+@app.get("/api/v1/alipay/callback")
+def alipay_callback_compat() -> RedirectResponse:
+    return xunhupay_callback()
 
 
 def _rpc_result(request_id: str | int | None, result: Any) -> JsonRpcResponse:

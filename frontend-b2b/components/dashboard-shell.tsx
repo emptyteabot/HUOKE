@@ -42,12 +42,12 @@ export function DashboardShell({ active, title, description, children }: Props) 
                 </div>
                 <div>
                   <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">LeadPulse</div>
-                  <div className="mt-1 text-base font-semibold text-slate-900">Control</div>
+                  <div className="mt-1 text-base font-semibold text-slate-900">线索作战台</div>
                 </div>
               </Link>
 
               <div className="mt-6">
-                <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">Operating system</div>
+                <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">经营工作台</div>
                 <h1 className="mt-3 max-w-4xl text-3xl font-semibold tracking-tight text-slate-950 md:text-[2.6rem]">
                   {title}
                 </h1>

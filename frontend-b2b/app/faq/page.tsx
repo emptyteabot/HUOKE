@@ -4,33 +4,33 @@ import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
   title: '常见问题',
-  description: '关于样本、软件版、代跑版，以及适不适合现在开始的几个常见问题。',
+  description: '关于 LeadPulse 高意向线索、LP Coin、免费体验额度和自动充值到账的常见问题。',
 };
 
 const questions = [
   {
-    q: 'LeadPulse 到底是做什么的？',
-    a: '简单说，就是先帮你从公开平台里找出更值得联系的人，而不是先让你买一堆复杂工具。',
+    q: 'LeadPulse 到底卖什么？',
+    a: '卖高意向线索提取能力，不卖表单套件，也不卖软件月费。系统从公开讨论里识别采购意图，再把结构化结果送到你的线索池。',
   },
   {
-    q: '免费样本会给我什么？',
-    a: '会先给你一小批真实样本，让你判断方向是不是对的。方向不对，就没必要继续付费。',
+    q: '为什么用 LP Coin？',
+    a: '国内 B 端不喜欢软件订阅，但愿意为确定性线索付费。LP Coin 让每一次噪声拦截、高优线索提取和退款都能被记账。',
   },
   {
-    q: '软件版和代跑版有什么区别？',
-    a: '软件版更适合你自己动手；代跑版更适合你先想拿一轮整理好的结果。',
+    q: '免费体验额度是什么？',
+    a: '新用户默认获得 60 LP Coin，并保留 3 次免费导出。目的不是薅羊毛，而是先让你看到系统筛出来的结果是否值得继续投钱。',
   },
   {
-    q: '为什么价格没有做得很复杂？',
-    a: '因为现在最重要的不是套餐设计，而是先验证有没有人愿意为结果付钱。',
+    q: '怎么扣费？',
+    a: '噪声线索扣 1 LP Coin，高优线索扣 50 LP Coin。如果高优线索因为误判被确认为无效，可以退回 50 LP Coin。',
   },
   {
-    q: '我适不适合现在开始？',
-    a: '如果你现在就想找客户，适合；如果你还在想做什么产品、卖什么服务，那通常还太早。',
+    q: '支付成功后什么时候到账？',
+    a: '只看服务端异步通知。浏览器跳回页面只展示状态，不作为发货凭证。',
   },
   {
-    q: '先聊 15 分钟有必要吗？',
-    a: '如果你已经很清楚自己要什么，直接拿样本也行；如果你现在很乱，先聊一下会更省时间。',
+    q: '为什么没有一堆行业套件？',
+    a: 'LeadPulse 只保留精准获客闭环：动态对话测算预算、预算达标、获取日历空闲、锁定发现电话。其他泛行业能力都会稀释产品。',
   },
 ];
 
@@ -38,20 +38,17 @@ export default function FaqPage() {
   return (
     <MarketingPageShell
       eyebrow="常见问题"
-      title="先把几个最现实的问题说清楚"
-      description="公开页不再讲一堆术语，只回答你现在最关心的几件事。"
-      typeLine="样本、价格、适不适合，现在一次说清楚。"
-      primaryCta={{ href: '/register?plan=free', label: '免费拿样本' }}
-      secondaryCta={{ href: '/book', label: '先聊 15 分钟' }}
+      title="只回答和线索、扣费、到账有关的问题。"
+      description="LeadPulse 现在只有一条商业闭环。这里不解释泛表单、套件库或无关工具。"
+      typeLine="先验证结果，再充值放量。"
+      primaryCta={{ href: '/pricing', label: '查看充值包' }}
+      secondaryCta={{ href: '/dashboard/billing', label: '查看余额' }}
     >
-      <section className="mx-auto max-w-7xl px-6 py-2 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-4 pb-16 sm:px-6 lg:px-8">
         <div className="grid gap-4 xl:grid-cols-2">
           {questions.map((item) => (
-            <article
-              key={item.q}
-              className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]"
-            >
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-950">{item.q}</h2>
+            <article key={item.q} className="lead-card p-6">
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-950">{item.q}</h2>
               <p className="mt-4 text-sm leading-7 text-slate-600">{item.a}</p>
             </article>
           ))}

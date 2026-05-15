@@ -115,7 +115,7 @@ export function PublicDemoShowcase() {
           <div className="interactive-panel rounded-[2rem] border border-black/5 bg-[#f8f8f4] p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">LeadPulse Console</div>
+                <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">LeadPulse 作战台</div>
                 <h3 className="mt-3 text-2xl font-semibold text-slate-950">{current.panelTitle}</h3>
               </div>
               <div className="rounded-2xl border border-black/10 bg-white p-3">
@@ -136,7 +136,7 @@ export function PublicDemoShowcase() {
                   className="interactive-panel rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm text-slate-700 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
                 >
                   <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                    Step {String(index + 1).padStart(2, '0')}
+                    第 {index + 1} 步
                   </div>
                   <div className="mt-2 leading-7">{line}</div>
                 </div>

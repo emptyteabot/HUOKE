@@ -51,9 +51,9 @@ export default async function ProofPage() {
 
   return (
     <MarketingPageShell
-      eyebrow="Proof"
-      title="执行证明，不是包装页"
-      description="这里放的是已经跑起来的关键词池、目标队列、实验页、预约、付款意向和真实触达动作。"
+      eyebrow="执行证明"
+      title="这里放的不是包装，是结果。"
+      description="关键词池、目标队列、实验页、预约、付款意向和真实触达动作，都应该能在这里被看见。"
       primaryCta={{ href: '/cases', label: '看案例' }}
       secondaryCta={{ href: '/dashboard', label: '看总览' }}
     >
@@ -84,7 +84,7 @@ export default async function ProofPage() {
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
             <div className="flex items-center gap-3">
               <Sparkles className="h-5 w-5 text-slate-700" />
-              <h2 className="text-2xl font-semibold text-slate-950">为什么这页存在</h2>
+              <h2 className="text-2xl font-semibold text-slate-950">这页为什么存在</h2>
             </div>
             <div className="mt-6 space-y-3">
               {PRODUCT_PROOF_POINTS.map((item) => (
@@ -98,7 +98,7 @@ export default async function ProofPage() {
           <section className="interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
             <div className="flex items-center gap-3">
               <Radar className="h-5 w-5 text-slate-700" />
-              <h2 className="text-2xl font-semibold text-slate-950">当前执行纪律</h2>
+              <h2 className="text-2xl font-semibold text-slate-950">当前执行边界</h2>
             </div>
             <div className="mt-6 space-y-3">
               {EXECUTION_RULES.map((item) => (
@@ -190,8 +190,8 @@ export default async function ProofPage() {
         <section className="mt-10 interactive-panel rounded-[2rem] border border-black/5 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Experiment pages</p>
-              <h2 className="mt-3 text-2xl font-semibold text-slate-950">已开跑的实验页</h2>
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">实验页</p>
+              <h2 className="mt-3 text-2xl font-semibold text-slate-950">已在运行的页面</h2>
             </div>
             <Link
               href="/experiments"
