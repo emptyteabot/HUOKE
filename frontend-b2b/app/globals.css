@@ -96,7 +96,7 @@ textarea {
 .interactive-panel {
   background: var(--lp-panel);
   border: 1px solid var(--lp-border);
-  border-radius: 8px;
+  border-radius: 8px !important;
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
     0 16px 40px rgba(15, 23, 42, 0.055);
@@ -105,6 +105,10 @@ textarea {
     box-shadow 220ms ease,
     border-color 220ms ease,
     background-color 220ms ease;
+}
+
+.dashboard-light {
+  background: transparent;
 }
 
 .interactive-panel:hover {
@@ -140,6 +144,10 @@ textarea {
   line-height: 1;
   min-height: 32px;
   padding: 0 12px;
+}
+
+.breathing-pill {
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.055);
 }
 
 .lead-pill {
@@ -296,7 +304,7 @@ textarea {
 .lp-card {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--lp-border);
-  border-radius: 8px;
+  border-radius: 8px !important;
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
     0 18px 48px rgba(15, 23, 42, 0.06);
@@ -404,6 +412,88 @@ textarea {
   color: #334155;
 }
 
+.typewriter-shell {
+  color: var(--lp-muted);
+  display: inline-block;
+  line-height: 1.7;
+  position: relative;
+}
+
+.typewriter-base {
+  color: transparent;
+}
+
+.typewriter-overlay {
+  color: var(--lp-muted);
+  inset: 0;
+  overflow: hidden;
+  position: absolute;
+  white-space: normal;
+}
+
+.lp-outreach-card {
+  padding: 18px;
+}
+
+.lp-outreach-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.lp-outreach-title {
+  color: var(--lp-ink);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.35;
+  margin: 12px 0 0;
+}
+
+.lp-outreach-meta {
+  color: var(--lp-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.lp-score-pill {
+  background: var(--lp-ink);
+  border-radius: 999px;
+  color: #fff;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 11px;
+}
+
+.lp-outreach-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.lp-evidence {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 8px 0 0;
+}
+
+.lp-draft-box {
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid var(--lp-border);
+  border-radius: 8px;
+  color: #334155;
+  line-height: 1.8;
+  margin-top: 14px;
+  padding: 14px;
+}
+
 .lp-mini-card {
   background: rgba(248, 250, 252, 0.88);
   border: 1px solid var(--lp-border);
@@ -452,6 +542,16 @@ textarea {
 
   .lp-shell {
     padding-top: 14px;
+  }
+
+  .lp-outreach-head,
+  .lp-outreach-grid {
+    display: block;
+  }
+
+  .lp-score-pill {
+    display: inline-flex;
+    margin-top: 12px;
   }
 }
 

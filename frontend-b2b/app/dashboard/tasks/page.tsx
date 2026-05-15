@@ -315,7 +315,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Search
         <section className="interactive-panel rounded-3xl border border-black/5 bg-white/90 p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">Pending Queue</div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-[#86868b]">待处理队列</div>
               <h2 className="text-2xl font-semibold text-slate-950">待办队列</h2>
               <p className="mt-2 text-sm text-slate-600">当前结果 {pendingTasks.length} 条待办。</p>
             </div>

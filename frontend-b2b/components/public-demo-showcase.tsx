@@ -39,7 +39,7 @@ const demoTabs: DemoTab[] = [
     label: '经营',
     title: '最后把动作沉淀下来',
     summary: '不是做完一次就结束，而是把有效动作留在系统里继续复用。',
-    points: ['消息跟进', 'Guardrails', '经营复盘'],
+    points: ['消息跟进', '发送边界', '经营复盘'],
     panelTitle: '经营层',
     panelLines: ['记录动作结果', '保留确定性边界', '继续复用有效路径'],
   },

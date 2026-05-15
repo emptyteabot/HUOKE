@@ -86,7 +86,7 @@ export default function BillingPage() {
               当前只保留一条计费管线：免费体验额度，按结果扣费，余额不足后充值。
             </div>
             <div className="mt-2 text-sm text-slate-500">
-              Workspace ID：<b>{wallet?.user_id || userId}</b>
+              工作区 ID：<b>{wallet?.user_id || userId}</b>
             </div>
           </div>
           <button className="lp-btn" type="button" onClick={() => void loadWallet()} disabled={loading}>

@@ -135,7 +135,7 @@ export default async function SelfOutreachPage({ searchParams }: { searchParams?
           </div>
           <div className="lp-grid lp-grid-2">
             <div className="lp-mini-card">
-              <div className="lp-mini-label">Queue Rows</div>
+              <div className="lp-mini-label">队列行数</div>
               <div className="lp-kpi">{payload.queue_rows}</div>
             </div>
             <div className="lp-mini-card">
@@ -143,7 +143,7 @@ export default async function SelfOutreachPage({ searchParams }: { searchParams?
               <div className="lp-kpi">{p0Rows}</div>
             </div>
             <div className="lp-mini-card">
-              <div className="lp-mini-label">Ready Pool</div>
+              <div className="lp-mini-label">可触达池</div>
               <div className="lp-kpi">{payload.strict_ready_rows}</div>
             </div>
             <div className="lp-mini-card">

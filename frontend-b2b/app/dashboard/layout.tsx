@@ -7,11 +7,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <main className="lead-surface relative min-h-screen overflow-hidden text-slate-950">
       <div className="lead-grid-bg pointer-events-none absolute inset-0" />
-      <div className="relative z-10 lp-shell">
-        <header className="lp-card mb-4 p-4">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <header className="lead-glass rounded-lg p-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-950 text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-950 text-white shadow-sm">
                 <Activity className="h-4 w-4" />
               </span>
               <div>
@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        {children}
+        <div className="mt-5">{children}</div>
       </div>
     </main>
   );

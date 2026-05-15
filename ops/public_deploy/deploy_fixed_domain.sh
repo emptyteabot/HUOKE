@@ -64,6 +64,14 @@ git fetch origin
 git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
+ENV_FILE="${ENV_FILE:-$REPO_ROOT/.env.production}"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+fi
+
 export LEADPULSE_SITE_URL="${LEADPULSE_SITE_URL:-https://leadpulseagi.com}"
 export LEADPULSE_M2M_BACKEND_URL="${LEADPULSE_M2M_BACKEND_URL:-http://$M2M_HOST:$M2M_PORT}"
 export LEADPULSE_PAYMENT_PROVIDER="${LEADPULSE_PAYMENT_PROVIDER:-xunhupay}"

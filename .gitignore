@@ -9,6 +9,10 @@ yarn-debug.log*
 yarn-error.log*
 .env
 .env.local
+.env.production
+.env.*
+!.env.example
+!frontend-b2b/.env.example
 .env.*.local
 *.pem
 *.key

@@ -69,7 +69,7 @@ export default function PlatformPage() {
       <section className="mx-auto mt-8 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[0.98fr_1.02fr]">
           <section className="lead-card p-6">
-            <div className="lead-pill">Pricing</div>
+            <div className="lead-pill">充值方案</div>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">三档充值包，同一套扣费逻辑。</h2>
             <p className="mt-3 text-sm leading-7 text-slate-600">{PRICING_CEILING_NOTE}</p>
             <div className="mt-6 space-y-4">
@@ -89,7 +89,7 @@ export default function PlatformPage() {
           </section>
 
           <section className="lead-card p-6">
-            <div className="lead-pill">Credits</div>
+            <div className="lead-pill">积分规则</div>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">把复杂规则讲成产品规则。</h2>
             <div className="mt-6 space-y-4">
               {CREDITS_POLICY_CARDS.map((card) => (

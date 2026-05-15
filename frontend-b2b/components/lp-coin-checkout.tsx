@@ -159,9 +159,9 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
         {error ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
 
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <div className="text-sm font-extrabold text-slate-950">备用扫码收款</div>
+          <div className="text-sm font-extrabold text-slate-950">异常备用扫码</div>
           <p className="mt-2 text-sm leading-7 text-slate-600">
-            自动收银台不可用时，用这里扫码。付款备注邮箱或公司名，到账后人工核对补发 LP Coin。
+            正常情况下点击上方按钮生成虎皮椒收银台，到账后自动发放 LP Coin。只有自动收银台临时不可用时，才使用这里的备用二维码。
           </p>
           <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white p-3">
             <Image

@@ -240,7 +240,7 @@ export default async function OpsPage() {
 
               <div className="mt-6 grid gap-4">
                 <article className="interactive-panel rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
-                  <div className="text-sm font-medium text-[#86868b]">Ready 素材</div>
+                  <div className="text-sm font-medium text-[#86868b]">可用素材</div>
                   <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{creativeLibrary.creatives.filter((item) => item.status === 'ready').length}</div>
                 </article>
 

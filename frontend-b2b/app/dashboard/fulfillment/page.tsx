@@ -93,7 +93,7 @@ export default async function FulfillmentDashboardPage() {
                   <p className="mt-3 text-sm leading-7 text-slate-600">{item.narrative.oneLiner}</p>
                 </div>
                 <div className="grid gap-2 text-sm text-slate-700">
-                  <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">Workspace：{item.workspaceId}</div>
+                  <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">工作区：{item.workspaceId}</div>
                   <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">访问码：{item.accessCode}</div>
                 </div>
               </div>

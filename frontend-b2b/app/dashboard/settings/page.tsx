@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { CREDITS_POLICY, TARGET_AUDIENCE_ONE_LINER, getPricingPlans } from "@/lib/pricing";
+import { CREDITS_POLICY, getPricingPlans } from "@/lib/pricing";
 import { defaultCredits, exportCreditCost, freeExportLimit, linkUnlockHours } from "@/lib/lead_wallet";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -86,8 +86,7 @@ export default function SettingsPage() {
   const hasAutomationKey = hasValue(process.env.LEADPULSE_AUTOMATION_KEY);
   const hasWalletSecret = hasValue(process.env.WALLET_SIGNING_SECRET);
   const walletSecretIsDefault = String(process.env.WALLET_SIGNING_SECRET || "").trim() === "";
-  const stripeReady = hasValue(process.env.STRIPE_SECRET_KEY);
-  const stripeWebhookReady = hasValue(process.env.STRIPE_WEBHOOK_SECRET);
+  const xunhuReady = hasValue(process.env.LEADPULSE_XUNHU_APP_ID) && hasValue(process.env.LEADPULSE_XUNHU_APP_SECRET);
   const supabaseReady =
     hasValue(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) &&
     hasValue(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -108,26 +107,26 @@ export default function SettingsPage() {
   if (!hasWalletSecret) actionItems.push("补上 WALLET_SIGNING_SECRET，避免 wallet 落到开发默认密钥。");
   if (!hasInternalKey) actionItems.push("补上 LEADPULSE_INTERNAL_ACCESS_KEY 或 LEADPULSE_AUTOMATION_KEY，否则非本地环境会被 middleware 拦住。");
   if (!smtpReady) actionItems.push("补齐 SMTP 配置，当前消息页能看队列，但不能稳定原生发信。");
-  if (paymentProvider === "stripe" && !stripeWebhookReady) actionItems.push("如果继续使用当前支付通道，回调密钥还没接好。");
+  if (paymentProvider === "xunhupay" && !xunhuReady) actionItems.push("补上虎皮椒 AppID 与密钥，否则只能创建本地订单，不能生成自动收银台。");
   if (notificationCount === 0) actionItems.push("至少接一个通知目标，避免 booking / payment 线索只留在本地状态库。");
   if (!supabaseReady) actionItems.push("如果要稳定切远端数据源，补齐 Supabase URL 与 key。");
 
-  const accessMode = hasInternalKey ? "key-gated" : "missing";
-  const walletPolicySummary = `${freeExportLimit()} free exports / ${exportCreditCost()} credits per export / unlock ${linkUnlockHours()}h`;
+  const accessMode = hasInternalKey ? "已保护" : "缺密钥";
+  const walletPolicySummary = `${freeExportLimit()} 次免费导出 / 每次 ${exportCreditCost()} 积分 / 链接解锁 ${linkUnlockHours()} 小时`;
 
   return (
     <div className="lp-grid" style={{ gap: 14 }}>
       <section className="lp-card" style={{ padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontWeight: 700 }}>Workspace Settings</div>
+            <div style={{ fontWeight: 700 }}>工作台设置</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, marginTop: 4 }}>
               这里只读现有站点、定价、环境和 console 接入状态，不展示 secret 原文。
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Link href="/internal-login" className="lp-btn">
-              Internal Login
+              内部登录
             </Link>
             <Link href="/pay?package=standard" className="lp-btn" style={{ background: "white", color: "#163861", border: "1px solid #cddcf0" }}>
               打开充值页
@@ -139,7 +138,7 @@ export default function SettingsPage() {
       <section className="lp-card" style={{ padding: 16 }}>
         <div className="lp-grid lp-grid-4">
           {statusCard({
-            label: "Site",
+            label: "站点",
             value: SITE_NAME,
             helper: `${siteUrl} ｜ basePath ${basePath}`,
             tone: "good",
@@ -153,20 +152,20 @@ export default function SettingsPage() {
           {statusCard({
             label: "Wallet",
             value: walletPolicySummary,
-            helper: `guest 默认 credits：${defaultCredits()}。billing 页会按这套规则读 wallet。`,
+            helper: `访客默认积分：${defaultCredits()}。账务页会按这套规则读取余额。`,
             tone: hasWalletSecret && !walletSecretIsDefault ? "good" : "warn",
           })}
           {statusCard({
-            label: "Payments",
+            label: "支付",
             value: paymentProvider,
-            helper: paymentProvider === "stripe" ? "支付意向会创建收银台页面。" : "当前走人工确认 / 兑换码开通路径。",
-            tone: paymentProvider === "stripe" ? "good" : "neutral",
+            helper: xunhuReady ? "虎皮椒收银台已接入，到账后自动发放 LP Coin。" : "虎皮椒密钥未配置，暂时不能生成自动收银台。",
+            tone: xunhuReady ? "good" : "warn",
           })}
         </div>
       </section>
 
       <section className="lp-card" style={{ padding: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 12 }}>Workspace Identity</div>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>站点身份</div>
         <div className="lp-grid lp-grid-2" style={{ gap: 14 }}>
           <div style={{ border: "1px solid #d7e3f7", borderRadius: 18, background: "#fbfdff", padding: 16 }}>
             <div style={{ fontWeight: 700 }}>{SITE_NAME}</div>
@@ -192,7 +191,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="lp-card" style={{ padding: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 12 }}>Commercial Model</div>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>充值模型</div>
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
           {pricingPlans.map((plan) => (
             <article
@@ -228,42 +227,42 @@ export default function SettingsPage() {
       </section>
 
       <section className="lp-card" style={{ padding: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 12 }}>Runtime Readiness</div>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>运行状态</div>
         <div className="lp-grid lp-grid-4">
           {statusCard({
-            label: "Wallet Signing",
-            value: hasWalletSecret ? "configured" : "missing",
-            helper: hasWalletSecret ? "wallet cookie 能按自定义 secret 签名。" : "当前会回落到代码内默认 secret，生产不够稳。",
+            label: "余额签名",
+            value: hasWalletSecret ? "已配置" : "缺失",
+            helper: hasWalletSecret ? "余额凭证会按自定义密钥签名。" : "当前缺签名密钥，生产环境需要补齐。",
             tone: hasWalletSecret && !walletSecretIsDefault ? "good" : "warn",
           })}
           {statusCard({
             label: "SMTP",
-            value: smtpReady ? "ready" : "not ready",
+            value: smtpReady ? "已就绪" : "未就绪",
             helper: smtpReady ? "messages / communications 可直接走 SMTP 发送。" : "还缺 SMTP host/user/pass/from 之一。",
             tone: smtpReady ? "good" : "warn",
           })}
           {statusCard({
             label: "Supabase",
-            value: supabaseReady ? "ready" : "fallback",
-            helper: supabaseReady ? "leads API 可走远端表作为后备数据源。" : "当前更偏本地导出器 / snapshot 状态库。",
+            value: supabaseReady ? "已就绪" : "本地后备",
+            helper: supabaseReady ? "线索数据可走远端表作为后备数据源。" : "当前更偏本地导出器 / 状态快照。",
             tone: supabaseReady ? "good" : "neutral",
           })}
           {statusCard({
-            label: "Payments",
+            label: "支付",
             value: paymentProvider,
-            helper: paymentProvider === "stripe" ? (stripeWebhookReady ? "回调与密钥都已配置。" : "密钥已配置，但回调还没接好。") : "当前主要走人工收款或兑换码路径。",
-            tone: paymentProvider === "stripe" && stripeWebhookReady ? "good" : paymentProvider === "stripe" ? "warn" : "neutral",
+            helper: xunhuReady ? "下单、验签回调、金额校验和自动加积分已接入。" : "缺虎皮椒正式密钥，线上无法自动发货。",
+            tone: xunhuReady ? "good" : "warn",
           })}
         </div>
       </section>
 
       <section className="lp-card" style={{ padding: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 12 }}>Credits Policy Snapshot</div>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>积分规则快照</div>
         <div className="lp-grid lp-grid-2">
           <div style={{ border: "1px solid #d7e3f7", borderRadius: 18, background: "#fbfdff", padding: 16 }}>
             <div style={{ fontWeight: 700 }}>当前规则</div>
             <div style={{ color: "var(--lp-muted)", fontSize: 13, lineHeight: 1.8, marginTop: 8 }}>
-              <div>默认 guest credits：{defaultCredits()}</div>
+              <div>访客默认积分：{defaultCredits()}</div>
               <div>免费导出上限：{freeExportLimit()}</div>
               <div>单次导出成本：{exportCreditCost()}</div>
               <div>解锁窗口：{linkUnlockHours()} 小时</div>
@@ -282,7 +281,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="lp-card" style={{ padding: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 12 }}>Recommended Actions</div>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>待处理动作</div>
         {actionItems.length ? (
           <div style={{ color: "var(--lp-muted)", fontSize: 13, lineHeight: 1.8 }}>
             {actionItems.map((item) => (

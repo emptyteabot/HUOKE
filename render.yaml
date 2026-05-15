@@ -15,6 +15,18 @@ services:
         value: "3000"
       - key: LEADPULSE_DISCOVERY_TIMEZONE
         value: Asia/Shanghai
+      - key: LEADPULSE_PAYMENT_PROVIDER
+        value: xunhupay
+      - key: LEADPULSE_XUNHU_APP_ID
+        sync: false
+      - key: LEADPULSE_XUNHU_APP_SECRET
+        sync: false
+      - key: LEADPULSE_XUNHU_GATEWAY_URL
+        value: https://api.xunhupay.com/payment/do.html
+      - key: LEADPULSE_XUNHU_NOTIFY_URL
+        value: https://leadpulseagi.com/api/v1/xunhupay/notify
+      - key: LEADPULSE_XUNHU_RETURN_URL
+        value: https://leadpulseagi.com/pay?payment=return
 
   - type: web
     name: leadpulse-growth
@@ -32,13 +44,21 @@ services:
         value: https://leadpulseagi.com
       - key: LEADPULSE_M2M_BACKEND_URL
         sync: false
+      - key: LEADPULSE_PAYMENT_PROVIDER
+        value: xunhupay
+      - key: LEADPULSE_XUNHU_APP_ID
+        sync: false
+      - key: LEADPULSE_XUNHU_APP_SECRET
+        sync: false
+      - key: LEADPULSE_XUNHU_GATEWAY_URL
+        value: https://api.xunhupay.com/payment/do.html
+      - key: LEADPULSE_XUNHU_NOTIFY_URL
+        value: https://leadpulseagi.com/api/v1/xunhupay/notify
+      - key: LEADPULSE_XUNHU_RETURN_URL
+        value: https://leadpulseagi.com/pay?payment=return
       - key: NEXT_PUBLIC_BOOKING_URL
         sync: false
       - key: NEXT_PUBLIC_SUPPORT_EMAIL
         value: hello@leadpulse.ai
       - key: LEADPULSE_INTAKE_WEBHOOK_URL
-        sync: false
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: STRIPE_WEBHOOK_SECRET
         sync: false

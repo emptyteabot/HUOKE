@@ -27,12 +27,13 @@ export default async function InternalLoginPage({ searchParams }: { searchParams
   const next = sanitizeNext(resolved.next);
 
   return (
-    <main className="min-h-screen bg-[#f5f5f7] px-6 py-16 text-slate-900">
-      <div className="mx-auto max-w-xl interactive-panel rounded-[2rem] border border-black/5 bg-white/92 p-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-        <div className="apple-pill breathing-pill px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[#86868b]">
+    <main className="lead-surface relative min-h-screen overflow-hidden px-6 py-16 text-slate-900">
+      <div className="lead-grid-bg pointer-events-none absolute inset-0" />
+      <div className="relative z-10 mx-auto max-w-xl lead-glass rounded-lg p-8">
+        <div className="lead-pill">
           内部入口
         </div>
-        <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950">这个页面只给你自己看</h1>
+        <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-950">这个页面只给你自己看</h1>
         <div className="mt-4 text-sm leading-7">
           <TypewriterDecor text="内部数据、案例、融资材料和控制台，不直接给客户看。" />
         </div>
@@ -43,16 +44,16 @@ export default async function InternalLoginPage({ searchParams }: { searchParams
         <form action={next} method="get" className="mt-8 space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-700">内部访问密钥</span>
-          <input
+            <input
               type="password"
               name="access"
-              className="w-full rounded-[24px] border border-black/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-black/20"
+              className="lead-input"
               placeholder="输入访问密钥"
             />
           </label>
           <button
             type="submit"
-            className="interactive-button inline-flex rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbfb]"
+            className="lead-button lead-button-primary"
           >
             进入内部页面
           </button>

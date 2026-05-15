@@ -561,7 +561,15 @@ def build_xunhu_pay_url(order: BillingOrderRecord) -> str:
     except Exception as exc:
         print("LeadPulse Xunhu pay_url failed:", exc)
         return ""
-    return _extract_xunhu_pay_url(payload) or f"{settings.xunhu_gateway_url}?{urlencode(params)}"
+    pay_url = _extract_xunhu_pay_url(payload)
+    if pay_url:
+        return pay_url
+
+    if str(payload.get("errcode") or payload.get("code") or "").strip() not in {"", "0", "200"}:
+        print("LeadPulse Xunhu pay_url response missing URL:", payload)
+        return ""
+
+    return f"{settings.xunhu_gateway_url}?{urlencode(params)}"
 
 
 def _payload_fields(payload: dict[str, Any]) -> dict[str, str]:

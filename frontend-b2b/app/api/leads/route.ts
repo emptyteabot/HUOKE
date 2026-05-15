@@ -12,6 +12,7 @@ import {
   walletSetCookieHeader,
   walletTokenForResponse,
 } from "@/lib/lead_wallet";
+import { fetchM2mWallet } from "@/lib/m2m/billing";
 
 export const runtime = "nodejs";
 
@@ -774,7 +775,15 @@ export async function GET(req: NextRequest) {
   const vertical = normalizeVertical((url.searchParams.get("vertical") || DEFAULT_VERTICAL).trim());
 
   const userId = url.searchParams.get("userId") || undefined;
-  const wallet = getWalletFromRequest(req, userId);
+  const localWallet = getWalletFromRequest(req, userId);
+  const backend = await fetchM2mWallet(localWallet.user_id);
+  const wallet = backend?.wallet
+    ? {
+        ...localWallet,
+        user_id: String(backend.wallet.user_id || localWallet.user_id),
+        credits: Math.max(0, Math.trunc(Number(backend.wallet.credits ?? localWallet.credits))),
+      }
+    : localWallet;
   const walletToken = walletTokenForResponse(wallet);
   const linksUnlocked = isLinksUnlocked(wallet);
 

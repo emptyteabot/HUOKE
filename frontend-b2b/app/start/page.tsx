@@ -43,12 +43,13 @@ export default async function StartPage({ searchParams }: { searchParams: Search
   const redeemSuccess = String(resolved.redeem || '').trim() === 'success';
 
   return (
-    <main className="min-h-screen bg-[#f5f5ef] text-slate-900">
+    <main className="lead-surface relative min-h-screen overflow-hidden text-slate-900">
+      <div className="lead-grid-bg pointer-events-none absolute inset-0" />
       <SiteHeader ctaHref="/book" ctaLabel="预约 onboarding" />
 
-      <section className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+      <section className="relative z-10 mx-auto max-w-7xl px-6 py-16 lg:px-8">
         <div className="max-w-4xl">
-          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Start</p>
+          <p className="lead-pill">启动页</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
             {track.planName} 启动页：付款后怎么在 24 小时内开始产生价值
           </h1>
@@ -58,27 +59,27 @@ export default async function StartPage({ searchParams }: { searchParams: Search
         </div>
 
         {redeemSuccess && deliveryPackage ? (
-          <div className="mt-8 rounded-[2rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
+          <div className="mt-8 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
             兑换码已经验证成功，交付包也已经生成。现在别继续猜流程，直接按下面的启动动作往前推。
           </div>
         ) : null}
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <article className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+          <article className="lead-card p-6">
             <div className="flex items-center gap-3">
               <Sparkles className="h-5 w-5 text-slate-700" />
               <p className="text-sm font-medium text-slate-500">主目标</p>
             </div>
             <p className="mt-4 text-lg font-semibold text-slate-950">{track.primaryOutcome}</p>
           </article>
-          <article className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+          <article className="lead-card p-6">
             <div className="flex items-center gap-3">
               <Clock3 className="h-5 w-5 text-slate-700" />
               <p className="text-sm font-medium text-slate-500">见效时间</p>
             </div>
             <p className="mt-4 text-lg font-semibold text-slate-950">{track.timeToValue}</p>
           </article>
-          <article className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+          <article className="lead-card p-6">
             <div className="flex items-center gap-3">
               <FileCheck2 className="h-5 w-5 text-slate-700" />
               <p className="text-sm font-medium text-slate-500">当前信息</p>
@@ -92,28 +93,28 @@ export default async function StartPage({ searchParams }: { searchParams: Search
         </div>
 
         {checkoutSuccess && !deliveryPackage ? (
-          <div className="mt-8 rounded-[2rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
+          <div className="mt-8 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
             支付已经成功返回，系统正在自动开通并生成交付包。通常几秒内完成；如果还没显示，刷新一次这个页面。
           </div>
         ) : null}
 
         {launchCode && !deliveryPackage ? (
-          <div className="mt-8 rounded-[2rem] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+          <div className="mt-8 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
             没找到这个启动码对应的交付包。确认你拿到的是最新启动码；如果是刚付款后新发的码，稍等片刻再刷新。
           </div>
         ) : null}
 
         {deliveryPackage ? (
-          <section className="mt-10 rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+          <section className="lead-card mt-10 p-6">
             <div className="flex flex-wrap items-start justify-between gap-6">
               <div className="max-w-3xl">
-                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Auto delivery</p>
+                <p className="lead-pill">自动交付</p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">系统已经自动生成首批交付包</h2>
                 <p className="mt-4 text-sm leading-7 text-slate-600">{deliveryPackage.narrative.oneLiner}</p>
               </div>
               <div className="grid min-w-[260px] gap-3 text-sm text-slate-700">
                 <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">
-                  Workspace：{deliveryPackage.workspaceId}
+                  工作区：{deliveryPackage.workspaceId}
                 </div>
                 <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">
                   访问码：{deliveryPackage.accessCode}
@@ -246,7 +247,7 @@ export default async function StartPage({ searchParams }: { searchParams: Search
                   <p className="mt-2 text-sm leading-7 text-slate-600">{deliveryPackage.executionPlan.summary}</p>
                 </div>
                 <div className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium text-slate-700">
-                  {deliveryPackage.executionPlan.steps.length} steps ready
+                  {deliveryPackage.executionPlan.steps.length} 步已就绪
                 </div>
               </div>
               <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -300,7 +301,7 @@ export default async function StartPage({ searchParams }: { searchParams: Search
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[1.08fr_0.92fr]">
           <div className="space-y-8">
-            <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+            <section className="lead-card p-6">
               <div className="flex items-center gap-3">
                 <Clock3 className="h-5 w-5 text-slate-700" />
                 <h2 className="text-2xl font-semibold text-slate-950">接下来 24 小时</h2>
@@ -308,14 +309,14 @@ export default async function StartPage({ searchParams }: { searchParams: Search
               <div className="mt-6 space-y-4">
                 {track.first24Hours.map((item, index) => (
                   <div key={item} className="rounded-3xl border border-black/5 bg-[#f8f8f4] p-5">
-                    <div className="text-sm font-medium text-slate-500">Step {index + 1}</div>
+                    <div className="text-sm font-medium text-slate-500">第 {index + 1} 步</div>
                     <p className="mt-2 text-base leading-7 text-slate-800">{item}</p>
                   </div>
                 ))}
               </div>
             </section>
 
-            <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+            <section className="lead-card p-6">
               <div className="flex items-center gap-3">
                 <FileCheck2 className="h-5 w-5 text-slate-700" />
                 <h2 className="text-2xl font-semibold text-slate-950">你要准备的输入</h2>
@@ -330,7 +331,7 @@ export default async function StartPage({ searchParams }: { searchParams: Search
               </div>
             </section>
 
-            <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+            <section className="lead-card p-6">
               <div className="flex items-center gap-3">
                 <Sparkles className="h-5 w-5 text-slate-700" />
                 <h2 className="text-2xl font-semibold text-slate-950">这个方案会交付什么</h2>
@@ -346,7 +347,7 @@ export default async function StartPage({ searchParams }: { searchParams: Search
           </div>
 
           <div className="space-y-8">
-            <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+            <section className="lead-card p-6">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-5 w-5 text-slate-700" />
                 <h2 className="text-2xl font-semibold text-slate-950">首周里程碑</h2>
@@ -360,7 +361,7 @@ export default async function StartPage({ searchParams }: { searchParams: Search
               </div>
             </section>
 
-            <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
+            <section className="lead-card p-6">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">启动资料</p>
@@ -373,8 +374,8 @@ export default async function StartPage({ searchParams }: { searchParams: Search
               </pre>
             </section>
 
-            <section className="rounded-[2rem] border border-black/5 bg-white/85 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)]">
-              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">Done means done</p>
+            <section className="lead-card p-6">
+              <p className="lead-pill">完成标准</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-950">什么叫真正启动成功</h2>
               <div className="mt-6 space-y-3">
                 {track.successChecks.map((item) => (

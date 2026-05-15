@@ -51,6 +51,8 @@ def isolate_billing_store(tmp_path, monkeypatch):
         assert url == fake_settings.xunhu_gateway_url
         assert timeout == 12
         assert data["hash"] == billing_module.xunhu_sign(data, fake_settings.xunhu_app_secret)
+        assert data["notify_url"] == fake_settings.xunhu_notify_url
+        assert data["return_url"] == fake_settings.xunhu_return_url
         return FakePayResponse({"errcode": "0", "url": f"https://pay.example.test/{data['trade_order_id']}"})
 
     monkeypatch.setattr(billing_module.requests, "post", fake_post)
@@ -363,3 +365,9 @@ def test_legacy_alipay_notify_path_accepts_xunhupay_callback():
     notify = client.post("/api/v1/alipay/notify", data=fields)
     assert notify.status_code == 200
     assert notify.text == "success"
+
+
+def test_xunhupay_callback_redirects_to_pay_return():
+    response = client.get("/api/v1/xunhupay/callback", follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == "https://leadpulseagi.com/pay?payment=return"
