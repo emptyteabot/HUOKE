@@ -59,7 +59,7 @@ fi
 pkill -f "uvicorn leadpulse_m2m.main:app --host $M2M_HOST --port $M2M_PORT" || true
 sleep 2
 
-export LEADPULSE_SITE_URL="${LEADPULSE_SITE_URL:-https://leadpulse.cc.cd}"
+export LEADPULSE_SITE_URL="${LEADPULSE_SITE_URL:-https://leadpulseagi.com}"
 export LEADPULSE_M2M_BACKEND_URL="${LEADPULSE_M2M_BACKEND_URL:-http://$M2M_HOST:$M2M_PORT}"
 
 cd "$M2M_DIR"

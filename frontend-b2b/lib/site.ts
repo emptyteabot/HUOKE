@@ -3,7 +3,7 @@ export const SITE_NAME = 'LeadPulse';
 export const SITE_DESCRIPTION =
   '帮服务团队和小型业务从公开平台里找到正在找方案的人。';
 
-export const SITE_URL = String(process.env.NEXT_PUBLIC_SITE_URL || 'https://leadpulse.cc.cd').replace(
+export const SITE_URL = String(process.env.NEXT_PUBLIC_SITE_URL || 'https://leadpulseagi.com').replace(
   /\/$/,
   '',
 );

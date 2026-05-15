@@ -34,7 +34,7 @@ const semanticKeywords = [
 function normalizePath(input?: string) {
   if (!input) return '/';
   try {
-    const url = new URL(input, 'https://leadpulse.cc.cd');
+    const url = new URL(input, 'https://leadpulseagi.com');
     return url.pathname || '/';
   } catch {
     return input.startsWith('/') ? input : `/${input}`;

@@ -27,7 +27,7 @@ def _env_int(name: str, default: int) -> int:
 
 @dataclass(frozen=True)
 class Settings:
-    site_url: str = _env("LEADPULSE_SITE_URL", "https://leadpulse.cc.cd").rstrip("/")
+    site_url: str = _env("LEADPULSE_SITE_URL", "https://leadpulseagi.com").rstrip("/")
     service_name: str = _env("LEADPULSE_M2M_NAME", "LeadPulse M2M Acquisition Gateway")
     min_budget_usd: float = _env_float("LEADPULSE_MIN_BUDGET_USD", 3000.0)
     default_timezone: str = _env("LEADPULSE_DISCOVERY_TIMEZONE", "Asia/Shanghai")

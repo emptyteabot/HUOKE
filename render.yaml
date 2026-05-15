@@ -10,7 +10,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: LEADPULSE_SITE_URL
-        value: https://leadpulse.cc.cd
+        value: https://leadpulseagi.com
       - key: LEADPULSE_MIN_BUDGET_USD
         value: "3000"
       - key: LEADPULSE_DISCOVERY_TIMEZONE
@@ -28,6 +28,8 @@ services:
     envVars:
       - key: NEXT_PUBLIC_API_URL
         sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://leadpulseagi.com
       - key: LEADPULSE_M2M_BACKEND_URL
         sync: false
       - key: NEXT_PUBLIC_BOOKING_URL

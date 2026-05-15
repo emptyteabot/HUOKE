@@ -8,6 +8,28 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   basePath,
   assetPrefix: basePath || undefined,
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'leadpulse.cc.cd' }],
+        destination: 'https://leadpulseagi.com/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.leadpulse.cc.cd' }],
+        destination: 'https://leadpulseagi.com/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.leadpulseagi.com' }],
+        destination: 'https://leadpulseagi.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
   experimental: {
     turbo: {
       root: projectRoot,

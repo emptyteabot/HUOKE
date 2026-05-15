@@ -1,4 +1,4 @@
-# LeadPulse 免费公网发布
+﻿# LeadPulse 免费公网发布
 
 这是当前不依赖第三方账号登录、直接在本机拉出公网地址的方案。
 
@@ -38,7 +38,7 @@ python ops/public_deploy/stop_public_site.py
 
 ## 固定域名服务器发布
 
-如果 `leadpulse.cc.cd` 已经在 Linux 服务器上通过 Nginx 反代到本机 `3005` 端口，优先用下面这组脚本：
+如果 `leadpulseagi.com` 已经在 Linux 服务器上通过 Nginx 反代到本机 `3005` 端口，优先用下面这组脚本：
 
 ```bash
 bash ops/public_deploy/deploy_fixed_domain.sh
