@@ -129,7 +129,16 @@ min_budget_usd = float(sys.argv[3])
 max_results = int(sys.argv[4])
 token = sys.argv[5]
 
-paths = sorted(root.rglob("*.md"), key=lambda path: path.stat().st_mtime, reverse=True)[:50]
+paths = [
+    path
+    for path in sorted(root.rglob("*.md"), key=lambda path: path.stat().st_mtime, reverse=True)
+    if path.name != "feedgrab_stdout.md"
+][:50]
+if not paths:
+    stdout = root / "feedgrab_stdout.md"
+    if stdout.exists() and stdout.is_file():
+        paths = [stdout]
+
 documents = []
 for path in paths:
     text = path.read_text(encoding="utf-8", errors="ignore").strip()
