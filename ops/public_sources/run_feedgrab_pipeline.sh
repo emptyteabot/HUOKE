@@ -9,6 +9,13 @@ FEEDGRAB="$VENV_DIR/bin/feedgrab"
 PIPELINE="${PIPELINE:-}"
 QUERY="${QUERY:-}"
 LIMIT="${LIMIT:-25}"
+X_DAYS="${X_DAYS:-1}"
+X_MIN_FAVES="${X_MIN_FAVES:-0}"
+X_SORT="${X_SORT:-latest}"
+REDDIT_SORT="${REDDIT_SORT:-new}"
+REDDIT_LIMIT="${REDDIT_LIMIT:-25}"
+XHS_SORT="${XHS_SORT:-latest}"
+XHS_LIMIT="${XHS_LIMIT:-${LIMIT:-50}}"
 LEADPULSE_API_URL="${LEADPULSE_API_URL:-https://leadpulseagi.com}"
 LEADPULSE_M2M_API_KEY="${LEADPULSE_M2M_API_KEY:-}"
 MIN_BUDGET_USD="${MIN_BUDGET_USD:-3000}"
@@ -40,10 +47,6 @@ RUN_ID="$(date -u '+%Y%m%dT%H%M%SZ')"
 OUTPUT_DIR="${OUTPUT_DIR:-$WORKER_STATE_DIR/feedgrab/${PIPELINE:-manual}/$RUN_ID}"
 mkdir -p "$OUTPUT_DIR"
 
-urlencode() {
-  "$PYTHON" -c 'import sys, urllib.parse; print(urllib.parse.quote_plus(sys.argv[1]))' "$1"
-}
-
 feedgrab_target_for_pipeline() {
   case "$PIPELINE" in
     x|twitter)
@@ -51,14 +54,14 @@ feedgrab_target_for_pipeline() {
         echo "QUERY is required for x pipeline unless FEEDGRAB_TARGET is set" >&2
         exit 2
       fi
-      echo "https://x.com/search?q=$(urlencode "$QUERY")&src=typed_query&f=live"
+      echo "x-so"
       ;;
     reddit)
       if [ -z "$QUERY" ]; then
         echo "QUERY is required for reddit pipeline unless FEEDGRAB_TARGET is set" >&2
         exit 2
       fi
-      echo "https://www.reddit.com/search/?q=$(urlencode "$QUERY")&sort=new"
+      echo "reddit-sub"
       ;;
     xhs|xiaohongshu)
       if [ -n "${FEEDGRAB_TARGET:-}" ]; then
@@ -80,12 +83,26 @@ STDOUT_FILE="$OUTPUT_DIR/feedgrab_stdout.md"
 (
   cd "$OUTPUT_DIR"
   case "$PIPELINE:$TARGET" in
+    x:x-so|twitter:x-so)
+      if [ -z "$QUERY" ]; then
+        echo "QUERY is required for x-so mode" >&2
+        exit 2
+      fi
+      "$FEEDGRAB" x-so "$QUERY" --days "$X_DAYS" --min-faves "$X_MIN_FAVES" --sort "$X_SORT" --save "${EXTRA_ARGS[@]}" > "$STDOUT_FILE"
+      ;;
+    reddit:reddit-sub)
+      if [ -z "$QUERY" ]; then
+        echo "QUERY is required for reddit-sub mode" >&2
+        exit 2
+      fi
+      "$FEEDGRAB" reddit-sub "$QUERY" --sort "$REDDIT_SORT" --limit "$REDDIT_LIMIT" "${EXTRA_ARGS[@]}" > "$STDOUT_FILE"
+      ;;
     xhs:xhs-so|xiaohongshu:xhs-so)
       if [ -z "$QUERY" ]; then
         echo "QUERY is required for xhs-so mode" >&2
         exit 2
       fi
-      "$FEEDGRAB" xhs-so "$QUERY" --limit "$LIMIT" --save "${EXTRA_ARGS[@]}" > "$STDOUT_FILE"
+      "$FEEDGRAB" xhs-so "$QUERY" --sort "$XHS_SORT" --limit "$XHS_LIMIT" --save "${EXTRA_ARGS[@]}" > "$STDOUT_FILE"
       ;;
     *)
       "$FEEDGRAB" "$TARGET" "${EXTRA_ARGS[@]}" > "$STDOUT_FILE"

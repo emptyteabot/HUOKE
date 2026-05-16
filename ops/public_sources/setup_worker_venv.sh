@@ -12,10 +12,11 @@ fi
 
 PYTHON="$VENV_DIR/bin/python"
 PIP="$VENV_DIR/bin/pip"
+FEEDGRAB_SPEC="${FEEDGRAB_SPEC:-feedgrab[all] @ git+https://github.com/iBigQiang/feedgrab.git}"
 
 "$PYTHON" -m pip install --upgrade pip
 "$PIP" install --upgrade requests
-"$PIP" install --upgrade "git+https://github.com/iBigQiang/feedgrab.git"
+"$PIP" install --upgrade "$FEEDGRAB_SPEC"
 
 if [ "$INSTALL_SCRAPLING" = "1" ]; then
   "$PIP" install --upgrade "scrapling[all]"

@@ -13,7 +13,7 @@ bash ops/public_sources/setup_worker_venv.sh
 The script creates `.venv-public-sources`, installs feedgrab from GitHub with:
 
 ```bash
-pip install "git+https://github.com/iBigQiang/feedgrab.git"
+pip install "feedgrab[all] @ git+https://github.com/iBigQiang/feedgrab.git"
 ```
 
 Install Scrapling only on workers that need browser-backed extraction:
@@ -52,7 +52,7 @@ PIPELINE=reddit QUERY='looking for outbound lead generation agency' \
 XHS keyword pipeline:
 
 ```bash
-PIPELINE=xhs QUERY='lead generation growth' LIMIT=50 \
+PIPELINE=xhs QUERY='lead generation growth' XHS_LIMIT=50 \
   bash ops/public_sources/run_feedgrab_pipeline.sh
 ```
 
@@ -92,7 +92,7 @@ REPO=/var/www/LeadPulse
 
 */30 * * * * cd $REPO && PIPELINE=x QUERY='need B2B lead generation agency' bash ops/public_sources/run_feedgrab_pipeline.sh >> /var/log/leadpulse-public-sources.log 2>&1
 15 * * * * cd $REPO && PIPELINE=reddit QUERY='looking for outbound lead generation agency' bash ops/public_sources/run_feedgrab_pipeline.sh >> /var/log/leadpulse-public-sources.log 2>&1
-45 */2 * * * cd $REPO && PIPELINE=xhs QUERY='lead generation growth' LIMIT=50 bash ops/public_sources/run_feedgrab_pipeline.sh >> /var/log/leadpulse-public-sources.log 2>&1
+45 */2 * * * cd $REPO && PIPELINE=xhs QUERY='lead generation growth' XHS_LIMIT=50 bash ops/public_sources/run_feedgrab_pipeline.sh >> /var/log/leadpulse-public-sources.log 2>&1
 5 */6 * * * cd $REPO && URL='https://example.com/forum/thread' MODE=fetcher bash ops/public_sources/run_scrapling_fetch.sh >> /var/log/leadpulse-public-sources.log 2>&1
 ```
 
