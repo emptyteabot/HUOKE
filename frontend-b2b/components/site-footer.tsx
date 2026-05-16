@@ -24,7 +24,7 @@ export function SiteFooter() {
           </Link>
         </div>
 
-        <div>2026 LeadPulse. 专注精准获客.</div>
+        <div>LeadPulse · 专注精准获客</div>
       </div>
     </footer>
   );

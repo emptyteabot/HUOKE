@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       const result = await markDealWon({ contactKey: task.key });
       return Response.json({
         ...result,
-        message: '已确认到账，并已生成启动交付包与后续 onboarding 任务。',
+        message: '已确认到账，并已完成服务开通与后续交付排程。',
       });
     }
 

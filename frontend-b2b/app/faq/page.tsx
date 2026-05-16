@@ -6,7 +6,7 @@ import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
   title: '常见问题',
-  description: '解释 LeadPulse 是什么、适合谁、免费体验能看到什么，以及方案之间的区别。',
+  description: 'LeadPulse 常见问题。',
 };
 
 const faqs = [
@@ -47,7 +47,7 @@ export default function FaqPage() {
           先把<span className="text-gradient">关键问题</span>说清楚。
         </>
       }
-      description="这里解释 LeadPulse 是什么、适合谁、免费试用能看到什么，以及方案之间的区别。"
+      description=""
       typeLine="先看样本，再决定要不要继续。"
       primaryCta={{ href: '/book', label: '申请免费样本' }}
       secondaryCta={{ href: '/demo', label: '预约 15 分钟演示' }}

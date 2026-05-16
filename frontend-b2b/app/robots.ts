@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/dashboard/', '/ops', '/api/'],
+        disallow: ['/dashboard/', '/ops', '/api/', '/internal-login', '/login', '/deepseek-harness-pow'],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

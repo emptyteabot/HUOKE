@@ -35,6 +35,8 @@ feedgrab xhs-so "找代运营 预算" --limit 50 --save
 feedgrab "https://www.xiaohongshu.com/user/profile/<profile-id>"
 ```
 
+On Windows, see `docs/XHS_LOGIN_WINDOWS.md` for the PowerShell path using `.venv-public-sources\Scripts\feedgrab.exe`.
+
 Keep cookies and logged-in browser profiles on the worker host. Do not put them in Git.
 
 Then send each Markdown document:

@@ -80,7 +80,7 @@ export function RedeemCodeForm({ defaultCompany = '', initialCode = '' }: Props)
         <p className="lead-pill">兑换开通</p>
         <h3 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950">已经拿到开通码，就在这里继续</h3>
         <p className="mt-3 text-sm leading-7 text-slate-600">
-          把开通码填进来，系统会核销兑换码、生成启动交付包，并把你带到启动页。
+          输入兑换码以完成服务开通。验证成功后，您将直接进入专属线索工作台。
         </p>
       </div>
 

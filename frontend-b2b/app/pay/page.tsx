@@ -37,7 +37,7 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
             再<span className="text-gradient">充值放量。</span>
           </h1>
           <p className="mx-auto mt-5 max-w-3xl text-lg font-light leading-8 text-slate-600">
-            先看样本，确认线索质量和行业方向。确定继续后再充值试跑，虎皮椒回调确认到账后自动发放积分，余额不足就停止提取。
+            先看样本，确认线索质量和行业方向。确定继续后再充值试跑，系统确认收款后自动发放对应积分，余额不足将暂停提取。
           </p>
         </div>
 

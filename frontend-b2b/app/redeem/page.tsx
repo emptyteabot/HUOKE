@@ -40,10 +40,10 @@ export default async function RedeemPage({ searchParams }: { searchParams: Searc
               <h1 className="text-3xl font-extrabold tracking-tight text-slate-950">站内兑换</h1>
             </div>
             <p className="mt-4 text-sm leading-7 text-slate-600">
-              付款或人工发码后，在这里完成开通。系统会核销兑换码、生成启动交付包，并把你带到启动页。
+              输入兑换码以完成服务开通。验证成功后，您将直接进入专属线索工作台。
             </p>
             <div className="mt-6 grid gap-3">
-              {['1. 输入兑换码和邮箱', '2. 补齐公司 / 产品链接', '3. 兑换成功后自动进入启动页'].map((item) => (
+              {['1. 输入兑换码和邮箱', '2. 补齐公司 / 产品链接', '3. 验证成功后进入专属线索工作台'].map((item) => (
                 <div key={item} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                   {item}
                 </div>

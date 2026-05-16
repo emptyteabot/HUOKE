@@ -55,7 +55,7 @@ export default async function ProofPage() {
       title="这里放的不是包装，是结果。"
       description="关键词池、目标队列、实验页、预约、付款意向和真实触达动作，都应该能在这里被看见。"
       primaryCta={{ href: '/cases', label: '看案例' }}
-      secondaryCta={{ href: '/dashboard', label: '看总览' }}
+      secondaryCta={{ href: '/product', label: '看工作流样本' }}
     >
       <section className="mx-auto max-w-7xl px-6 py-4 lg:px-8">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">

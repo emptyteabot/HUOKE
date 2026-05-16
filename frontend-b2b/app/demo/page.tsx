@@ -17,8 +17,8 @@ export default function DemoPage() {
     <MarketingPageShell
       eyebrow="工作流演示"
       title="两分钟，看懂留言怎么变成销售动作。"
-      description="演示页只负责一件事：让你看到系统不是在堆关键词链接，而是在逐条分析购买意图、预算信号和下一步动作。"
-      typeLine="客户不需要看说明书。客户只需要知道：看见了什么，为什么值钱，下一步该怎么做。"
+      description="告别无效的关键词链接。系统为您逐条解析客户留言的购买意图、预算信号，并直接生成下一步销售动作建议。您只需关注最具转化价值的商机。"
+      typeLine=""
       primaryCta={{ href: '/book', label: '预约评估' }}
       secondaryCta={{ href: '/product', label: '看产品工作流' }}
     >
@@ -26,7 +26,7 @@ export default function DemoPage() {
         <div className="grid gap-8 xl:grid-cols-[0.84fr_1.16fr]">
           <div className="lead-glass rounded-[24px] p-6">
             <div className="lead-pill">为什么要看演示</div>
-            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">客户不需要看说明书。</h2>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">看见线索，马上知道值不值得跟。</h2>
             <p className="mt-4 text-sm font-light leading-7 text-slate-600">
               销售拿到的每条线索，都应该能回答三个问题：这人为什么像客户、现在处于什么阶段、下一步应该怎么开口。
             </p>

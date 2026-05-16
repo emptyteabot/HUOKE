@@ -30,7 +30,7 @@ export default function PlatformPage() {
       title="把线索、扣费和推进动作收成一个工作台。"
       description="平台价值不在于模块更多，而在于每条高意向线索都有来源、判断、扣费和下一步动作。"
       primaryCta={{ href: '/pricing', label: '查看充值包' }}
-      secondaryCta={{ href: '/dashboard/leads', label: '打开线索池' }}
+      secondaryCta={{ href: '/product', label: '看样本工作流' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="grid gap-4 lg:grid-cols-3">

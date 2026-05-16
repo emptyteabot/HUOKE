@@ -12,6 +12,7 @@ const SOFT_HIDDEN_ROUTES = new Set([
   '/proof',
   '/investors',
   '/cases',
+  '/deepseek-harness-pow',
 ]);
 
 function internalAccessKey() {
@@ -62,43 +63,23 @@ function externalUrl(request: NextRequest, pathname: string) {
 }
 
 export function middleware(request: NextRequest) {
-  if (SOFT_HIDDEN_ROUTES.has(request.nextUrl.pathname) || request.nextUrl.pathname.startsWith('/experiments')) {
-    const secret = internalAccessKey();
-    const currentCookie = request.cookies.get(INTERNAL_COOKIE)?.value;
-    const access = request.nextUrl.searchParams.get('access');
-    const hasInternalAccess = Boolean(secret) && (currentCookie === secret || access === secret);
-
-    if (!hasInternalAccess) {
-      const url = externalUrl(request, '/');
-      return NextResponse.redirect(url);
-    }
-  }
-
   const secret = internalAccessKey();
+  const currentCookie = request.cookies.get(INTERNAL_COOKIE)?.value;
+  const access = request.nextUrl.searchParams.get('access');
+  const isHiddenRoute =
+    SOFT_HIDDEN_ROUTES.has(request.nextUrl.pathname) || request.nextUrl.pathname.startsWith('/experiments');
+
   if (!secret) {
-    const host = request.headers.get('host') || '';
-    const isLocal =
-      host.includes('127.0.0.1') ||
-      host.includes('localhost');
-
-    if (isLocal) {
-      return NextResponse.next();
+    if (isHiddenRoute) {
+      return NextResponse.redirect(externalUrl(request, '/'));
     }
-
-    return new NextResponse('LeadPulse internal access key missing.', {
-      status: 503,
-      headers: {
-        'content-type': 'text/plain; charset=utf-8',
-      },
-    });
+    return NextResponse.next();
   }
 
-  const currentCookie = request.cookies.get(INTERNAL_COOKIE)?.value;
   if (currentCookie === secret) {
     return NextResponse.next();
   }
 
-  const access = request.nextUrl.searchParams.get('access');
   if (access && access === secret) {
     const response = NextResponse.redirect(cleanRedirectUrl(request));
     response.cookies.set(INTERNAL_COOKIE, secret, {
@@ -111,10 +92,14 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  const loginUrl = externalUrl(request, '/internal-login');
-  const cleanUrl = cleanRedirectUrl(request);
-  loginUrl.searchParams.set('next', `${cleanUrl.pathname}${cleanUrl.search}`);
-  return NextResponse.rewrite(loginUrl);
+  if (isHiddenRoute) {
+    const loginUrl = externalUrl(request, '/internal-login');
+    const cleanUrl = cleanRedirectUrl(request);
+    loginUrl.searchParams.set('next', `${cleanUrl.pathname}${cleanUrl.search}`);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
@@ -131,6 +116,7 @@ export const config = {
     '/agents',
     '/cases',
     '/investors',
+    '/deepseek-harness-pow',
     '/experiments',
     '/experiments/:path*',
   ],

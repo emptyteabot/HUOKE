@@ -40,7 +40,7 @@ export default async function AgentsPage() {
       eyebrow="执行层"
       title="把能力拆清楚，再把动作串起来。"
       description="系统要能卖，先得能看懂自己到底在做什么：谁负责发现，谁负责跟进，谁负责记录，谁负责接管。"
-      primaryCta={{ href: '/dashboard/ai', label: '打开 Agent OS' }}
+      primaryCta={{ href: '/product', label: '看工作流样本' }}
       secondaryCta={{ href: '/proof', label: '看执行证明' }}
     >
       <section className="mx-auto max-w-7xl px-6 py-2 lg:px-8">

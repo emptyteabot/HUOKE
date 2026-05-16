@@ -122,6 +122,34 @@ def _extract_json(text: str) -> dict[str, Any]:
     return parsed
 
 
+def _extract_response_text(payload: dict[str, Any]) -> str:
+    output_text = payload.get("output_text")
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text.strip()
+
+    for item in payload.get("output", []):
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") != "message":
+            continue
+        for content in item.get("content", []):
+            if not isinstance(content, dict):
+                continue
+            if content.get("type") in {"output_text", "text"}:
+                text = str(content.get("text") or "").strip()
+                if text:
+                    return text
+
+    choices = payload.get("choices", [])
+    if choices:
+        try:
+            return str(choices[0]["message"]["content"]).strip()
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            raise ValueError("Response payload did not include text content") from exc
+
+    raise ValueError("Response payload did not include text content")
+
+
 def _llm_next_question(lead: LeadProfile, missing_fields: list[str]) -> FunnelQuestion | None:
     if not settings.llm_api_key:
         return None
@@ -142,7 +170,7 @@ def _llm_next_question(lead: LeadProfile, missing_fields: list[str]) -> FunnelQu
         "schema": _json_schema(),
     }
 
-    url = f"{settings.llm_base_url.rstrip('/')}/chat/completions"
+    url = f"{settings.llm_base_url.rstrip('/')}/responses"
     try:
         response = requests.post(
             url,
@@ -153,17 +181,41 @@ def _llm_next_question(lead: LeadProfile, missing_fields: list[str]) -> FunnelQu
             json={
                 "model": settings.llm_model,
                 "temperature": 0.2,
-                "response_format": {"type": "json_object"},
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": json.dumps(user, ensure_ascii=False)},
+                "max_output_tokens": 256,
+                "text": {
+                    "format": {
+                        "type": "json_schema",
+                        "name": "leadpulse_next_question",
+                        "schema": _json_schema(),
+                        "strict": True,
+                    }
+                },
+                "input": [
+                    {
+                        "role": "system",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": system,
+                            }
+                        ],
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": json.dumps(user, ensure_ascii=False),
+                            }
+                        ],
+                    },
                 ],
             },
             timeout=settings.llm_timeout_seconds,
         )
         response.raise_for_status()
         payload = response.json()
-        content = payload["choices"][0]["message"]["content"]
+        content = _extract_response_text(payload)
         draft = LlmQuestionDraft.model_validate(_extract_json(content))
         return FunnelQuestion.model_validate(draft.model_dump(mode="json"))
     except (KeyError, ValueError, requests.RequestException, ValidationError, json.JSONDecodeError):

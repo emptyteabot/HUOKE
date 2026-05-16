@@ -13,7 +13,7 @@ export default function TermsPage() {
           <p className="lead-pill">Terms</p>
           <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-slate-950 md:text-5xl">服务条款</h1>
           <p className="mt-5 text-lg leading-8 text-slate-600">
-            这份条款只讲清楚三件事：线索提取边界、LP Coin 扣费规则、到账与发货依据。
+            本服务条款旨在明确规范 LeadPulse 的线索提取服务标准、积分（LP Coin）计费及扣费规则，以及交付与结算机制。
           </p>
         </div>
 

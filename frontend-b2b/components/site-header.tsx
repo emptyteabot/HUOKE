@@ -7,8 +7,8 @@ type Props = {
 };
 
 const navItems = [
-  { href: '/product', label: '工作流' },
-  { href: '/pricing', label: '方案与定价' },
+  { href: '/product', label: '产品' },
+  { href: '/pricing', label: '定价' },
   { href: '/faq', label: '常见问题' },
 ];
 
@@ -33,7 +33,7 @@ export function SiteHeader({ ctaHref = '/book', ctaLabel = '预约评估' }: Pro
 
         <Link href={ctaHref} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
           <span className="hidden sm:inline">{ctaLabel}</span>
-          <span className="sm:hidden">体验</span>
+          <span className="sm:hidden">预约</span>
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

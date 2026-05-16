@@ -23,9 +23,9 @@ export function MarketingPageShell({
   eyebrow,
   title,
   description,
-  typeLine = '先申请真实样本，再决定要不要继续投入。',
+  typeLine = '先看样本，再决定要不要继续。',
   primaryCta = { href: '/book', label: '申请免费样本' },
-  secondaryCta = { href: '/demo', label: '预约工作流演示' },
+  secondaryCta = { href: '/demo', label: '查看工作流演示' },
   children,
 }: Props) {
   return (
@@ -39,8 +39,8 @@ export function MarketingPageShell({
           <h1 className="mt-5 text-[2.55rem] font-extrabold leading-[1.08] tracking-tight text-slate-950 md:text-[3.7rem]">
             {title}
           </h1>
-          <p className="mx-auto mt-5 max-w-3xl text-lg font-light leading-8 text-slate-600">{description}</p>
-          <p className="mx-auto mt-3 max-w-3xl text-base font-light leading-7 text-slate-500">{typeLine}</p>
+          {description ? <p className="mx-auto mt-5 max-w-3xl text-lg font-light leading-8 text-slate-600">{description}</p> : null}
+          {typeLine ? <p className="mx-auto mt-3 max-w-3xl text-base font-light leading-7 text-slate-500">{typeLine}</p> : null}
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link href={primaryCta.href} className="lead-button lead-button-primary">
               {primaryCta.label}

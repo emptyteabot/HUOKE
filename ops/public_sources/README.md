@@ -10,6 +10,12 @@ Create a dedicated worker venv:
 bash ops/public_sources/setup_worker_venv.sh
 ```
 
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\ops\public_sources\setup_worker_venv.ps1
+```
+
 The script creates `.venv-public-sources`, installs feedgrab from GitHub with:
 
 ```bash
@@ -54,6 +60,16 @@ XHS keyword pipeline:
 ```bash
 PIPELINE=xhs QUERY='lead generation growth' XHS_LIMIT=50 \
   bash ops/public_sources/run_feedgrab_pipeline.sh
+```
+
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\ops\public_sources\run_feedgrab_pipeline.ps1 `
+  -Pipeline xhs `
+  -Query "lead generation growth" `
+  -XhsLimit 50 `
+  -Api "https://leadpulseagi.com"
 ```
 
 XHS profile or note URL:

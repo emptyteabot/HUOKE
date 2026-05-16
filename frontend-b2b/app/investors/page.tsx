@@ -44,8 +44,8 @@ export default async function InvestorsPage() {
       eyebrow="经营判断"
       title="先看现在该做什么，再决定讲什么。"
       description="这页不是包装页，而是内部判断：该继续卖、补案例，还是可以开始谈融资。"
-      primaryCta={{ href: '/dashboard/ai', label: '看 Agent OS' }}
-      secondaryCta={{ href: '/ops', label: '看经营看板' }}
+      primaryCta={{ href: '/product', label: '看工作流样本' }}
+      secondaryCta={{ href: '/pricing', label: '看充值包' }}
     >
       <section className="mx-auto max-w-7xl px-6 py-4 lg:px-8">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -173,12 +173,12 @@ export default async function InvestorsPage() {
           </div>
 
           <div className="mt-6 grid gap-4 xl:grid-cols-3">
-            <Link href="/dashboard/ai" className="interactive-button rounded-3xl border border-black/5 bg-[#f8f8f4] p-5 hover:border-black/10 hover:bg-white">
+            <Link href="/product" className="interactive-button rounded-3xl border border-black/5 bg-[#f8f8f4] p-5 hover:border-black/10 hover:bg-white">
               <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-500">自动化</div>
               <h3 className="mt-3 text-xl font-semibold text-slate-950">继续把执行层跑起来</h3>
               <p className="mt-3 text-sm leading-7 text-slate-600">不是再加概念，而是继续拉出连续数据。</p>
               <div className="mt-5 inline-flex items-center text-sm font-semibold text-slate-700">
-                打开 Agent OS
+                看工作流样本
                 <ArrowRight className="ml-2 h-4 w-4" />
               </div>
             </Link>
