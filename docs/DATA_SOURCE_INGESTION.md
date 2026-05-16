@@ -24,7 +24,18 @@ Run feedgrab outside the LeadPulse web process, then post generated Markdown int
 ```bash
 feedgrab x-so "looking for agency" --days 1 --save
 feedgrab reddit-sub SaaS
+feedgrab xhs-so "代运营 报价" --limit 50 --save
 ```
+
+For Xiaohongshu, use feedgrab's own login/session flow on the worker node:
+
+```bash
+CHROME_CDP_LOGIN=true feedgrab login xhs
+feedgrab xhs-so "找代运营 预算" --limit 50 --save
+feedgrab "https://www.xiaohongshu.com/user/profile/<profile-id>"
+```
+
+Keep cookies and logged-in browser profiles on the worker host. Do not put them in Git.
 
 Then send each Markdown document:
 
@@ -50,6 +61,15 @@ python m2m_backend/scripts/ingest_feedgrab_output.py \
   --dir ./output \
   --api https://leadpulseagi.com \
   --limit 50
+```
+
+Or run feedgrab and ingestion in one step:
+
+```bash
+python m2m_backend/scripts/run_feedgrab_query.py \
+  --api https://leadpulseagi.com \
+  --min-budget-usd 3000 \
+  xhs-so "找代运营 预算" --limit 50
 ```
 
 LeadPulse returns sorted results with:
@@ -79,6 +99,15 @@ curl -X POST https://leadpulseagi.com/api/v2/sources/scrapling/fetch \
     "source": "scrapling",
     "min_budget_usd": 3000
   }'
+```
+
+For a URL batch:
+
+```bash
+python m2m_backend/scripts/scrapling_url_worker.py \
+  --api https://leadpulseagi.com \
+  --mode fetcher \
+  --url-file ./forum_urls.txt
 ```
 
 Browser, proxy, and target-specific settings should live in worker deployment config, not public request payloads.

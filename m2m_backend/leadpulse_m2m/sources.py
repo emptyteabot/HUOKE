@@ -116,6 +116,12 @@ def provider_status() -> SourceProvidersResult:
                 "ingest_endpoint": "/api/v2/sources/feedgrab/ingest",
                 "interface": "markdown_with_yaml_front_matter",
                 "recommended_role": "primary public-source pump for X, Reddit, HackerNews, YouTube, RSS, and forum URLs",
+                "supported_sources": ["x", "reddit", "hackernews", "youtube", "xiaohongshu", "wechat", "rss", "telegram"],
+                "xhs_modes": {
+                    "search_api": 'feedgrab xhs-so "<keyword>" --limit 50 --save',
+                    "browser_login": "CHROME_CDP_LOGIN=true feedgrab login xhs",
+                    "profile_capture": 'feedgrab "https://www.xiaohongshu.com/user/profile/<id>"',
+                },
             },
             "scrapling": {
                 "status": "ready" if _module_available("scrapling") else "optional_dependency_missing",

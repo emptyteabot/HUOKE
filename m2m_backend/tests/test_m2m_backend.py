@@ -388,6 +388,8 @@ def test_source_providers_expose_feedgrab_and_scrapling():
     providers = response.json()["providers"]
     assert providers["feedgrab"]["status"] == "ready"
     assert providers["feedgrab"]["ingest_endpoint"] == "/api/v2/sources/feedgrab/ingest"
+    assert "xiaohongshu" in providers["feedgrab"]["supported_sources"]
+    assert providers["feedgrab"]["xhs_modes"]["browser_login"] == "CHROME_CDP_LOGIN=true feedgrab login xhs"
     assert providers["scrapling"]["fetch_endpoint"] == "/api/v2/sources/scrapling/fetch"
 
 

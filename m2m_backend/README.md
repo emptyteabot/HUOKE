@@ -49,6 +49,8 @@ If `LEADPULSE_M2M_API_KEY` is set, POST/REST tool APIs require `Authorization: B
 Feedgrab and Scrapling are connected as adapters, not vendored into the web service.
 
 - Feedgrab should run as a source worker and POST its Markdown output to `/api/v2/sources/feedgrab/ingest`.
+- Feedgrab worker dependencies live in `requirements-workers.txt`.
+- Xiaohongshu should use the worker login/session path, for example `CHROME_CDP_LOGIN=true feedgrab login xhs`, then `feedgrab xhs-so "<keyword>" --limit 50 --save`.
 - Scrapling is optional on worker nodes. Install it with `pip install "scrapling[all]" && scrapling install`, then use `/api/v2/sources/scrapling/fetch` for non-standard pages.
 
 See `../docs/DATA_SOURCE_INGESTION.md` for the exact runbook.

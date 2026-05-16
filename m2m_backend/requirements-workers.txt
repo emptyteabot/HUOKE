@@ -1,0 +1,2 @@
+-r requirements-sources.txt
+feedgrab[all] @ git+https://github.com/iBigQiang/feedgrab.git
