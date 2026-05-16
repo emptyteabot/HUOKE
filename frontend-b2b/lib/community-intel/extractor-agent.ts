@@ -1,70 +1,5 @@
+import { scoreLeadIntentWithLlm } from '../llm-intent';
 import type { CommunityBenchmarkResult, CommunityLeadSignal, CommunityRawPost, CommunitySource, ExtractionFailureBucket } from './types';
-
-const commercialKeywords = [
-  'pay',
-  'paid',
-  'pricing',
-  'customer',
-  'client',
-  'revenue',
-  'sales',
-  'lead',
-  'growth',
-  'conversion',
-  'book',
-  'close',
-  'appointment',
-  '推广',
-  '获客',
-  '客户',
-  '成交',
-  '营收',
-  '收入',
-  '线索',
-  '转化',
-  '预约',
-  '付费',
-  '定价',
-  '报价',
-];
-
-const painKeywords = [
-  'no users',
-  'no customer',
-  'hard to sell',
-  'need leads',
-  'bookings',
-  'conversion',
-  'launch',
-  'distribution',
-  '没客户',
-  '不会卖',
-  '不会获客',
-  '流量',
-  '转化低',
-  '没预约',
-  '没人买',
-  '冷启动',
-  '上线',
-  '销售',
-];
-
-const monetizationKeywords = [
-  'subscription',
-  'price',
-  'plan',
-  'monthly',
-  'agency',
-  'service',
-  'consulting',
-  '套餐',
-  '订阅',
-  '价格',
-  '方案',
-  '咨询',
-  '代运营',
-  '训练营',
-];
 
 function normalizeWhitespace(text: string) {
   return text.replace(/\s+/g, ' ').trim();
@@ -92,7 +27,7 @@ function estimateTokens(text: string) {
   const cjkCount = (text.match(/[\u4e00-\u9fff]/g) || []).length;
   const latinCount = (text.match(/[a-zA-Z0-9]/g) || []).length;
   const promptTokens = Math.max(8, Math.ceil(cjkCount / 1.8 + latinCount / 4));
-  const completionTokens = Math.max(20, Math.ceil(promptTokens * 0.38));
+  const completionTokens = Math.max(32, Math.ceil(promptTokens * 0.45));
   return {
     promptTokens,
     completionTokens,
@@ -100,28 +35,22 @@ function estimateTokens(text: string) {
   };
 }
 
-function scoreByKeywords(text: string, keywords: string[]) {
-  const lowered = text.toLowerCase();
-  return keywords.filter((keyword) => lowered.includes(keyword.toLowerCase()));
-}
-
-function detectFailureBucket(args: {
+function failureFor(args: {
   normalizedText: string;
   source: CommunitySource;
   language: CommunityLeadSignal['language'];
-  commercialSignals: string[];
-  warnings: string[];
+  score: number;
+  toxic: boolean;
 }): ExtractionFailureBucket | undefined {
   if (!args.normalizedText) return 'empty_text';
   if (args.normalizedText.length < 24) return 'too_short';
   if (args.source === 'unknown') return 'unsupported_source';
   if (args.language === 'unknown') return 'language_unclear';
-  if (args.warnings.includes('noise_heavy')) return 'noise_heavy';
-  if (args.commercialSignals.length === 0) return 'no_commercial_signal';
+  if (args.toxic || args.score <= 0) return 'no_commercial_signal';
   return undefined;
 }
 
-export function extractCommunityLeadSignal(post: CommunityRawPost): CommunityLeadSignal {
+export async function extractCommunityLeadSignal(post: CommunityRawPost): Promise<CommunityLeadSignal> {
   const rawText = [post.title || '', post.body || '', ...(post.comments || []).slice(0, 3)].join(' ');
   const normalizedText = stripNoise(rawText);
   const language = detectLanguage(normalizedText);
@@ -132,37 +61,32 @@ export function extractCommunityLeadSignal(post: CommunityRawPost): CommunityLea
     warnings.push('noise_heavy');
   }
 
-  const commercialSignals = scoreByKeywords(normalizedText, commercialKeywords);
-  const painSignals = scoreByKeywords(normalizedText, painKeywords);
-  const monetizationSignals = scoreByKeywords(normalizedText, monetizationKeywords);
+  const decision = await scoreLeadIntentWithLlm({
+    source: post.source,
+    sourceUrl: post.url,
+    author: post.author || post.authorHandle,
+    keyword: (post.tags || []).join(', '),
+    content: normalizedText,
+  });
 
-  const intentBase =
-    Math.min(commercialSignals.length, 5) * 0.14 +
-    Math.min(painSignals.length, 4) * 0.11 +
-    Math.min(monetizationSignals.length, 4) * 0.08 +
-    (post.metrics?.replies ? Math.min(post.metrics.replies, 20) / 20 * 0.08 : 0) +
-    (post.metrics?.likes ? Math.min(post.metrics.likes, 50) / 50 * 0.05 : 0);
-
-  const commercialIntentScore = Number(Math.min(intentBase, 0.95).toFixed(4));
-  const failureBucket = detectFailureBucket({
+  const commercialIntentScore = Number((decision.lead_score / 100).toFixed(4));
+  const failureBucket = failureFor({
     normalizedText,
     source: post.source,
     language,
-    commercialSignals,
-    warnings,
+    score: decision.lead_score,
+    toxic: decision.is_toxic_vendor_or_peer || !decision.is_target_buyer,
   });
 
   const contactability =
-    commercialIntentScore >= 0.68
+    decision.lead_score >= 78
       ? 'high'
-      : commercialIntentScore >= 0.38
+      : decision.lead_score >= 45
         ? 'medium'
         : 'low';
 
-  const outreachHooks = [
-    ...painSignals.slice(0, 2).map((item) => `围绕“${item}”切入，先讲结果而不是功能。`),
-    ...monetizationSignals.slice(0, 1).map((item) => `围绕“${item}”解释收费与回本路径。`),
-  ].slice(0, 3);
+  const painSummary = decision.pain_point_summary || '';
+  const nextAction = decision.next_action_dm || '';
 
   return {
     postId: post.id,
@@ -171,13 +95,13 @@ export function extractCommunityLeadSignal(post: CommunityRawPost): CommunityLea
     language,
     commercialIntentScore,
     tokenEstimate,
-    productNeedSignals: commercialSignals.slice(0, 6),
-    painSignals: painSignals.slice(0, 6),
-    monetizationSignals: monetizationSignals.slice(0, 6),
-    outreachHooks,
+    productNeedSignals: decision.is_target_buyer ? [painSummary || 'LLM buyer intent approved'].filter(Boolean) : [],
+    painSignals: painSummary ? [painSummary] : [],
+    monetizationSignals: nextAction ? [nextAction] : [],
+    outreachHooks: nextAction ? [nextAction] : [],
     contactability,
     recommendedQueue:
-      !failureBucket && commercialIntentScore >= 0.55
+      !failureBucket && decision.lead_score >= 55
         ? 'extract_pass'
         : failureBucket && failureBucket !== 'no_commercial_signal'
           ? 'human_review'
@@ -188,8 +112,8 @@ export function extractCommunityLeadSignal(post: CommunityRawPost): CommunityLea
   };
 }
 
-export function benchmarkCommunityExtractor(posts: CommunityRawPost[]): CommunityBenchmarkResult {
-  const results = posts.map(extractCommunityLeadSignal);
+export async function benchmarkCommunityExtractor(posts: CommunityRawPost[]): Promise<CommunityBenchmarkResult> {
+  const results = await Promise.all(posts.map(extractCommunityLeadSignal));
   const successCount = results.filter((item) => item.success).length;
   const failureCount = results.length - successCount;
   const sourceSet = [...new Set(results.map((item) => item.source))];

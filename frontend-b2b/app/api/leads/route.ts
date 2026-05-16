@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -12,22 +12,15 @@ import {
   walletSetCookieHeader,
   walletTokenForResponse,
 } from "@/lib/lead_wallet";
+import { scoreLeadIntentBatchWithLlm, llmProviderSummary, type LeadIntentDecision } from "@/lib/llm-intent";
 import { fetchM2mWallet } from "@/lib/m2m/billing";
 
 export const runtime = "nodejs";
 
 type RunResult = { ok: boolean; stderr: string; stdout: string };
-
-type LeadRowsLoadResult = {
-  rows: LeadRow[];
-  source: "local_exporter" | "openclaw_json" | "supabase" | "bundled_snapshot" | "unavailable";
-  source_detail: string;
-  errors: Record<string, string>;
-};
-
 type IntentLevel = "high" | "medium" | "low";
 
-type LeadRow = {
+export type LeadRow = {
   external_id: string;
   platform: string;
   author: string;
@@ -37,6 +30,29 @@ type LeadRow = {
   is_target: boolean;
   is_competitor: boolean;
   dm_ready: boolean;
+  author_url: string;
+  post_url: string;
+  source_url: string;
+  content: string;
+  contact: string;
+  collected_at: string;
+  pain_point_summary: string;
+  next_action_dm: string;
+  llm_decision: LeadIntentDecision;
+};
+
+export type LeadRowsLoadResult = {
+  rows: RawLeadCandidate[];
+  source: "local_exporter" | "openclaw_json" | "supabase" | "bundled_snapshot" | "unavailable";
+  source_detail: string;
+  errors: Record<string, string>;
+};
+
+type RawLeadCandidate = {
+  external_id: string;
+  platform: string;
+  author: string;
+  keyword: string;
   author_url: string;
   post_url: string;
   source_url: string;
@@ -53,9 +69,11 @@ type LeadsPayload = {
     min_score: number;
     only_target: boolean;
     exclude_competitors: boolean;
+    llm_max_rows: number;
   };
   summary: {
     total_rows: number;
+    llm_scored_rows: number;
     filtered_rows: number;
     target_rows: number;
     competitor_rows: number;
@@ -63,6 +81,7 @@ type LeadsPayload = {
     score_ge_65_rows: number;
     platform_counts: Record<string, number>;
   };
+  llm_provider: ReturnType<typeof llmProviderSummary>;
   rows: LeadRow[];
 };
 
@@ -74,79 +93,12 @@ type SupabaseLeadRecord = {
   created_at?: string;
 };
 
-type VerticalConfig = {
-  key: string;
-  intentKeywords: string[];
-  targetHints: string[];
-  competitorKeywords: string[];
-};
-
 type SupabaseLoadResult =
-  | { status: "ok"; rows: LeadRow[] }
+  | { status: "ok"; rows: RawLeadCandidate[] }
   | { status: "not_configured"; reason: string }
   | { status: "failed"; reason: string };
 
 const DEFAULT_VERTICAL = "study_abroad";
-
-const VERTICAL_CONFIGS: Record<string, VerticalConfig> = {
-  study_abroad: {
-    key: "study_abroad",
-    intentKeywords: [
-      "留学",
-      "申请",
-      "文书",
-      "中介",
-      "择校",
-      "雅思",
-      "托福",
-      "gpa",
-      "offer",
-      "硕士",
-      "本科",
-      "博士",
-      "费用",
-      "预算",
-      "签证",
-      "deadline",
-    ],
-    targetHints: [
-      "留学",
-      "申请",
-      "择校",
-      "文书",
-      "预算",
-      "费用",
-      "雅思",
-      "托福",
-      "gpa",
-      "offer",
-      "请问",
-      "求推荐",
-      "求助",
-      "怎么选",
-    ],
-    competitorKeywords: [
-      "留学中介",
-      "留学机构",
-      "顾问老师",
-      "保录",
-      "代办",
-      "服务报价",
-      "工作室",
-      "教育机构",
-      "官方账号",
-    ],
-  },
-  vibe_coding: {
-    key: "vibe_coding",
-    intentKeywords: ["独立开发", "saas", "获客", "转化", "冷启动", "增长", "出海", "agent"],
-    targetHints: ["求工具", "求推荐", "获客", "自动化", "订阅", "转化", "客户", "线索"],
-    competitorKeywords: ["代运营", "课程", "训练营", "工作室", "咨询服务", "接单"],
-  },
-};
-
-const DEMAND_TERMS = ["求推荐", "求助", "请问", "有没有", "哪家", "想找", "怎么选", "预算", "费用", "急", "避雷"];
-const QUESTION_TERMS = ["?", "？", "请问", "有没有", "哪家", "怎么", "如何"];
 const LEAD_ROWS_CACHE_TTL_MS = 30_000;
 const leadRowsCache = new Map<string, { loaded_at: number; result: LeadRowsLoadResult }>();
 
@@ -166,81 +118,97 @@ function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
-function containsAny(text: string, terms: string[]): boolean {
-  const t = String(text || "").toLowerCase();
-  return terms.some((term) => t.includes(String(term || "").toLowerCase()));
-}
-
 function normalizeVertical(vertical: string): string {
   const key = String(vertical || "").trim().toLowerCase();
-  return VERTICAL_CONFIGS[key] ? key : DEFAULT_VERTICAL;
+  return key || DEFAULT_VERTICAL;
 }
 
-function getVerticalConfig(vertical: string): VerticalConfig {
-  return VERTICAL_CONFIGS[normalizeVertical(vertical)] || VERTICAL_CONFIGS[DEFAULT_VERTICAL];
+function md5_16(text: string): string {
+  return crypto.createHash("md5").update(String(text || ""), "utf8").digest("hex").slice(0, 16);
 }
 
-function scoreIntent(text: string, intentTerms: string[]): { level: IntentLevel; bonus: number; question: boolean } {
-  const t = String(text || "").toLowerCase();
-  const hit = intentTerms.reduce((acc, term) => (t.includes(String(term || "").toLowerCase()) ? acc + 1 : acc), 0);
-  const urgent = containsAny(t, ["急", "ddl", "deadline", "来不及", "本周", "这周", "马上", "尽快"]);
-  const question = containsAny(t, QUESTION_TERMS);
-
-  if (hit >= 2 || (hit >= 1 && urgent)) return { level: "high", bonus: 22, question };
-  if (hit >= 1 || question) return { level: "medium", bonus: 12, question };
-  return { level: "low", bonus: 0, question };
+function canonicalPostUrl(url: string): string {
+  const raw = String(url || "").trim();
+  if (!raw) return "";
+  return raw.split("#", 1)[0].split("?", 1)[0];
 }
 
-function isCompetitor(author: string, text: string, competitorTerms: string[]): boolean {
-  const authorLower = String(author || "").trim().toLowerCase();
-  const textLower = String(text || "").toLowerCase();
-
-  const noiseAuthors = new Set(["", "search_card", "unknown", "匿名", "none", "null"]);
-  if (noiseAuthors.has(authorLower)) return true;
-
-  const institutionalAuthorHints = ["中介", "机构", "顾问", "工作室", "教育", "老师", "官方", "播报", "留学服务", "留学咨询"];
-  if (containsAny(authorLower, institutionalAuthorHints)) return true;
-
-  const selfPromoTerms = ["私信我", "加我微信", "微信咨询", "欢迎咨询", "咨询我", "服务报价", "套餐", "保录", "代办", "点击主页"];
-  const directSellTerms = ["私信", "加v", "微信", "咨询", "报价", "套餐", "保录", "代办", "服务"];
-
-  const demandLike = containsAny(textLower, DEMAND_TERMS) || containsAny(textLower, QUESTION_TERMS);
-  const selfPromoLike = containsAny(textLower, selfPromoTerms);
-  const salesHits = directSellTerms.reduce((acc, term) => (textLower.includes(term) ? acc + 1 : acc), 0);
-
-  if (selfPromoLike || salesHits >= 2) return true;
-
-  const keywordHit = containsAny(textLower, competitorTerms);
-  if (keywordHit && !demandLike) return true;
-
-  return false;
+function textValue(...values: unknown[]): string {
+  return values
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function isTarget(text: string, competitor: boolean, intentLevel: IntentLevel, targetTerms: string[]): boolean {
-  if (competitor) return false;
-  if (intentLevel === "high" || intentLevel === "medium") return true;
+function candidateId(row: {
+  platform?: unknown;
+  author?: unknown;
+  post_url?: unknown;
+  source_url?: unknown;
+  content?: unknown;
+  id?: unknown;
+  external_id?: unknown;
+}) {
+  const explicit = String(row.external_id || row.id || "").trim();
+  if (explicit) return explicit.slice(0, 80);
+  return md5_16(
+    [
+      row.platform || "",
+      String(row.author || "").toLowerCase(),
+      canonicalPostUrl(String(row.post_url || row.source_url || "")),
+      String(row.content || "").toLowerCase().slice(0, 180),
+    ].join("|"),
+  );
+}
 
-  const textLower = String(text || "").toLowerCase();
-  const demandLike = containsAny(textLower, DEMAND_TERMS);
-  const questionLike = containsAny(textLower, QUESTION_TERMS);
-  const hit = targetTerms.reduce((acc, term) => (textLower.includes(String(term || "").toLowerCase()) ? acc + 1 : acc), 0);
+function normalizeCandidate(record: Record<string, unknown>, fallbackPlatform = "unknown"): RawLeadCandidate | null {
+  const content = textValue(record.content, record.body, record.text, record.notes, record.title);
+  if (content.length < 8) return null;
 
-  if (hit >= 2) return true;
-  if (hit >= 1 && (demandLike || questionLike)) return true;
-  if (demandLike && textLower.length >= 25) return true;
-  return false;
+  const platform = String(record.platform || record.source || fallbackPlatform || "unknown").trim().toLowerCase() || "unknown";
+  const author = String(record.author || record.name || record.username || record.user || "Unknown").trim() || "Unknown";
+  const postUrl = String(record.post_url || record.url || record.link || "").trim();
+  const sourceUrl = String(record.source_url || record.raw_source_url || postUrl || "").trim();
+
+  return {
+    external_id: candidateId({ ...record, platform, author, post_url: postUrl, source_url: sourceUrl, content }),
+    platform,
+    author,
+    keyword: String(record.keyword || record.query || "").trim(),
+    author_url: String(record.author_url || record.profile_url || "").trim(),
+    post_url: postUrl,
+    source_url: sourceUrl,
+    content,
+    contact: String(record.contact || record.phone || record.email || "").trim(),
+    collected_at: String(record.collected_at || record.created_at || record.published_at || "").trim(),
+  };
+}
+
+function dedupeRows(rows: RawLeadCandidate[]): RawLeadCandidate[] {
+  const out: RawLeadCandidate[] = [];
+  const seen = new Set<string>();
+
+  for (const row of rows) {
+    const key = md5_16(
+      `${row.platform}|${String(row.author || "").toLowerCase()}|${canonicalPostUrl(row.post_url || row.source_url)}|${String(row.content || "")
+        .toLowerCase()
+        .slice(0, 180)}`,
+    );
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+
+  return out;
 }
 
 function parseNoteMeta(notes: string): Record<string, string> {
   const out: Record<string, string> = {};
-  const lines = String(notes || "").split(/\r?\n/);
 
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (!line) continue;
-
-    const chunks = line.split("|");
-    for (const chunk of chunks) {
+  for (const raw of String(notes || "").split(/\r?\n/)) {
+    for (const chunk of raw.split("|")) {
       const part = chunk.trim();
       const idx = part.indexOf("=");
       if (idx <= 0) continue;
@@ -269,109 +237,25 @@ function extractNoteContent(notes: string): string {
     "external_id",
     "openclaw_sync",
   ]);
-
   const body: string[] = [];
 
   for (const raw of String(notes || "").split(/\r?\n/)) {
     const line = raw.trim();
     if (!line) continue;
-
-    let parsedMeta = false;
-    const chunks = line.split("|");
-    for (const chunk of chunks) {
-      const part = chunk.trim();
-      const idx = part.indexOf("=");
-      if (idx <= 0) continue;
-      const key = part.slice(0, idx).trim().toLowerCase();
-      if (metaKeys.has(key)) parsedMeta = true;
-    }
-
-    if (!parsedMeta && !line.includes("=")) {
-      body.push(raw);
-    }
+    const isMetaLine = line
+      .split("|")
+      .map((chunk) => chunk.trim())
+      .some((part) => {
+        const idx = part.indexOf("=");
+        return idx > 0 && metaKeys.has(part.slice(0, idx).trim().toLowerCase());
+      });
+    if (!isMetaLine) body.push(raw);
   }
 
   return body.join(" ").trim();
 }
 
-function md5_16(text: string): string {
-  return crypto.createHash("md5").update(String(text || ""), "utf8").digest("hex").slice(0, 16);
-}
-
-function canonicalPostUrl(url: string): string {
-  const raw = String(url || "").trim();
-  if (!raw) return "";
-  return raw.split("#", 1)[0].split("?", 1)[0];
-}
-
-function dedupeRows(rows: LeadRow[]): LeadRow[] {
-  const out: LeadRow[] = [];
-  const seen = new Set<string>();
-
-  for (const row of rows) {
-    const key = md5_16(
-      `${row.platform}|${String(row.author || "").toLowerCase()}|${canonicalPostUrl(row.post_url)}|${String(row.content || "").toLowerCase().slice(0, 140)}`,
-    );
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(row);
-  }
-
-  return out;
-}
-
-function mapOpenclawRecord(record: any, vertical: string): LeadRow | null {
-  const cfg = getVerticalConfig(vertical);
-
-  const platform = String(record?.platform || "xhs").trim().toLowerCase() || "xhs";
-  const author = String(record?.author || "Unknown").trim() || "Unknown";
-  const keyword = String(record?.keyword || "").trim();
-  const content = String(record?.content || "").trim();
-  const authorUrl = String(record?.author_url || "").trim();
-  const postUrl = String(record?.post_url || "").trim();
-  const sourceUrl = String(record?.source_url || "").trim();
-  const collectedAt = String(record?.collected_at || "").trim();
-
-  if (!content || content.length < 8) return null;
-
-  const textBlob = `${author} ${keyword} ${content}`;
-  const intentSig = scoreIntent(textBlob, cfg.intentKeywords);
-  const competitor = isCompetitor(author, textBlob, cfg.competitorKeywords);
-  const target = isTarget(textBlob, competitor, intentSig.level, cfg.targetHints);
-
-  const dmFromUrl = /\/user\/profile\//i.test(authorUrl) || /xiaohongshu\.com\/user/i.test(authorUrl);
-  const dmFromHint = /dm_ready|personal_profile_ready/i.test(String(record?.access_hint || ""));
-  const dmReady = dmFromUrl || dmFromHint;
-
-  const rawBase = parseIntSafe(String(record?.intent_confidence ?? record?.confidence ?? record?.score ?? 0), 0);
-  const normalizedBase = rawBase <= 12 ? clamp(30 + Math.trunc(rawBase * 5.5), 35, 88) : clamp(rawBase, 0, 100);
-  const demandBonus = containsAny(textBlob, DEMAND_TERMS) ? 14 : intentSig.question ? 6 : 0;
-  const score = clamp(normalizedBase + intentSig.bonus + demandBonus + (dmReady ? 8 : 0) - (competitor ? 18 : 0), 0, 100);
-
-  const externalId =
-    String(record?.external_id || "").trim() ||
-    md5_16(`${platform}|${author}|${canonicalPostUrl(postUrl)}|${content.slice(0, 80)}`);
-
-  return {
-    external_id: externalId,
-    platform,
-    author,
-    keyword,
-    score,
-    intent_level: intentSig.level,
-    is_target: target,
-    is_competitor: competitor,
-    dm_ready: dmReady,
-    author_url: authorUrl,
-    post_url: postUrl,
-    source_url: sourceUrl,
-    content,
-    contact: "",
-    collected_at: collectedAt,
-  };
-}
-
-function loadFromOpenclawLatest(maxFetch: number, vertical: string): { ok: true; rows: LeadRow[]; detail: string } | { ok: false; error: string; detail?: string } {
+function loadFromOpenclawLatest(maxFetch: number): { ok: true; rows: RawLeadCandidate[]; detail: string } | { ok: false; error: string; detail?: string } {
   const candidates = [
     path.join(path.resolve(process.cwd(), ".."), "data", "openclaw", "openclaw_leads_latest.json"),
     path.join(process.cwd(), "data", "openclaw", "openclaw_leads_latest.json"),
@@ -384,121 +268,19 @@ function loadFromOpenclawLatest(maxFetch: number, vertical: string): { ok: true;
 
   try {
     const raw = JSON.parse(readFileSync(file, "utf-8"));
-    const list = Array.isArray(raw?.leads) ? raw.leads : [];
-    const mapped = list.map((x: any) => mapOpenclawRecord(x, vertical)).filter((x: LeadRow | null): x is LeadRow => Boolean(x));
-    const rows = dedupeRows(mapped);
-
-    rows.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return String(b.collected_at || "").localeCompare(String(a.collected_at || ""));
-    });
-
+    const list = Array.isArray(raw?.leads) ? raw.leads : Array.isArray(raw) ? raw : [];
+    const rows = dedupeRows(
+      list
+        .map((item: Record<string, unknown>) => normalizeCandidate(item, "openclaw"))
+        .filter((item: RawLeadCandidate | null): item is RawLeadCandidate => Boolean(item)),
+    );
     return { ok: true, rows: rows.slice(0, clamp(maxFetch, 100, 5000)), detail: file };
   } catch (error) {
     return { ok: false, error: "openclaw_latest_parse_failed", detail: String(error) };
   }
 }
 
-function mapSupabaseRecord(record: SupabaseLeadRecord, vertical: string): LeadRow | null {
-  const notes = String(record.notes || "");
-  if (!notes) return null;
-
-  const meta = parseNoteMeta(notes);
-  const hasOpenclawSignal = meta.openclaw_sync === "1" || Boolean(meta.external_id || meta.post_url || meta.author_url);
-  if (!hasOpenclawSignal) return null;
-
-  const cfg = getVerticalConfig(vertical);
-
-  const author = String(record.name || "Unknown").trim() || "Unknown";
-  const keyword = String(meta.keyword || "").trim();
-  const content = extractNoteContent(notes) || notes.slice(-280);
-  const platform = String(meta.source || meta.platform || "xhs").trim().toLowerCase() || "xhs";
-  const authorUrl = String(meta.author_url || "").trim();
-  const postUrl = String(meta.post_url || "").trim();
-  const sourceUrl = String(meta.source_url || "").trim();
-  const collectedAt = String(meta.collected_at || record.created_at || "").trim();
-  const contact = String(record.phone || "").trim();
-
-  const textBlob = `${author} ${keyword} ${content}`;
-  const intentSig = scoreIntent(textBlob, cfg.intentKeywords);
-  const competitor = isCompetitor(author, textBlob, cfg.competitorKeywords);
-  const target = isTarget(textBlob, competitor, intentSig.level, cfg.targetHints);
-
-  const dmMeta = String(meta.dm_ready || "").trim().toLowerCase();
-  const dmFromMeta = dmMeta === "1" || dmMeta === "true" || dmMeta === "yes";
-  const dmFromUrl = /\/user\/profile\//i.test(authorUrl) || /xiaohongshu\.com\/user/i.test(authorUrl);
-  const dmReady = dmFromMeta || dmFromUrl;
-
-  const baseScore = parseIntSafe(meta.score, 70);
-  const calibratedBase = clamp(30 + Math.trunc(baseScore * 2.2), 35, 85);
-  const demandBonus = containsAny(textBlob, DEMAND_TERMS) ? 14 : intentSig.question ? 6 : 0;
-  const score = clamp(calibratedBase + intentSig.bonus + demandBonus + (dmReady ? 8 : 0) - (competitor ? 18 : 0), 0, 100);
-
-  const externalId = String(meta.external_id || "").trim() || md5_16(`${platform}|${author}|${postUrl}|${content.slice(0, 80)}`);
-
-  return {
-    external_id: externalId,
-    platform,
-    author,
-    keyword,
-    score,
-    intent_level: intentSig.level,
-    is_target: target,
-    is_competitor: competitor,
-    dm_ready: dmReady,
-    author_url: authorUrl,
-    post_url: postUrl,
-    source_url: sourceUrl,
-    content,
-    contact,
-    collected_at: collectedAt,
-  };
-}
-
-function summarize(rows: LeadRow[]): LeadsPayload["summary"] {
-  const platformCounts: Record<string, number> = {};
-  for (const item of rows) {
-    const p = item.platform || "unknown";
-    platformCounts[p] = (platformCounts[p] || 0) + 1;
-  }
-
-  return {
-    total_rows: rows.length,
-    filtered_rows: 0,
-    target_rows: rows.filter((x) => x.is_target).length,
-    competitor_rows: rows.filter((x) => x.is_competitor).length,
-    dm_ready_rows: rows.filter((x) => x.dm_ready).length,
-    score_ge_65_rows: rows.filter((x) => x.score >= 65).length,
-    platform_counts: platformCounts,
-  };
-}
-
-export function buildPayload(rows: LeadRow[], params: { limit: number; minScore: number; onlyTarget: boolean; excludeCompetitors: boolean; vertical: string }): LeadsPayload {
-  let filtered = rows;
-  if (params.excludeCompetitors) filtered = filtered.filter((x) => !x.is_competitor);
-  if (params.onlyTarget) filtered = filtered.filter((x) => x.is_target);
-  if (params.minScore > 0) filtered = filtered.filter((x) => x.score >= params.minScore);
-
-  filtered = filtered.slice(0, Math.max(1, params.limit));
-
-  const summary = summarize(rows);
-  summary.filtered_rows = filtered.length;
-
-  return {
-    generated_at: new Date().toISOString(),
-    vertical: params.vertical,
-    filters: {
-      limit: params.limit,
-      min_score: params.minScore,
-      only_target: params.onlyTarget,
-      exclude_competitors: params.excludeCompetitors,
-    },
-    summary,
-    rows: filtered,
-  };
-}
-
-async function loadLeadsFromSupabase(maxFetch: number, vertical: string): Promise<SupabaseLoadResult> {
+async function loadLeadsFromSupabase(maxFetch: number): Promise<SupabaseLoadResult> {
   const supabaseUrl = String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   const supabaseKey = String(
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
@@ -529,18 +311,29 @@ async function loadLeadsFromSupabase(maxFetch: number, vertical: string): Promis
     }
 
     const records = (await res.json()) as SupabaseLeadRecord[];
-    const uniq = new Map<string, LeadRow>();
-
-    for (const record of records || []) {
-      const row = mapSupabaseRecord(record, vertical);
-      if (!row) continue;
-      if (!uniq.has(row.external_id)) uniq.set(row.external_id, row);
-    }
-
-    const rows = Array.from(uniq.values()).sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return String(b.collected_at || "").localeCompare(String(a.collected_at || ""));
-    });
+    const rows = dedupeRows(
+      (records || [])
+        .map((record) => {
+          const notes = String(record.notes || "");
+          const meta = parseNoteMeta(notes);
+          return normalizeCandidate(
+            {
+              id: record.id,
+              author: record.name,
+              contact: record.phone,
+              content: extractNoteContent(notes) || notes,
+              platform: meta.source || meta.platform,
+              keyword: meta.keyword,
+              author_url: meta.author_url,
+              post_url: meta.post_url,
+              source_url: meta.source_url,
+              collected_at: meta.collected_at || record.created_at,
+            },
+            "supabase",
+          );
+        })
+        .filter((item: RawLeadCandidate | null): item is RawLeadCandidate => Boolean(item)),
+    );
 
     return { status: "ok", rows };
   } catch (error) {
@@ -577,13 +370,7 @@ function runExporter(scriptPath: string, args: string[], cwd: string): RunResult
   return { ok: false, stderr: "Python runtime not found", stdout: "" };
 }
 
-function loadFromLocalExporter(params: {
-  minScore: number;
-  limit: number;
-  onlyTarget: boolean;
-  excludeCompetitors: boolean;
-  vertical: string;
-}): { ok: true; payload: LeadsPayload } | { ok: false; error: string; detail?: string } {
+function loadFromLocalExporter(maxFetch: number, vertical: string): { ok: true; rows: RawLeadCandidate[]; detail: string } | { ok: false; error: string; detail?: string } {
   const projectRoot = path.resolve(process.cwd(), "..");
   const scriptPath = path.join(projectRoot, "tools", "export_leads_for_web.py");
   if (!existsSync(scriptPath)) {
@@ -594,24 +381,27 @@ function loadFromLocalExporter(params: {
   const outPath = path.join(tmpDir, "leads.json");
 
   try {
-    const args = [
-      "--project-root",
+    const run = runExporter(
+      scriptPath,
+      [
+        "--project-root",
+        projectRoot,
+        "--output",
+        outPath,
+        "--limit",
+        String(clamp(maxFetch, 100, 5000)),
+        "--min-score",
+        "0",
+        "--only-target",
+        "0",
+        "--exclude-competitors",
+        "0",
+        "--vertical",
+        vertical,
+      ],
       projectRoot,
-      "--output",
-      outPath,
-      "--limit",
-      String(params.limit),
-      "--min-score",
-      String(params.minScore),
-      "--only-target",
-      params.onlyTarget ? "1" : "0",
-      "--exclude-competitors",
-      params.excludeCompetitors ? "1" : "0",
-      "--vertical",
-      params.vertical,
-    ];
+    );
 
-    const run = runExporter(scriptPath, args, projectRoot);
     if (!run.ok) {
       return {
         ok: false,
@@ -620,8 +410,14 @@ function loadFromLocalExporter(params: {
       };
     }
 
-    const payload = JSON.parse(readFileSync(outPath, "utf-8")) as LeadsPayload;
-    return { ok: true, payload };
+    const payload = JSON.parse(readFileSync(outPath, "utf-8"));
+    const rows = dedupeRows(
+      (Array.isArray(payload?.rows) ? payload.rows : [])
+        .map((item: Record<string, unknown>) => normalizeCandidate(item, "local_exporter"))
+        .filter((item: RawLeadCandidate | null): item is RawLeadCandidate => Boolean(item)),
+    );
+
+    return { ok: true, rows, detail: "python_exporter_raw_feed" };
   } catch (error) {
     return { ok: false, error: "exporter_exception", detail: String(error) };
   } finally {
@@ -629,7 +425,7 @@ function loadFromLocalExporter(params: {
   }
 }
 
-function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string } | { ok: false; error: string; detail?: string } {
+function loadFromBundledSnapshot(): { ok: true; rows: RawLeadCandidate[]; detail: string } | { ok: false; error: string; detail?: string } {
   const snapshotPath = path.join(process.cwd(), "data", "leads_snapshot.json");
   if (!existsSync(snapshotPath)) {
     return { ok: false, error: "snapshot_missing", detail: snapshotPath };
@@ -637,56 +433,122 @@ function loadFromBundledSnapshot(): { ok: true; rows: LeadRow[]; detail: string 
 
   try {
     const raw = JSON.parse(readFileSync(snapshotPath, "utf-8"));
-    const rowsRaw = Array.isArray(raw?.rows) ? raw.rows : [];
-
-    const rows: LeadRow[] = rowsRaw
-      .map((item: any) => {
-        const platform = String(item?.platform || "unknown").trim().toLowerCase() || "unknown";
-        const author = String(item?.author || "Unknown").trim() || "Unknown";
-        const keyword = String(item?.keyword || "").trim();
-        const content = String(item?.content || "").trim();
-        const postUrl = String(item?.post_url || "").trim();
-
-        return {
-          external_id: String(item?.external_id || "").trim() || md5_16(`${platform}|${author}|${postUrl}|${content.slice(0, 80)}`),
-          platform,
-          author,
-          keyword,
-          score: clamp(parseIntSafe(String(item?.score ?? 0), 0), 0, 100),
-          intent_level: (["high", "medium", "low"].includes(String(item?.intent_level || ""))
-            ? String(item?.intent_level)
-            : "low") as IntentLevel,
-          is_target: Boolean(item?.is_target),
-          is_competitor: Boolean(item?.is_competitor),
-          dm_ready: Boolean(item?.dm_ready),
-          author_url: String(item?.author_url || "").trim(),
-          post_url: postUrl,
-          source_url: String(item?.source_url || "").trim(),
-          content,
-          contact: String(item?.contact || "").trim(),
-          collected_at: String(item?.collected_at || "").trim(),
-        };
-      })
-      .filter((x: LeadRow) => Boolean(x.external_id));
-
-    rows.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return String(b.collected_at || "").localeCompare(String(a.collected_at || ""));
-    });
-
+    const rows = dedupeRows(
+      (Array.isArray(raw?.rows) ? raw.rows : [])
+        .map((item: Record<string, unknown>) => normalizeCandidate(item, "snapshot"))
+        .filter((item: RawLeadCandidate | null): item is RawLeadCandidate => Boolean(item)),
+    );
     return { ok: true, rows, detail: snapshotPath };
   } catch (error) {
     return { ok: false, error: "snapshot_read_failed", detail: String(error) };
   }
 }
 
-export async function loadLeadRows(maxFetch: number, vertical: string): Promise<{
-  rows: LeadRow[];
-  source: "local_exporter" | "openclaw_json" | "supabase" | "bundled_snapshot" | "unavailable";
-  source_detail: string;
-  errors: Record<string, string>;
-}> {
-  const cacheKey = normalizeVertical(vertical);
+function summarize(rows: LeadRow[], totalRows: number): LeadsPayload["summary"] {
+  const platformCounts: Record<string, number> = {};
+  for (const item of rows) {
+    const p = item.platform || "unknown";
+    platformCounts[p] = (platformCounts[p] || 0) + 1;
+  }
+
+  return {
+    total_rows: totalRows,
+    llm_scored_rows: rows.length,
+    filtered_rows: 0,
+    target_rows: rows.filter((x) => x.is_target).length,
+    competitor_rows: rows.filter((x) => x.is_competitor).length,
+    dm_ready_rows: rows.filter((x) => x.dm_ready).length,
+    score_ge_65_rows: rows.filter((x) => x.score >= 65).length,
+    platform_counts: platformCounts,
+  };
+}
+
+function intentLevel(score: number): IntentLevel {
+  if (score >= 75) return "high";
+  if (score >= 40) return "medium";
+  return "low";
+}
+
+function rowFromDecision(row: RawLeadCandidate & { llm_decision: LeadIntentDecision }): LeadRow {
+  const decision = row.llm_decision;
+  const accepted = decision.is_target_buyer && !decision.is_toxic_vendor_or_peer;
+  const score = accepted ? clamp(Math.trunc(decision.lead_score), 0, 100) : 0;
+  const dmReady = Boolean(row.author_url || row.contact);
+
+  return {
+    external_id: row.external_id,
+    platform: row.platform,
+    author: row.author,
+    keyword: row.keyword,
+    score,
+    intent_level: intentLevel(score),
+    is_target: accepted,
+    is_competitor: decision.is_toxic_vendor_or_peer,
+    dm_ready: dmReady,
+    author_url: row.author_url,
+    post_url: row.post_url,
+    source_url: row.source_url,
+    content: row.content,
+    contact: row.contact,
+    collected_at: row.collected_at,
+    pain_point_summary: decision.pain_point_summary,
+    next_action_dm: decision.next_action_dm,
+    llm_decision: decision,
+  };
+}
+
+export async function buildPayload(
+  rows: RawLeadCandidate[],
+  params: {
+    limit: number;
+    minScore: number;
+    onlyTarget: boolean;
+    excludeCompetitors: boolean;
+    vertical: string;
+    llmMaxRows?: number;
+  },
+): Promise<LeadsPayload> {
+  const llmMaxRows = clamp(params.llmMaxRows || params.limit, 1, 500);
+  const candidateRows = rows.slice(0, llmMaxRows);
+  const scored = (await scoreLeadIntentBatchWithLlm(
+    candidateRows.map((row) => ({
+      ...row,
+      source: row.platform,
+      sourceUrl: row.post_url || row.source_url,
+    })),
+  )).map(rowFromDecision);
+
+  let filtered = scored;
+  if (params.excludeCompetitors) filtered = filtered.filter((x) => !x.is_competitor);
+  if (params.onlyTarget) filtered = filtered.filter((x) => x.is_target);
+  if (params.minScore > 0) filtered = filtered.filter((x) => x.score >= params.minScore);
+
+  filtered = filtered.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return String(b.collected_at || "").localeCompare(String(a.collected_at || ""));
+  }).slice(0, Math.max(1, params.limit));
+
+  const summary = summarize(scored, rows.length);
+  summary.filtered_rows = filtered.length;
+
+  return {
+    generated_at: new Date().toISOString(),
+    vertical: params.vertical,
+    filters: {
+      limit: params.limit,
+      min_score: params.minScore,
+      only_target: params.onlyTarget,
+      exclude_competitors: params.excludeCompetitors,
+      llm_max_rows: llmMaxRows,
+    },
+    summary,
+    llm_provider: llmProviderSummary(),
+    rows: filtered,
+  };
+}
+
+export async function loadLeadRows(maxFetch: number, vertical: string): Promise<LeadRowsLoadResult> {
+  const cacheKey = `${normalizeVertical(vertical)}:${maxFetch}`;
   const cached = leadRowsCache.get(cacheKey);
   if (cached && Date.now() - cached.loaded_at < LEAD_ROWS_CACHE_TTL_MS) {
     return {
@@ -699,28 +561,8 @@ export async function loadLeadRows(maxFetch: number, vertical: string): Promise<
 
   const errors: Record<string, string> = {};
 
-  // Prefer local cleaned exporter first so web always reflects newest local OpenClaw results.
-  const local = loadFromLocalExporter({
-    minScore: 0,
-    limit: Math.max(1000, maxFetch),
-    onlyTarget: false,
-    excludeCompetitors: false,
-    vertical,
-  });
-  if (local.ok) {
-    const result: LeadRowsLoadResult = {
-      rows: local.payload.rows || [],
-      source: "local_exporter",
-      source_detail: "python_exporter",
-      errors,
-    };
-    leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
-    return result;
-  }
-  errors.local_exporter = `${local.error}:${String(local.detail || "")}`;
-
-  const openclaw = loadFromOpenclawLatest(Math.max(500, maxFetch), vertical);
-  if (openclaw.ok) {
+  const openclaw = loadFromOpenclawLatest(Math.max(500, maxFetch));
+  if (openclaw.ok && openclaw.rows.length) {
     const result: LeadRowsLoadResult = {
       rows: openclaw.rows,
       source: "openclaw_json",
@@ -730,10 +572,23 @@ export async function loadLeadRows(maxFetch: number, vertical: string): Promise<
     leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
     return result;
   }
-  errors.openclaw_json = `${openclaw.error}:${String(openclaw.detail || "")}`;
+  errors.openclaw_json = openclaw.ok ? "openclaw_empty" : `${openclaw.error}:${String(openclaw.detail || "")}`;
 
-  const supabaseLoad = await loadLeadsFromSupabase(maxFetch, vertical);
-  if (supabaseLoad.status === "ok") {
+  const local = loadFromLocalExporter(Math.max(500, maxFetch), normalizeVertical(vertical));
+  if (local.ok && local.rows.length) {
+    const result: LeadRowsLoadResult = {
+      rows: local.rows,
+      source: "local_exporter",
+      source_detail: local.detail,
+      errors,
+    };
+    leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
+    return result;
+  }
+  errors.local_exporter = local.ok ? "local_exporter_empty" : `${local.error}:${String(local.detail || "")}`;
+
+  const supabaseLoad = await loadLeadsFromSupabase(maxFetch);
+  if (supabaseLoad.status === "ok" && supabaseLoad.rows.length) {
     const result: LeadRowsLoadResult = {
       rows: supabaseLoad.rows,
       source: "supabase",
@@ -743,10 +598,10 @@ export async function loadLeadRows(maxFetch: number, vertical: string): Promise<
     leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
     return result;
   }
-  errors.supabase = supabaseLoad.reason;
+  errors.supabase = supabaseLoad.status === "ok" ? "supabase_empty" : supabaseLoad.reason;
 
   const snapshot = loadFromBundledSnapshot();
-  if (snapshot.ok) {
+  if (snapshot.ok && snapshot.rows.length) {
     const result: LeadRowsLoadResult = {
       rows: snapshot.rows,
       source: "bundled_snapshot",
@@ -756,7 +611,7 @@ export async function loadLeadRows(maxFetch: number, vertical: string): Promise<
     leadRowsCache.set(cacheKey, { loaded_at: Date.now(), result });
     return result;
   }
-  errors.snapshot = `${snapshot.error}:${String(snapshot.detail || "")}`;
+  errors.snapshot = snapshot.ok ? "snapshot_empty" : `${snapshot.error}:${String(snapshot.detail || "")}`;
 
   return {
     rows: [],
@@ -769,9 +624,10 @@ export async function loadLeadRows(maxFetch: number, vertical: string): Promise<
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const minScore = clamp(parseIntSafe(url.searchParams.get("minScore"), 65), 0, 100);
-  const limit = clamp(parseIntSafe(url.searchParams.get("limit"), 200), 1, 1000);
+  const limit = clamp(parseIntSafe(url.searchParams.get("limit"), 50), 1, 500);
   const onlyTarget = parseBool(url.searchParams.get("onlyTarget"), true);
   const excludeCompetitors = parseBool(url.searchParams.get("excludeCompetitors"), true);
+  const llmMaxRows = clamp(parseIntSafe(url.searchParams.get("llmMaxRows"), limit), limit, 500);
   const vertical = normalizeVertical((url.searchParams.get("vertical") || DEFAULT_VERTICAL).trim());
 
   const userId = url.searchParams.get("userId") || undefined;
@@ -787,7 +643,7 @@ export async function GET(req: NextRequest) {
   const walletToken = walletTokenForResponse(wallet);
   const linksUnlocked = isLinksUnlocked(wallet);
 
-  const loaded = await loadLeadRows(Math.max(600, limit * 6), vertical);
+  const loaded = await loadLeadRows(Math.max(600, llmMaxRows * 3), vertical);
   if (!loaded.rows.length && loaded.source === "unavailable") {
     const errorRes = NextResponse.json(
       {
@@ -805,12 +661,13 @@ export async function GET(req: NextRequest) {
     return errorRes;
   }
 
-  const payload = buildPayload(loaded.rows, {
+  const payload = await buildPayload(loaded.rows, {
     minScore,
     limit,
     onlyTarget,
     excludeCompetitors,
     vertical,
+    llmMaxRows,
   });
 
   const rows = payload.rows.map((row) => {
@@ -841,4 +698,47 @@ export async function GET(req: NextRequest) {
   res.headers.set("Set-Cookie", walletSetCookieHeader(wallet));
   res.headers.set("X-LeadPulse-Wallet-Token", walletToken);
   return res;
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const rowsRaw = Array.isArray(body?.rows)
+      ? body.rows
+      : Array.isArray(body?.posts)
+        ? body.posts
+        : [
+            {
+              source: body?.source,
+              source_url: body?.source_url || body?.url,
+              author: body?.author,
+              keyword: body?.keyword,
+              content: body?.content || body?.post || body?.text,
+            },
+          ];
+
+    const rows = rowsRaw
+      .map((item: Record<string, unknown>) => normalizeCandidate(item, "manual"))
+      .filter((item: RawLeadCandidate | null): item is RawLeadCandidate => Boolean(item));
+
+    if (!rows.length) {
+      return NextResponse.json({ error: "empty_rows" }, { status: 400 });
+    }
+
+    const payload = await buildPayload(rows, {
+      minScore: 0,
+      limit: rows.length,
+      onlyTarget: false,
+      excludeCompetitors: false,
+      vertical: DEFAULT_VERTICAL,
+      llmMaxRows: rows.length,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      ...payload,
+    });
+  } catch (error) {
+    return NextResponse.json({ error: "llm_lead_scoring_failed", detail: String(error) }, { status: 500 });
+  }
 }

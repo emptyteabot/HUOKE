@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     return Response.json({
       ok: true,
-      workflow: runCommunityWorkflow(posts, payload.runtimeMetrics),
+      workflow: await runCommunityWorkflow(posts, payload.runtimeMetrics),
     });
   } catch (error) {
     console.error('LeadPulse community workflow failed:', error);

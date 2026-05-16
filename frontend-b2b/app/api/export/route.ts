@@ -148,12 +148,13 @@ export async function POST(req: NextRequest) {
     return res;
   }
 
-  const payload = buildPayload(loaded.rows, {
+  const payload = await buildPayload(loaded.rows, {
     minScore,
     limit,
     onlyTarget,
     excludeCompetitors,
     vertical,
+    llmMaxRows: limit,
   });
 
   if (!payload.rows.length) {

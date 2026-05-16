@@ -9,9 +9,9 @@ import { runRouterAgent } from './router-agent';
 import { runScoutRole } from './scout-role';
 import type { CommunityRawPost, CommunityRuntimeMetrics, CommunityWorkflowResult } from './types';
 
-export function runCommunityWorkflow(posts: CommunityRawPost[], runtimeMetrics?: CommunityRuntimeMetrics): CommunityWorkflowResult {
+export async function runCommunityWorkflow(posts: CommunityRawPost[], runtimeMetrics?: CommunityRuntimeMetrics): Promise<CommunityWorkflowResult> {
   const observation = runScoutRole(posts);
-  const cleaned = runRagRole({
+  const cleaned = await runRagRole({
     posts,
     messages: observation.messages,
   });

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     return Response.json({
       ok: true,
-      benchmark: benchmarkCommunityExtractor(posts),
+      benchmark: await benchmarkCommunityExtractor(posts),
     });
   } catch (error) {
     console.error('LeadPulse community benchmark failed:', error);

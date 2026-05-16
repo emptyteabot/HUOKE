@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return Response.json({
       ok: true,
       count: posts.length,
-      signals: posts.map(extractCommunityLeadSignal),
+      signals: await Promise.all(posts.map(extractCommunityLeadSignal)),
     });
   } catch (error) {
     console.error('LeadPulse community extract failed:', error);
