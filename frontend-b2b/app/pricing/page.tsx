@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const planFeatures: Record<string, string[]> = {
   trial: ['查看真实线索样本', '看到来源和上下文', '判断客户是否真的有需求', '不用先付款'],
-  icebreaker: ['小额验证一个方向', '适合创始人亲自试跑', '看清关键词和平台质量', '到账后自动发放'],
+  icebreaker: ['小额验证一个方向', '适合创始人亲自试跑', '看清意图质量和平台来源', '到账后自动发放'],
   standard: ['持续查看高意向线索', '购买信号 AI 标签', '来源和上下文完整保留', '筛选、状态管理、一键导出'],
   enterprise: ['适合高频筛选', '多渠道线索池', '配合销售团队持续回收', '余额充足时稳定放量'],
 };
@@ -35,6 +35,21 @@ const chooseCards = [
   },
 ];
 
+const roiMetrics = [
+  {
+    value: '70%',
+    label: '垃圾询盘拦截率',
+  },
+  {
+    value: '100%',
+    label: '结构化 Excel 交付',
+  },
+  {
+    value: 'Qualified Meeting',
+    label: '只为能直接写入日历的合格会议付费',
+  },
+];
+
 export default function PricingPage() {
   const packages = getCreditPackages();
 
@@ -49,10 +64,23 @@ export default function PricingPage() {
         </>
       }
       description="从免费样本开始，判断公开平台线索是否适合你的业务。确认有效后，再选择小额试跑、标准放量，或让我们先代跑一轮。"
-      typeLine="先验证，再充值；余额不足就停，不搞默认自动续费。"
+      typeLine="70% 垃圾询盘拦截率 · 100% 结构化 Excel 交付 · 只为能直接写入日历的 Qualified Meeting 付费。"
       primaryCta={{ href: '/book', label: '申请免费样本' }}
       secondaryCta={{ href: '/pay?package=standard', label: '直接充值' }}
     >
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="lead-glass rounded-[24px] p-5">
+          <div className="grid gap-3 md:grid-cols-3">
+            {roiMetrics.map((metric) => (
+              <div key={metric.label} className="rounded-lg border border-slate-200 bg-white/80 px-5 py-5 text-center">
+                <div className="text-2xl font-extrabold tracking-tight text-slate-950">{metric.value}</div>
+                <div className="mt-2 text-sm font-semibold leading-6 text-slate-600">{metric.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {packages.map((item) => {

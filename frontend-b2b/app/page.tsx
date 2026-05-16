@@ -174,6 +174,27 @@ const workflow = [
   },
 ];
 
+const painCards = [
+  {
+    icon: Filter,
+    label: '困境 1',
+    title: '线索泛滥却无预算',
+    detail: '传统表单收集的线索中 70% 属于垃圾数据或白嫖党，销售跟进转化率极低。',
+  },
+  {
+    icon: BellRing,
+    label: '困境 2',
+    title: '昂贵的沟通成本',
+    detail: '耗费数小时进行无效的发现电话，结果发现客户预算仅有 500 美元，远低于服务底线。',
+  },
+  {
+    icon: X,
+    label: '困境 3',
+    title: '无效的订阅消耗',
+    detail: '为缺乏意图识别的静态表单工具（如 Typeform）支付高昂月费，却无法阻挡劣质商机挤兑团队精力。',
+  },
+];
+
 const valueCards = [
   {
     icon: Filter,
@@ -345,6 +366,30 @@ export default function HomePage() {
               <Play className="h-4 w-4" />
               查看工作流演示
             </Link>
+          </div>
+        </div>
+
+        <div className="lead-fade-up mt-12 w-full max-w-6xl text-left">
+          <div className="mb-5 text-center">
+            <div className="text-xs font-bold uppercase tracking-[0.24em] text-rose-500">B2B Funnel Failure</div>
+            <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">B 端获客漏斗的三大死穴</h2>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {painCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <article key={card.title} className="lead-glass rounded-lg p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="rounded-full border border-rose-100 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-600">
+                      {card.label}
+                    </div>
+                    <Icon className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <h3 className="mt-5 text-xl font-extrabold text-slate-950">{card.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">{card.detail}</p>
+                </article>
+              );
+            })}
           </div>
         </div>
 
