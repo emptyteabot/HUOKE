@@ -12,7 +12,6 @@ const SOFT_HIDDEN_ROUTES = new Set([
   '/proof',
   '/investors',
   '/cases',
-  '/deepseek-harness-pow',
 ]);
 
 function internalAccessKey() {
@@ -116,7 +115,6 @@ export const config = {
     '/agents',
     '/cases',
     '/investors',
-    '/deepseek-harness-pow',
     '/experiments',
     '/experiments/:path*',
   ],
