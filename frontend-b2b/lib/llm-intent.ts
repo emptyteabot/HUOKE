@@ -138,6 +138,43 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
+function responseText(response: unknown): string {
+  const data = response as {
+    choices?: Array<{ message?: { content?: string | Array<{ text?: string; type?: string }> } }>;
+    output_text?: string;
+    output?: Array<{ content?: Array<{ text?: string; type?: string }> }>;
+  };
+  const chatContent = data.choices?.[0]?.message?.content;
+  if (typeof chatContent === 'string') return chatContent;
+  if (Array.isArray(chatContent)) {
+    return chatContent.map((item) => item.text || '').join('').trim();
+  }
+  if (typeof data.output_text === 'string') return data.output_text;
+  if (Array.isArray(data.output)) {
+    return data.output
+      .flatMap((item) => item.content || [])
+      .map((item) => item.text || '')
+      .join('')
+      .trim();
+  }
+  return '';
+}
+
+function parseJsonObject(raw: string): unknown {
+  const text = String(raw || '').trim();
+  if (!text) throw new Error('empty_llm_response');
+  if (text.startsWith('{') && text.endsWith('}')) return JSON.parse(text);
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start >= 0 && end > start) return JSON.parse(text.slice(start, end + 1));
+  throw new Error('llm_response_not_json');
+}
+
+function parseDecisionPayload(raw: string): LeadIntentDecision {
+  const parsed = leadIntentDecisionSchema.parse(parseJsonObject(raw));
+  return sanitizeDecision(parsed);
+}
+
 const fallbackRejected: LeadIntentDecision = {
   is_target_buyer: false,
   is_toxic_vendor_or_peer: true,
@@ -164,7 +201,7 @@ export async function scoreLeadIntentWithLlm(input: LeadIntentInput): Promise<Le
   const client = getClient();
   const isOnsiteIntelligence = input.source === 'leadpulse_onsite_intelligence';
   const userContent = [
-    '请只返回严格 JSON，不要 Markdown。',
+    '请只返回严格 JSON，不要 Markdown。必须使用且只能使用这些字段名：is_target_buyer, is_toxic_vendor_or_peer, pain_point_summary, lead_score, next_action_dm。',
     '判定标准：',
     isOnsiteIntelligence
       ? '- 真买家：留下邮箱/公司/预算/预约动作，并表达获客、广告投放、转化、营收、销售管线或AI获客方案需求的B端访客。'
@@ -195,27 +232,66 @@ export async function scoreLeadIntentWithLlm(input: LeadIntentInput): Promise<Le
     });
   }
 
-  try {
-    let response;
-    try {
-      response = await withTimeout(
-        callWith({
-          type: 'json_schema',
-          json_schema: {
-            name: 'lead_intent_decision',
-            strict: true,
-            schema: OUTPUT_CONTRACT,
+  async function repairMalformedJson(raw: string) {
+    const response = await withTimeout(
+      client.chat.completions.create({
+        model: config.model,
+        temperature: 0,
+        response_format: { type: 'json_object' } as never,
+        messages: [
+          {
+            role: 'system',
+            content:
+              '你是 JSON 结构化修复器。只把上游 LLM 的商业意图判定转换成指定 schema，不要重新解释业务，不要输出 Markdown。',
           },
-        }),
-        config.timeoutMs,
-      );
-    } catch {
-      response = await withTimeout(callWith({ type: 'json_object' }), config.timeoutMs);
+          {
+            role: 'user',
+            content: [
+              '必须输出且只能输出 JSON：',
+              '{"is_target_buyer":boolean,"is_toxic_vendor_or_peer":boolean,"pain_point_summary":string,"lead_score":number,"next_action_dm":string}',
+              '字段规则：被拒绝时 is_target_buyer=false, is_toxic_vendor_or_peer=true, lead_score=0, pain_point_summary="", next_action_dm=""。',
+              '原始输入：',
+              userContent.slice(0, 3000),
+              '上游 LLM 输出：',
+              String(raw || '').slice(0, 3000),
+            ].join('\n'),
+          },
+        ],
+      }),
+      config.timeoutMs,
+    );
+    return parseDecisionPayload(responseText(response));
+  }
+
+  try {
+    let lastRaw = '';
+    let lastError: unknown;
+    const responseFormats = [
+      {
+        type: 'json_schema',
+        json_schema: {
+          name: 'lead_intent_decision',
+          strict: true,
+          schema: OUTPUT_CONTRACT,
+        },
+      },
+      { type: 'json_object' },
+    ];
+
+    for (const responseFormat of responseFormats) {
+      try {
+        const response = await withTimeout(callWith(responseFormat), config.timeoutMs);
+        lastRaw = responseText(response);
+        return parseDecisionPayload(lastRaw);
+      } catch (error) {
+        lastError = error;
+      }
     }
 
-    const raw = response.choices[0]?.message?.content || '{}';
-    const parsed = leadIntentDecisionSchema.parse(JSON.parse(raw));
-    return sanitizeDecision(parsed);
+    if (lastRaw) {
+      return await repairMalformedJson(lastRaw);
+    }
+    throw lastError || new Error('llm_scoring_failed');
   } catch (error) {
     console.error('LeadPulse LLM scoring failed:', error);
     return fallbackRejected;
