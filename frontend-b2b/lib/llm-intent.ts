@@ -24,6 +24,9 @@ export type LeadIntentInput = {
 const BRUTAL_SYSTEM_PROMPT =
   "你是一个冷酷的中文B2B商业意图过滤器。你的唯一目标是识别出【正在为获客、买量亏损发愁的B端老板/SaaS创始人/代运营负责人】。必须拦截：微商、卖课镰刀、找工作的大学生、以及发软广的同行（包含'加V'、'私信我'）。";
 
+const ONSITE_INTELLIGENCE_SYSTEM_PROMPT =
+  '你是一个冷酷的B2B站内转化意图评估器。你的任务是读取网站访问行为、预约表单和线索字段，只批准真实可能购买LeadPulse获客/转化解决方案的B端访客。必须拦截：空表单、学生调研、求职、供应商推销、同行套情报、低信息量浏览。对于已经提交预约、留下公司/邮箱、表达获客成本上涨/广告亏损/转化差/销售管线不足/想购买AI获客方案的访客，必须按商业语义给出0-100分。';
+
 const OUTPUT_CONTRACT = {
   type: 'object',
   additionalProperties: false,
@@ -159,12 +162,19 @@ export async function scoreLeadIntentWithLlm(input: LeadIntentInput): Promise<Le
 
   const config = getLlmConfig();
   const client = getClient();
+  const isOnsiteIntelligence = input.source === 'leadpulse_onsite_intelligence';
   const userContent = [
     '请只返回严格 JSON，不要 Markdown。',
     '判定标准：',
-    '- 真买家：B端老板、SaaS 创始人、代运营负责人、营销负责人，正在主动寻找获客/广告投放/转化/销售管线解决方案。',
-    '- 必须拦截：卖课、代运营广告、同行晒服务、招聘/求职、学生作业、微商、泛经验分享、只是问同行怎么卖的人。',
-    '- 如果作者是在卖服务、导流私信/加V、推广课程或寻找客户，而不是买解决方案，is_toxic_vendor_or_peer=true 且 lead_score=0。',
+    isOnsiteIntelligence
+      ? '- 真买家：留下邮箱/公司/预算/预约动作，并表达获客、广告投放、转化、营收、销售管线或AI获客方案需求的B端访客。'
+      : '- 真买家：B端老板、SaaS 创始人、代运营负责人、营销负责人，正在主动寻找获客/广告投放/转化/销售管线解决方案。',
+    isOnsiteIntelligence
+      ? '- 必须拦截：空泛浏览、无公司/无联系方式、学生调研、招聘求职、供应商推销、同行套情报、低信息量表单。'
+      : '- 必须拦截：卖课、代运营广告、同行晒服务、招聘/求职、学生作业、微商、泛经验分享、只是问同行怎么卖的人。',
+    isOnsiteIntelligence
+      ? '- 如果访客没有明确商业身份或没有表达购买/预约/解决业务痛点的动作，is_toxic_vendor_or_peer=true 且 lead_score=0。'
+      : '- 如果作者是在卖服务、导流私信/加V、推广课程或寻找客户，而不是买解决方案，is_toxic_vendor_or_peer=true 且 lead_score=0。',
     '',
     `Source: ${input.source || ''}`,
     `URL: ${input.sourceUrl || ''}`,
@@ -179,7 +189,7 @@ export async function scoreLeadIntentWithLlm(input: LeadIntentInput): Promise<Le
       temperature: 0,
       response_format: responseFormat as never,
       messages: [
-        { role: 'system', content: BRUTAL_SYSTEM_PROMPT },
+        { role: 'system', content: isOnsiteIntelligence ? ONSITE_INTELLIGENCE_SYSTEM_PROMPT : BRUTAL_SYSTEM_PROMPT },
         { role: 'user', content: userContent },
       ],
     });
