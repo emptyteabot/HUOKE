@@ -34,6 +34,7 @@ class Settings:
     discovery_duration_minutes: int = _env_int("LEADPULSE_DISCOVERY_DURATION_MINUTES", 30)
     booking_store_path: str = _env("LEADPULSE_BOOKING_STORE", "../data/m2m_bookings.jsonl")
     billing_store_path: str = _env("LEADPULSE_BILLING_STORE", "../data/m2m_billing.sqlite")
+    source_state_store_path: str = _env("LEADPULSE_SOURCE_STATE_STORE", "../data/m2m_source_state.sqlite")
     booking_webhook_url: str = _env("LEADPULSE_BOOKING_WEBHOOK_URL", "")
     api_key: str = _env("LEADPULSE_M2M_API_KEY", "")
     free_trial_credits: int = _env_int("LEADPULSE_FREE_TRIAL_CREDITS", 60)

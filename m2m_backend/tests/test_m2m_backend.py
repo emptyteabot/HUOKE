@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from leadpulse_m2m import billing as billing_module
 from leadpulse_m2m import funnel as funnel_module
+from leadpulse_m2m import source_state as source_state_module
 from leadpulse_m2m.main import app
 
 
@@ -21,6 +22,7 @@ def isolate_billing_store(tmp_path, monkeypatch):
         discovery_duration_minutes=30,
         booking_store_path=str(tmp_path / "bookings.jsonl"),
         billing_store_path=str(tmp_path / "billing.sqlite"),
+        source_state_store_path=str(tmp_path / "source_state.sqlite"),
         booking_webhook_url="",
         api_key="",
         free_trial_credits=60,
@@ -36,6 +38,7 @@ def isolate_billing_store(tmp_path, monkeypatch):
     )
 
     monkeypatch.setattr(billing_module, "settings", fake_settings)
+    monkeypatch.setattr(source_state_module, "settings", fake_settings)
 
     class FakePayResponse:
         def __init__(self, payload: dict[str, str]):
@@ -426,6 +429,48 @@ Email me at founder@example.com.
     assert result["scoring"]["qualified"] is True
     assert result["lead"]["contact"]["email"] == "founder@example.com"
     assert result["lead"]["contact"]["company"] == "RemoteOps AI"
+
+
+def test_feedgrab_markdown_ingest_dedupes_same_post_before_scoring():
+    markdown = """---
+title: Need outbound partner with qualified meetings
+source: reddit
+url: https://reddit.example.test/r/SaaS/comments/dedupe-001
+author: founder_ops
+created_at: 2026-05-16T10:30:00Z
+company: DedupeOps AI
+---
+
+# Need outbound partner with qualified meetings
+
+Founder here. Budget USD 9000 this month. We need qualified meetings, not random names.
+Email me at buyer@example.com.
+"""
+
+    first = client.post(
+        "/api/v2/sources/feedgrab/ingest",
+        json={"documents": [{"markdown": markdown}], "min_budget_usd": 3000, "max_results": 5},
+    )
+    second = client.post(
+        "/api/v2/sources/feedgrab/ingest",
+        json={"documents": [{"markdown": markdown}], "min_budget_usd": 3000, "max_results": 5},
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    first_payload = first.json()
+    second_payload = second.json()
+    assert first_payload["received"] == 1
+    assert first_payload["queued"] == 1
+    assert first_payload["deduped"] == 0
+    assert first_payload["scored"] == 1
+    assert first_payload["qualified_signal_count"] == 1
+    assert second_payload["received"] == 1
+    assert second_payload["queued"] == 0
+    assert second_payload["deduped"] == 1
+    assert second_payload["scored"] == 0
+    assert second_payload["qualified_signal_count"] == 0
+    assert second_payload["results"] == []
 
 
 def test_public_source_batch_ranks_high_budget_above_noise():

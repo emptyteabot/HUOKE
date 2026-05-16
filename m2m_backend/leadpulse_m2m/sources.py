@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 from .schemas import LeadContact, LeadProfile, ScoringRequest, ScoringResult, StrictModelConfig
 from .scoring import score_lead
+from .source_state import claim_source_items, mark_source_item_scored
 
 
 EMAIL_RE = re.compile(r"(?P<email>[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})", re.IGNORECASE)
@@ -79,6 +80,8 @@ class PublicSourceIngestResult(BaseModel):
 
     provider: str
     received: int
+    queued: int = 0
+    deduped: int = 0
     scored: int
     qualified_signal_count: int
     meeting_ready_count: int
@@ -150,7 +153,9 @@ def score_public_source_items(
     provider: str = "public_sources",
 ) -> PublicSourceIngestResult:
     results: list[PublicSourceScoreResult] = []
-    for item in request.items:
+    claimed_items, deduped = claim_source_items(provider, request.items)
+    for claimed in claimed_items:
+        item = claimed.item
         lead = public_source_to_lead(item)
         scoring = score_lead(ScoringRequest(lead=lead, min_budget_usd=request.min_budget_usd))
         qualified_signal = scoring.budget.qualified and scoring.score >= 55
@@ -162,16 +167,22 @@ def score_public_source_items(
             next_step = "Route to sales for contact capture, then fetch availability."
         else:
             next_step = "Keep as noise or nurture; do not spend sales time."
-        results.append(
-            PublicSourceScoreResult(
-                item=item,
-                lead=lead,
-                scoring=scoring,
-                qualified_signal=qualified_signal,
-                meeting_ready=meeting_ready,
-                charge_event=charge_event,
-                next_step=next_step,
-            )
+        result = PublicSourceScoreResult(
+            item=item,
+            lead=lead,
+            scoring=scoring,
+            qualified_signal=qualified_signal,
+            meeting_ready=meeting_ready,
+            charge_event=charge_event,
+            next_step=next_step,
+        )
+        results.append(result)
+        mark_source_item_scored(
+            claimed.key,
+            score=scoring.score,
+            qualified_signal=qualified_signal,
+            meeting_ready=meeting_ready,
+            charge_event=charge_event,
         )
 
     results.sort(
@@ -188,6 +199,8 @@ def score_public_source_items(
     return PublicSourceIngestResult(
         provider=provider,
         received=len(request.items),
+        queued=len(claimed_items),
+        deduped=deduped,
         scored=len(results),
         qualified_signal_count=sum(1 for result in results if result.qualified_signal),
         meeting_ready_count=sum(1 for result in results if result.meeting_ready),

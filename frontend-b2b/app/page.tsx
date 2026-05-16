@@ -216,12 +216,12 @@ export default function HomePage() {
 
       <section className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 pb-16 pt-24 text-center sm:px-6 lg:px-8 lg:pb-20 lg:pt-28">
         <div className="lead-fade-up max-w-5xl">
-          <div className="text-[2.1rem] font-black leading-none tracking-tight text-slate-950 sm:text-[2.8rem]">
-            销售的精力，应该用在逼单。
+          <div className="text-sm font-bold uppercase tracking-[0.28em] text-slate-500">
+            LeadPulse 高意向线索清洗
           </div>
 
-          <h1 className="mt-5 text-[3.1rem] font-extrabold leading-[1.05] text-slate-950 sm:text-6xl lg:text-[5.2rem]">
-            您的下一个大单，此刻正在某个行业论坛里询问选型方案。
+          <h1 className="mt-5 text-[2.75rem] font-extrabold leading-[1.05] text-slate-950 sm:text-6xl lg:text-[5.2rem]">
+            让销售专注于最终的方案促单，把前 90% 的垃圾线索清洗交给AI
           </h1>
 
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">

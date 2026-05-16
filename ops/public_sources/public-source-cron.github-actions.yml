@@ -1,0 +1,35 @@
+name: Public Source Cron
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */4 * * *'
+
+jobs:
+  collect-and-score:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install worker dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r m2m_backend/requirements-workers.txt
+
+      - name: Run public-source scheduler
+        env:
+          LEADPULSE_API_URL: ${{ secrets.LEADPULSE_API_URL }}
+          LEADPULSE_M2M_API_KEY: ${{ secrets.LEADPULSE_M2M_API_KEY }}
+          LEADPULSE_FEISHU_WEBHOOK_URL: ${{ secrets.LEADPULSE_FEISHU_WEBHOOK_URL }}
+          LEADPULSE_PUBLIC_SOURCE_JOBS: ${{ secrets.LEADPULSE_PUBLIC_SOURCE_JOBS }}
+          MIN_BUDGET_USD: '3000'
+          MAX_RESULTS: '10'
+        run: |
+          python m2m_backend/scripts/run_public_source_schedule.py

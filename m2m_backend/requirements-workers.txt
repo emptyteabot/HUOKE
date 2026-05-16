@@ -1,2 +1,3 @@
 -r requirements-sources.txt
+requests>=2.32,<3
 feedgrab[all] @ git+https://github.com/iBigQiang/feedgrab.git

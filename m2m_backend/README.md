@@ -50,7 +50,23 @@ Feedgrab and Scrapling are connected as adapters, not vendored into the web serv
 
 - Feedgrab should run as a source worker and POST its Markdown output to `/api/v2/sources/feedgrab/ingest`.
 - Feedgrab worker dependencies live in `requirements-workers.txt`.
+- Public-source state is persisted in `LEADPULSE_SOURCE_STATE_STORE` so the same post does not get scored or billed twice.
 - Xiaohongshu should use the worker login/session path, for example `CHROME_CDP_LOGIN=true feedgrab login xhs`, then `feedgrab xhs-so "<keyword>" --limit 50 --save`.
 - Scrapling is optional on worker nodes. Install it with `pip install "scrapling[all]" && scrapling install`, then use `/api/v2/sources/scrapling/fetch` for non-standard pages.
+
+## Scheduler
+
+- `ops/public_sources/public-source-cron.github-actions.yml` is the GitHub Actions workflow template. Copy it to `.github/workflows/public-source-cron.yml` with a GitHub token that has `workflow` scope.
+- Default jobs track Reddit `SaaS` and `Entrepreneur`.
+- Override jobs with the GitHub secret `LEADPULSE_PUBLIC_SOURCE_JOBS` containing JSON, for example:
+
+```json
+[
+  {"name": "reddit_saas", "args": ["reddit-sub", "SaaS", "--sort", "new", "--limit", "25"]},
+  {"name": "reddit_entrepreneur", "args": ["reddit-sub", "Entrepreneur", "--sort", "new", "--limit", "25"]}
+]
+```
+
+- If `LEADPULSE_FEISHU_WEBHOOK_URL` is present, the workflow pushes the qualified summary to Feishu automatically.
 
 See `../docs/DATA_SOURCE_INGESTION.md` for the exact runbook.
