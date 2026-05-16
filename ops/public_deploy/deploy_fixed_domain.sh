@@ -99,6 +99,7 @@ export FREE_EXPORT_LIMIT="${FREE_EXPORT_LIMIT:-3}"
 export EXPORT_CREDIT_COST="${EXPORT_CREDIT_COST:-20}"
 
 cd "$APP_DIR"
+rm -rf .next
 npm ci
 npm run build
 
