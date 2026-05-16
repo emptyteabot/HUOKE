@@ -68,9 +68,21 @@ switch ($Pipeline) {
 & $FeedgrabExe @feedgrabArgs
 
 $ingestScript = Join-Path $RepoRoot "m2m_backend\scripts\ingest_feedgrab_output.py"
+$ingestDir = $outputDir
+if ($Pipeline -in @("xhs", "xiaohongshu")) {
+  $xhsSearchRoot = Join-Path $RepoRoot "output\XHS\search"
+  if (Test-Path $xhsSearchRoot) {
+    $latestXhsDir = Get-ChildItem -Path $xhsSearchRoot -Directory -Recurse |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+    if ($latestXhsDir) {
+      $ingestDir = $latestXhsDir.FullName
+    }
+  }
+}
 $ingestArgs = @(
   $ingestScript,
-  "--dir", $outputDir,
+  "--dir", $ingestDir,
   "--api", $Api,
   "--min-budget-usd", "$MinBudgetUsd",
   "--max-results", "$MaxResults"
@@ -90,3 +102,4 @@ if (-not [string]::IsNullOrWhiteSpace($KeepOutput)) {
 }
 
 Write-Host "output_dir=$outputDir"
+Write-Host "ingest_dir=$ingestDir"
