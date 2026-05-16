@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     }
 
     const initialTask = initialTaskFieldsForSource('design_partner');
-    const intelligence = evaluateIntakeSubmission({
+    const intelligence = await evaluateIntakeSubmission({
       sourceKind: 'design_partner',
       payload,
       fallbackNextAction: '先判断 ICP、客单价和支付准备度，再决定推预约还是直接推 Pro / Max。',

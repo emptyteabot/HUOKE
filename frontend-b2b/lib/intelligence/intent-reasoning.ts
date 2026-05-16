@@ -1,120 +1,146 @@
+import { scoreLeadIntentWithLlm } from '../llm-intent';
 import type { AtomicIntentCheck, IntentReasoningResult, LeadContext, ObservationStateVector } from './types';
 
-function logistic(value: number) {
-  return 1 / (1 + Math.exp(-value));
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
 
-function hasBusinessSemantics(vector: ObservationStateVector) {
-  return vector.semanticIntentSignals.some((signal) =>
-    ['价格', '定价', '付款', '支付', '预约', '成交', '方案', 'pricing', 'checkout', 'book'].includes(signal),
-  );
+function highValueFit(lead: LeadContext = {}) {
+  const segment = String(lead.segment || '').toLowerCase();
+  const plan = String(lead.selectedPlan || '').toLowerCase();
+  return ['agency', 'ai_agency', 'b2b_consulting', 'premium_training'].includes(segment) || plan === 'max';
 }
 
-function buildAtomicChecks(vector: ObservationStateVector, lead: LeadContext = {}): AtomicIntentCheck[] {
+function buildObservationNarrative(vector: ObservationStateVector, lead: LeadContext = {}) {
+  return [
+    'LeadPulse onsite buyer-intent evaluation.',
+    `Session: ${vector.sessionId}`,
+    `Unique pages: ${vector.uniquePages.join(', ') || 'none'}`,
+    `High intent page visits: ${vector.highIntentPageVisits}`,
+    `Pricing visits: ${vector.pricingVisits}`,
+    `Booking visits: ${vector.bookingVisits}`,
+    `Payment visits: ${vector.paymentVisits}`,
+    `Max scroll depth: ${vector.maxScrollDepth}`,
+    `Hover dwell total ms: ${vector.hoverDwellMsTotal}`,
+    `Hover dwell max ms: ${vector.hoverDwellMsMax}`,
+    `Click labels: ${vector.clickLabels.join(', ') || 'none'}`,
+    `Click sequence: ${vector.clickSequence.join(' -> ') || 'none'}`,
+    `Search queries: ${vector.searchQueries.join(' | ') || 'none'}`,
+    `Semantic intent signals: ${vector.semanticIntentSignals.join(', ') || 'none'}`,
+    `Explicit plan interest: ${vector.explicitPlanInterest.join(', ') || 'none'}`,
+    `Completed fields: ${vector.completedFields.join(', ') || 'none'}`,
+    `Engagement score: ${vector.engagementScore.toFixed(4)}`,
+    `Completion score: ${vector.completionScore.toFixed(4)}`,
+    `Lead email: ${lead.email || ''}`,
+    `Lead company: ${lead.company || ''}`,
+    `Selected plan: ${lead.selectedPlan || ''}`,
+    `Requested action: ${lead.requestedAction || ''}`,
+    `Budget hint: ${lead.budgetHint || ''}`,
+    `Segment: ${lead.segment || ''}`,
+    `Channel: ${lead.channel || ''}`,
+  ].join('\n');
+}
+
+function buildAtomicChecks(args: {
+  vector: ObservationStateVector;
+  lead?: LeadContext;
+  accepted: boolean;
+  probability: number;
+  painSummary: string;
+}): AtomicIntentCheck[] {
+  const lead = args.lead || {};
+  const deepCommercialMotion = args.vector.pricingVisits > 0 || args.vector.bookingVisits > 0 || args.vector.paymentVisits > 0;
   const completenessCount = [lead.email, lead.company, lead.selectedPlan, lead.requestedAction].filter(Boolean).length;
 
   return [
     {
-      id: 'commercial-language',
-      title: '商业语义是否明确',
-      rationale: hasBusinessSemantics(vector)
-        ? '搜索词、点击文案或页面路径中已经出现价格、预约、付款等强商业信号。'
-        : '目前语义信号偏弱，更像浏览而不是明确采购。 ',
-      contribution: hasBusinessSemantics(vector) ? 0.9 : -0.15,
-      status: hasBusinessSemantics(vector) ? 'positive' : 'neutral',
+      id: 'llm-intent',
+      title: 'LLM 商业意图判定',
+      rationale: args.accepted
+        ? args.painSummary || 'LLM 判定该访客具备明确商业购买意图。'
+        : 'LLM 判定当前信号不足以证明真实商业购买意图。',
+      contribution: args.accepted ? args.probability : -1 + args.probability,
+      status: args.accepted ? 'positive' : 'negative',
     },
     {
-      id: 'conversion-depth',
-      title: '是否进入成交路径深处',
-      rationale:
-        vector.pricingVisits > 0 || vector.bookingVisits > 0
-          ? '访问已触达定价页或预约页，说明已经进入更接近转化的路径。'
-          : '还停留在浅层浏览阶段。',
-      contribution: vector.pricingVisits > 0 ? 1.05 : vector.bookingVisits > 0 ? 0.72 : -0.2,
-      status: vector.pricingVisits > 0 || vector.bookingVisits > 0 ? 'positive' : 'negative',
+      id: 'commercial-depth',
+      title: '成交路径深度',
+      rationale: deepCommercialMotion
+        ? '已进入定价、预约或支付相关路径。'
+        : '尚未进入更深的成交路径。',
+      contribution: 0,
+      status: deepCommercialMotion ? 'positive' : 'neutral',
     },
     {
       id: 'engagement-quality',
-      title: '互动质量是否足够',
+      title: '行为参与度',
       rationale:
-        vector.engagementScore >= 0.65
-          ? '滚动、点击和停留质量都已达到高意向阈值。'
-          : vector.engagementScore >= 0.4
-            ? '互动存在，但还不够稳定。'
-            : '互动过浅，暂时不能视为强意向。',
-      contribution: vector.engagementScore >= 0.65 ? 0.78 : vector.engagementScore >= 0.4 ? 0.28 : -0.42,
-      status: vector.engagementScore >= 0.65 ? 'positive' : vector.engagementScore >= 0.4 ? 'neutral' : 'negative',
+        args.vector.engagementScore >= 0.65
+          ? '页面交互与停留质量较强。'
+          : args.vector.engagementScore >= 0.4
+            ? '存在一定交互，但还不稳定。'
+            : '交互较浅。',
+      contribution: 0,
+      status:
+        args.vector.engagementScore >= 0.65
+          ? 'positive'
+          : args.vector.engagementScore >= 0.4
+            ? 'neutral'
+            : 'negative',
     },
     {
-      id: 'form-completeness',
-      title: '信息完整度是否可执行',
+      id: 'data-completeness',
+      title: '资料完整度',
       rationale:
-        completenessCount >= 3 || vector.completionScore >= 0.6
-          ? '当前字段已足够支持更深的推荐或成交动作。'
-          : '关键信息仍然缺失，更适合先补信息。 ',
-      contribution: completenessCount >= 3 || vector.completionScore >= 0.6 ? 0.65 : -0.35,
-      status: completenessCount >= 3 || vector.completionScore >= 0.6 ? 'positive' : 'negative',
-    },
-    {
-      id: 'plan-readiness',
-      title: '是否出现明确方案倾向',
-      rationale:
-        vector.explicitPlanInterest.length > 0 || Boolean(lead.selectedPlan)
-          ? '访客已经表现出明确套餐倾向，适合更强的下一步动作。'
-          : '尚未看到明确套餐偏好。',
-      contribution: vector.explicitPlanInterest.length > 0 || Boolean(lead.selectedPlan) ? 0.5 : 0,
-      status: vector.explicitPlanInterest.length > 0 || Boolean(lead.selectedPlan) ? 'positive' : 'neutral',
+        completenessCount >= 3 || args.vector.completionScore >= 0.6
+          ? '联系方式、公司或方案信息较完整。'
+          : '关键资料仍然不足。',
+      contribution: 0,
+      status: completenessCount >= 3 || args.vector.completionScore >= 0.6 ? 'positive' : 'negative',
     },
     {
       id: 'high-value-fit',
-      title: '是否具备高净值或高价值线索特征',
-      rationale:
-        ['agency', 'ai_agency', 'b2b_consulting', 'premium_training'].includes(String(lead.segment || '').toLowerCase()) ||
-        String(lead.selectedPlan || '').toLowerCase() === 'max'
-          ? '当前线索更像高客单、高复用或团队型需求。'
-          : '当前更像常规试用或轻量评估。 ',
-      contribution:
-        ['agency', 'ai_agency', 'b2b_consulting', 'premium_training'].includes(String(lead.segment || '').toLowerCase()) ||
-        String(lead.selectedPlan || '').toLowerCase() === 'max'
-          ? 0.42
-          : 0,
-      status:
-        ['agency', 'ai_agency', 'b2b_consulting', 'premium_training'].includes(String(lead.segment || '').toLowerCase()) ||
-        String(lead.selectedPlan || '').toLowerCase() === 'max'
-          ? 'positive'
-          : 'neutral',
+      title: '高价值适配',
+      rationale: highValueFit(lead) ? '更像高客单或团队型机会。' : '暂未看到高价值适配信号。',
+      contribution: 0,
+      status: highValueFit(lead) ? 'positive' : 'neutral',
     },
   ];
 }
 
-export function scoreIntentProbability(
+export async function scoreIntentProbability(
   vector: ObservationStateVector,
   lead: LeadContext = {},
-): IntentReasoningResult {
+): Promise<IntentReasoningResult> {
+  const decision = await scoreLeadIntentWithLlm({
+    source: 'leadpulse_onsite_intelligence',
+    sourceUrl: vector.uniquePages[0] || '',
+    author: lead.email || lead.company || vector.sessionId,
+    keyword: [lead.selectedPlan, lead.segment, lead.requestedAction].filter(Boolean).join(', '),
+    content: buildObservationNarrative(vector, lead),
+  });
+
+  const accepted = decision.is_target_buyer && !decision.is_toxic_vendor_or_peer;
   const priorProbability = 0.18;
-  const priorLogOdds = Math.log(priorProbability / (1 - priorProbability));
-  const atomicChecks = buildAtomicChecks(vector, lead);
-  const posteriorLogOdds = atomicChecks.reduce((sum, item) => sum + item.contribution, priorLogOdds);
-  const posteriorProbability = Number(logistic(posteriorLogOdds).toFixed(4));
+  const posteriorProbability = Number((clamp(decision.lead_score, 0, 100) / 100).toFixed(4));
   const confidence =
     posteriorProbability >= 0.78 ? 'high' : posteriorProbability >= 0.48 ? 'medium' : 'low';
-  const highValueSignal = atomicChecks.some((item) => item.id === 'high-value-fit' && item.status === 'positive');
-
-  const summary =
-    posteriorProbability >= 0.8
-      ? '高意向，适合直接推成交或高价值推荐。'
-      : posteriorProbability >= 0.55
-        ? '中高意向，适合重排推荐或补信息后继续推进。'
-        : posteriorProbability >= 0.35
-          ? '存在兴趣，但仍需更多信息和更长 nurture。'
-          : '当前更像低意向浏览，不适合过早触发强成交动作。';
+  const summary = accepted
+    ? decision.pain_point_summary || 'LLM 判定该访客存在明确商业购买意图。'
+    : 'LLM 判定当前不应进入强成交流程。';
 
   return {
     priorProbability,
     posteriorProbability,
     confidence,
-    highValueSignal,
-    atomicChecks,
+    highValueSignal: highValueFit(lead) || posteriorProbability >= 0.78,
+    atomicChecks: buildAtomicChecks({
+      vector,
+      lead,
+      accepted,
+      probability: posteriorProbability,
+      painSummary: decision.pain_point_summary,
+    }),
     summary,
   };
 }

@@ -136,7 +136,7 @@ function mergePriority(basePriority: IntakePriority, evaluation: IntelligenceEva
   return priorityOrder(smartPriority) > priorityOrder(basePriority) ? smartPriority : basePriority;
 }
 
-export function evaluateIntakeSubmission(args: {
+export async function evaluateIntakeSubmission(args: {
   sourceKind: IntakeSourceKind;
   payload: Record<string, string>;
   fallbackNextAction: string;
@@ -153,7 +153,7 @@ export function evaluateIntakeSubmission(args: {
         : '/register';
   const formEvents = buildFormEvents(sessionId, path, args.payload);
 
-  const evaluation = evaluateLeadPulseIntelligence({
+  const evaluation = await evaluateLeadPulseIntelligence({
     events: [...baseEvents, ...formEvents],
     lead,
   });

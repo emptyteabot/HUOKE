@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       return Response.json({ error: '至少需要一批 observation events。' }, { status: 400 });
     }
 
-    const evaluation = evaluateLeadPulseIntelligence({
+    const evaluation = await evaluateLeadPulseIntelligence({
       events: payload.events.slice(0, 100),
       lead: payload.lead,
     });

@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     const initialTask = initialTaskFieldsForSource('booking_request');
-    const intelligence = evaluateIntakeSubmission({
+    const intelligence = await evaluateIntakeSubmission({
       sourceKind: 'booking_request',
       payload,
       fallbackNextAction: `按 ${payload.channel || '邮件 / 微信'} 确认时间，并在 24 小时内完成会前资格判断。`,

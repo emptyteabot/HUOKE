@@ -65,11 +65,11 @@ export async function runCommunityWorkflow(posts: CommunityRawPost[], runtimeMet
     spoQueue,
     closedLoop,
     modelTiering: {
-      principle: '质量、速度与成本不可同时最大化，必须按阶段路由模型。',
-      lightweightModel: 'Qwen / DeepSeek',
-      premiumModel: '顶级高成本推理模型',
+      principle: '社区线索筛选统一使用真实 LLM 语义判定，后续路由只消费 LLM 结果。',
+      lightweightModel: 'Geekspace OpenAI-compatible API',
+      premiumModel: 'gpt-5.5',
       explanation:
-        '高频初筛、状态判定、基础过滤全部降级到轻量模型；只有在复杂意图、多语言混杂或需要 AoT 拆解时，才升级到高成本模型。',
+        '获客、毒性同行拦截、痛点摘要和最终意图分数均来自同一条 LLM 判定链路。',
     },
   };
 }

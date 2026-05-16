@@ -9,12 +9,12 @@ import type { IntelligenceEvaluation, LeadContext, ObservationEvent } from './ty
 
 const dataRoot = path.join(process.cwd(), '..', 'data', 'intelligence');
 
-export function evaluateLeadPulseIntelligence(args: {
+export async function evaluateLeadPulseIntelligence(args: {
   events: ObservationEvent[];
   lead?: LeadContext;
-}): IntelligenceEvaluation {
+}): Promise<IntelligenceEvaluation> {
   const observation = buildObservationStateVector(args.events);
-  const reasoning = scoreIntentProbability(observation, args.lead);
+  const reasoning = await scoreIntentProbability(observation, args.lead);
   const routing = routeLeadIntent({
     probability: reasoning.posteriorProbability,
     vector: observation,
