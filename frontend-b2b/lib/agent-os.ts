@@ -129,15 +129,15 @@ function healthFromQueue(items: AgentQueueItem[]) {
 }
 
 function buildFounderPrompt(company: string, stageLabel: string, recommendedPlanLabel: string, nextAction: string) {
-  return `你是 LeadPulse 的 founder-operator。现在请围绕这个联系人生成一封更短、更有信任感的触达邮件。\n\n联系人：${company}\n当前阶段：${stageLabel}\n推荐方案：${recommendedPlanLabel}\n下一步：${nextAction}\n\n要求：\n1. 不要夸张承诺；\n2. 强调更快上线、接入支付、导出代码、credits-first；\n3. 给出一个明确 CTA；\n4. 中文输出。`;
+  return `你是 LeadPulse 的 founder-operator。现在请围绕这个联系人生成一封更短、更有信任感的触达邮件。\n\n联系人：${company}\n当前阶段：${stageLabel}\n推荐方案：${recommendedPlanLabel}\n下一步：${nextAction}\n\n要求：\n1. 不要夸张承诺；\n2. 强调更快上线、接入支付、线索交付、credits-first；\n3. 给出一个明确 CTA；\n4. 中文输出。`;
 }
 
 function buildLandingPagePrompt(topExperiment: ExperimentPage | undefined, topKeywords: string[]) {
-  return `请基于以下信息，写一个面向 ${topExperiment?.persona || '独立开发者 / 微型 SaaS'} 的高转化销售页结构：\n\n标题：${topExperiment?.title || 'LeadPulse 销售页'}\n摘要：${topExperiment?.summary || '更快上线、支付、导出代码与增长'}\n核心交付：${topExperiment?.deliverables.join('、') || '目标池、触达文案、预约节奏'}\n高意图关键词：${topKeywords.join('、')}\n\n要求：\n1. 先痛点，后方案，再 CTA；\n2. 避免“保证”“稳赚”这类表达；\n3. 输出中文分节结构。`;
+  return `请基于以下信息，写一个面向 ${topExperiment?.persona || '独立开发者 / 微型 SaaS'} 的高转化销售页结构：\n\n标题：${topExperiment?.title || 'LeadPulse 销售页'}\n摘要：${topExperiment?.summary || '更快上线、支付、线索交付与增长'}\n核心交付：${topExperiment?.deliverables.join('、') || '目标池、触达文案、预约节奏'}\n高意图关键词：${topKeywords.join('、')}\n\n要求：\n1. 先痛点，后方案，再 CTA；\n2. 避免“保证”“稳赚”这类表达；\n3. 输出中文分节结构。`;
 }
 
 function buildContentPrompt(topKeywords: string[]) {
-  return `请给 LeadPulse 生成 10 条创始人风格内容选题。\n\n目标受众：独立开发者、indie hacker、微型 SaaS 创业者、agency\n产品钩子：更快上线、Stripe 支付、一键部署、导出代码 / sync GitHub、credits-first\n可参考关键词：${topKeywords.join('、')}\n\n要求：\n1. 每条都要有痛点钩子；\n2. 适合发小红书 / X / 微信；\n3. 中文输出。`;
+  return `请给 LeadPulse 生成 10 条创始人风格内容选题。\n\n目标受众：独立开发者、indie hacker、微型 SaaS 创业者、agency\n产品钩子：更快上线、收款闭环、线索交付、credits-first\n可参考关键词：${topKeywords.join('、')}\n\n要求：\n1. 每条都要有痛点钩子；\n2. 适合发小红书 / X / 微信；\n3. 中文输出。`;
 }
 
 function contactLink(contact: Pick<PipelineContact, 'company'>) {

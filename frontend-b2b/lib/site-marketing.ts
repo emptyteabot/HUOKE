@@ -15,7 +15,7 @@ export const MARKETING_PAGE_LINKS = [
     href: '/platform',
     kicker: '平台',
     title: '用 credits-first 平台承接支付、导出和经营',
-    description: '把 credits、支付、部署、导出代码和经营看板包装成更完整的平台叙事。',
+    description: '把积分、支付、线索导出和经营看板包装成更完整的平台叙事。',
   },
   {
     href: '/compare',

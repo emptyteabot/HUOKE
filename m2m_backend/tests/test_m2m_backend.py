@@ -273,6 +273,15 @@ def test_billing_insufficient_credits_fails():
     assert response.json()["detail"] == "insufficient_credits"
 
 
+def test_recharge_order_requires_valid_contact_email():
+    response = client.post(
+        "/api/v2/billing/orders",
+        json={"user_id": "missing_email_test", "package_id": "icebreaker", "contact_email": ""},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "valid_contact_email_required"
+
+
 def test_xunhupay_notify_invalid_signature_returns_fail():
     response = client.post(
         "/api/v1/xunhupay/notify",
@@ -291,7 +300,7 @@ def test_xunhupay_notify_invalid_signature_returns_fail():
 def test_xunhupay_notify_signed_amount_mismatch_does_not_credit_wallet():
     created = client.post(
         "/api/v2/billing/orders",
-        json={"user_id": "xunhu_mismatch_test", "package_id": "icebreaker"},
+        json={"user_id": "xunhu_mismatch_test", "package_id": "icebreaker", "contact_email": "buyer@example.com"},
     )
     assert created.status_code == 200
     order = created.json()["order"]
@@ -318,7 +327,7 @@ def test_xunhupay_notify_signed_amount_mismatch_does_not_credit_wallet():
 def test_xunhupay_notify_signed_success_is_idempotent_recharge():
     created = client.post(
         "/api/v2/billing/orders",
-        json={"user_id": "xunhu_success_test", "package_id": "icebreaker"},
+        json={"user_id": "xunhu_success_test", "package_id": "icebreaker", "contact_email": "buyer@example.com"},
     )
     assert created.status_code == 200
     order = created.json()["order"]
@@ -348,7 +357,7 @@ def test_xunhupay_notify_signed_success_is_idempotent_recharge():
 def test_legacy_alipay_notify_path_accepts_xunhupay_callback():
     created = client.post(
         "/api/v2/billing/orders",
-        json={"user_id": "legacy_xunhu_test", "package_id": "icebreaker"},
+        json={"user_id": "legacy_xunhu_test", "package_id": "icebreaker", "contact_email": "buyer@example.com"},
     )
     assert created.status_code == 200
     order = created.json()["order"]

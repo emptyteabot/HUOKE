@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import hashlib
+import re
 import sqlite3
 import threading
 import time
@@ -20,6 +21,7 @@ from .config import settings
 StrictModelConfig = ConfigDict(extra="forbid", str_strip_whitespace=True, populate_by_name=True)
 
 _DB_LOCK = threading.RLock()
+_EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
 
 class CreditPackage(BaseModel):
@@ -158,6 +160,10 @@ def _normalize_user_id(value: str) -> str:
     raw = str(value or "").strip().lower()
     safe = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in raw)[:80]
     return safe or "guest_demo"
+
+
+def _is_valid_email(value: str) -> bool:
+    return bool(_EMAIL_RE.match(str(value or "").strip().lower()))
 
 
 def _decimal(value: str | float | int | Decimal) -> Decimal:
@@ -397,6 +403,8 @@ def create_recharge_order(request: BillingOrderRequest) -> dict[str, Any]:
     package = _package_def(request.package_id)
     if package["price_cny"] <= 0:
         raise ValueError("trial package does not require payment")
+    if not _is_valid_email(request.contact_email):
+        raise ValueError("valid_contact_email_required")
 
     with _DB_LOCK:
         conn = _connect()

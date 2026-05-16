@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 
 import { getOrCreateClientUserId } from '@/lib/client_user';
@@ -11,6 +10,8 @@ type Props = {
   packages: CreditPackage[];
   defaultPackageId: CreditPackageId;
 };
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type CheckoutResponse = {
   ok?: boolean;
@@ -25,6 +26,14 @@ type CheckoutResponse = {
   message?: string;
 };
 
+function checkoutErrorMessage(message: string) {
+  if (message === 'valid_contact_email_required') return '请先填写有效的接收通知邮箱。';
+  if (message === 'free_trial_does_not_require_payment') return '免费体验额度不需要创建付款订单。';
+  if (message === 'checkout_failed') return '收银台创建失败，请稍后再试。';
+  if (message === 'billing_order_failed') return '订单创建失败，请稍后再试。';
+  return message || '收银台创建失败，请稍后再试。';
+}
+
 export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
   const [selectedId, setSelectedId] = useState<CreditPackageId>(defaultPackageId);
   const [userId, setUserId] = useState('guest_demo');
@@ -38,9 +47,16 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
   }, []);
 
   const selected = packages.find((item) => item.id === selectedId) || packages[0];
+  const normalizedEmail = contactEmail.trim().toLowerCase();
+  const emailValid = EMAIL_RE.test(normalizedEmail);
+  const canCheckout = Boolean(selected && emailValid && !loading);
 
   async function startCheckout() {
     if (!selected) return;
+    if (!emailValid) {
+      setError('请先填写有效的接收通知邮箱。付款订单、到账积分和售后核对都会绑定到这个邮箱。');
+      return;
+    }
     setLoading(true);
     setError('');
 
@@ -51,7 +67,7 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
         body: JSON.stringify({
           package_id: selected.packageId,
           user_id: userId,
-          email: contactEmail,
+          email: normalizedEmail,
           company: contactCompany,
         }),
       });
@@ -64,7 +80,8 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
       }
       window.location.assign(payload.checkoutUrl);
     } catch (checkoutError) {
-      setError(checkoutError instanceof Error ? checkoutError.message : 'checkout_failed');
+      const message = checkoutError instanceof Error ? checkoutError.message : 'checkout_failed';
+      setError(checkoutErrorMessage(message));
       setLoading(false);
     }
   }
@@ -95,7 +112,7 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
                   <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">{item.description}</p>
                 </div>
                 <div className="text-left sm:text-right">
-                  <div className="text-3xl font-extrabold text-slate-950">￥{item.priceCny}</div>
+                  <div className="text-3xl font-extrabold text-slate-950">¥{item.priceCny}</div>
                   <div className="mt-1 text-sm font-semibold text-slate-500">{item.credits} LP Coin</div>
                 </div>
               </div>
@@ -117,7 +134,7 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="text-xs font-semibold text-slate-500">应付金额</div>
-            <div className="mt-2 text-2xl font-extrabold text-slate-950">￥{selected?.priceCny}</div>
+            <div className="mt-2 text-2xl font-extrabold text-slate-950">¥{selected?.priceCny}</div>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="text-xs font-semibold text-slate-500">到账积分</div>
@@ -127,13 +144,22 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
 
         <div className="mt-6 space-y-3">
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">接收通知邮箱</span>
+            <span className="text-sm font-semibold text-slate-700">
+              接收通知邮箱 <span className="text-rose-500">*</span>
+            </span>
             <input
+              type="email"
+              required
+              autoComplete="email"
               value={contactEmail}
               onChange={(event) => setContactEmail(event.target.value)}
               placeholder="name@company.com"
+              aria-invalid={contactEmail.length > 0 && !emailValid}
               className="lead-input mt-2"
             />
+            <span className="mt-2 block text-xs leading-6 text-slate-500">
+              必填。充值订单、LP Coin 到账和异常补单都会绑定这个邮箱。
+            </span>
           </label>
           <label className="block">
             <span className="text-sm font-semibold text-slate-700">公司或项目名</span>
@@ -149,7 +175,7 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
         <button
           type="button"
           onClick={() => void startCheckout()}
-          disabled={loading}
+          disabled={!canCheckout}
           className="lead-button lead-button-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
@@ -159,23 +185,14 @@ export function LpCoinCheckout({ packages, defaultPackageId }: Props) {
         {error ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
 
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <div className="text-sm font-extrabold text-slate-950">异常备用扫码</div>
+          <div className="text-sm font-extrabold text-slate-950">异常补单规则</div>
           <p className="mt-2 text-sm leading-7 text-slate-600">
-            正常情况下点击上方按钮生成虎皮椒收银台，到账后自动发放 LP Coin。只有自动收银台临时不可用时，才使用这里的备用二维码。
+            只允许通过上方按钮生成绑定邮箱的收银台订单。备用收款不会直接展示二维码，必须先生成订单号，避免收钱后无法归属。
           </p>
-          <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white p-3">
-            <Image
-              src="/payment-qrcode.jpg"
-              alt="LeadPulse 备用收款二维码"
-              width={220}
-              height={220}
-              className="mx-auto aspect-square w-full max-w-[220px] object-contain"
-            />
-          </div>
         </div>
 
         <div className="mt-6 space-y-3 text-sm leading-7 text-slate-600">
-          {['到账以服务端异步通知为准', '浏览器跳转成功不作为发货凭证', '余额不足时系统会停止提取，避免欠账'].map((item) => (
+          {['到账以服务端异步通知为准', '浏览器跳转成功不作为发货凭证', '余额不足时系统会停止提取，避免欠费'].map((item) => (
             <div key={item} className="flex items-start gap-3 rounded-lg bg-slate-50 px-4 py-3">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
               <span>{item}</span>

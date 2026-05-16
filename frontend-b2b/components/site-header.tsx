@@ -12,7 +12,7 @@ const navItems = [
   { href: '/faq', label: '常见问题' },
 ];
 
-export function SiteHeader({ ctaHref = '/book', ctaLabel = '开始免费体验' }: Props) {
+export function SiteHeader({ ctaHref = '/book', ctaLabel = '预约评估' }: Props) {
   return (
     <header className="sticky top-0 z-40 border-b border-white/50 bg-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.03)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">

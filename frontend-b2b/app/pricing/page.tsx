@@ -50,7 +50,7 @@ export default function PricingPage() {
       }
       description="从免费样本开始，判断公开平台线索是否适合你的业务。确认有效后，再选择小额试跑、标准放量，或让我们先代跑一轮。"
       typeLine="先验证，再充值；余额不足就停，不搞默认自动续费。"
-      primaryCta={{ href: '/book', label: '免费查看样本' }}
+      primaryCta={{ href: '/book', label: '申请免费样本' }}
       secondaryCta={{ href: '/pay?package=standard', label: '直接充值' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -107,7 +107,7 @@ export default function PricingPage() {
                       : 'mt-8 inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50'
                   }
                 >
-                  {item.id === 'trial' ? '免费查看样本' : item.ctaLabel}
+                  {item.id === 'trial' ? '申请免费样本' : item.ctaLabel}
                 </Link>
               </article>
             );

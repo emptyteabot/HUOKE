@@ -19,7 +19,7 @@ export default function DemoPage() {
       title="两分钟，看懂留言怎么变成销售动作。"
       description="演示页只负责一件事：让你看到系统不是在堆关键词链接，而是在逐条分析购买意图、预算信号和下一步动作。"
       typeLine="客户不需要看说明书。客户只需要知道：看见了什么，为什么值钱，下一步该怎么做。"
-      primaryCta={{ href: '/book', label: '预约 15 分钟演示' }}
+      primaryCta={{ href: '/book', label: '预约评估' }}
       secondaryCta={{ href: '/product', label: '看产品工作流' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">

@@ -170,7 +170,7 @@ const workflow = [
   },
   {
     title: '推给销售',
-    detail: '把该跟进的人送到团队面前，让销售把精力放回逼单。',
+    detail: '把该跟进的人送到团队面前，让销售把时间放到高质量跟进和转化上。',
   },
 ];
 
@@ -312,7 +312,7 @@ export default function HomePage() {
             href="/book"
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
           >
-            开始免费体验
+            预约评估
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -321,7 +321,7 @@ export default function HomePage() {
       <section className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 pb-16 pt-28 text-center sm:px-6 lg:px-8 lg:pb-20 lg:pt-32">
         <div className="lead-fade-up max-w-5xl">
           <h1 className="text-[3.4rem] font-extrabold leading-[1.04] text-slate-950 sm:text-7xl lg:text-[5.5rem]">
-            销售的精力，应该用在逼单。
+            把公开讨论里的购买信号，筛成销售能直接跟进的线索。
           </h1>
 
           <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">
@@ -335,11 +335,11 @@ export default function HomePage() {
               href="/book"
               className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-7 text-base font-semibold text-white shadow-[0_16px_40px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
             >
-              立即获取高意向线索
+              申请免费样本
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="#workflow"
+              href="/demo"
               className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/78 px-6 text-base font-semibold text-slate-800 shadow-sm transition hover:bg-white sm:w-auto"
             >
               <Play className="h-4 w-4" />

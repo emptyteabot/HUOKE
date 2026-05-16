@@ -54,7 +54,7 @@ function buildStartUrl(pkg: FulfillmentPackage) {
   if (pkg.company) params.set('company', pkg.company);
   if (pkg.email) params.set('email', pkg.email);
 
-  return `${SITE_URL}/start?${params.toString()}`;
+  return `${SITE_URL}/product?${params.toString()}`;
 }
 
 function normalizeRecord(record: Partial<RedeemCodeRecord> & Record<string, unknown>): RedeemCodeRecord {

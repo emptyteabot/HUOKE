@@ -55,7 +55,7 @@ export default function UseCasesPage() {
       title="适合想从公开讨论里提前截获需求的团队。"
       description="LeadPulse 不适合所有行业。它最适合客单价足够、客户会在公开平台提问，并且销售愿意主动跟进的业务。"
       typeLine="先用免费额度验证一个场景，再决定是否放量。"
-      primaryCta={{ href: '/book', label: '免费查看线索样本' }}
+      primaryCta={{ href: '/book', label: '申请免费样本' }}
       secondaryCta={{ href: '/book', label: '预约 15 分钟' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -107,7 +107,7 @@ export default function UseCasesPage() {
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href="/book" className="lead-button lead-button-primary">
-                免费查看线索样本
+                申请免费样本
               </Link>
               <Link href="/book" className="lead-button lead-button-secondary">
                 预约 15 分钟

@@ -40,22 +40,22 @@ const SHARED_INPUTS: OnboardingInput[] = [
   },
   {
     title: '工具权限',
-    detail: '如果需要更快上线，请准备 GitHub、域名、部署平台和 webhook 配置。',
+    detail: '如果需要更快上线，请准备域名、收款信息、通知入口和团队联系人。',
   },
 ];
 
 const PLAN_TRACKS: Record<PlanId, Omit<OnboardingTrack, 'planId' | 'planName' | 'founderInputs'>> = {
   free: {
-    primaryOutcome: '先把第一条上线、支付、导出代码链路跑通。',
+    primaryOutcome: '先把第一条线索、支付和交付链路跑通。',
     timeToValue: '24 小时内拿到可用页面和一条可测试入口。',
     first24Hours: [
       '确认产品定位、主力卖点和首个实验方向。',
-      '开通 workspace，接好基础支付和导出代码能力。',
+      '开通交付包，接好基础支付和线索导出能力。',
       '上线一个可分享的测试页，开始收第一批反馈。',
     ],
     deliverables: [
-      '1 个可用 workspace',
-      '基础支付 / 导出代码入口',
+      '1 个可用交付包',
+      '基础支付 / 线索导出入口',
       '首个实验页与 CTA 入口',
       '免费体验额度分配建议',
     ],
@@ -75,7 +75,7 @@ const PLAN_TRACKS: Record<PlanId, Omit<OnboardingTrack, 'planId' | 'planName' | 
     timeToValue: '24 小时内完成开通，7 天内跑出首批真实触达和回款信号。',
     first24Hours: [
       '确认首笔款项并发放 LP Coin。',
-      '接好支付、导出代码、GitHub / 部署链路和首个主力 CTA。',
+      '接好支付、线索导出、通知链路和首个主力 CTA。',
       '把 ICP、外联角度、实验页和跟进动作接进同一条 funnel。',
     ],
     deliverables: [
@@ -100,12 +100,12 @@ const PLAN_TRACKS: Record<PlanId, Omit<OnboardingTrack, 'planId' | 'planName' | 
     timeToValue: '24 小时内完成高配开通，7 天内形成多线程执行和复盘节奏。',
     first24Hours: [
       '确认首笔款项并发放 LP Coin。',
-      '接好批量执行、webhook、协作空间与高频自动化动作。',
+      '接好批量执行、通知推送、协作空间与高频自动化动作。',
       '为多产品或多客户建立独立队列、内容库和转化动作。',
     ],
     deliverables: [
       'LP Coin 与多队列分配方案',
-      '批量执行 / webhook / 团队协作配置',
+      '批量执行 / 通知推送 / 团队协作配置',
       '多产品实验页和分渠道外联框架',
       '续费、扩容、转介绍经营节奏',
     ],

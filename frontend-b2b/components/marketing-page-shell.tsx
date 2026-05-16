@@ -23,8 +23,8 @@ export function MarketingPageShell({
   eyebrow,
   title,
   description,
-  typeLine = '先看真实样本，再决定要不要继续投入。',
-  primaryCta = { href: '/book', label: '免费查看线索样本' },
+  typeLine = '先申请真实样本，再决定要不要继续投入。',
+  primaryCta = { href: '/book', label: '申请免费样本' },
   secondaryCta = { href: '/demo', label: '预约工作流演示' },
   children,
 }: Props) {

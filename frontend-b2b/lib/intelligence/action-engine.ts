@@ -130,7 +130,7 @@ function buildStartUrl(params: { planId: string; deliveryId?: string; company?: 
     search.set('email', params.email);
   }
 
-  return `${SITE_URL}/start?${search.toString()}`;
+  return `${SITE_URL}/product?${search.toString()}`;
 }
 
 export async function applyDeterministicIntelligenceAction(args: {

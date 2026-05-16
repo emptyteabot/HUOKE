@@ -69,14 +69,14 @@ export default async function FulfillmentDashboardPage() {
             <div className="mt-3 text-2xl font-semibold text-slate-950">
               {packages.filter((item) => item.accessCode).length}
             </div>
-            <p className="mt-2 text-sm text-slate-600">已生成 workspace 与访问码</p>
+            <p className="mt-2 text-sm text-slate-600">已生成交付包与访问码</p>
           </article>
         </div>
       </section>
 
       <div className="mt-8 space-y-4">
         {packages.map((item) => {
-          const deliveryHref = `/start?plan=${item.planId}&delivery=${item.id}&company=${encodeURIComponent(item.company)}&email=${encodeURIComponent(item.email)}`;
+          const deliveryHref = `/product?plan=${item.planId}&delivery=${item.id}&company=${encodeURIComponent(item.company)}&email=${encodeURIComponent(item.email)}`;
           return (
             <article
               key={item.id}
@@ -93,7 +93,7 @@ export default async function FulfillmentDashboardPage() {
                   <p className="mt-3 text-sm leading-7 text-slate-600">{item.narrative.oneLiner}</p>
                 </div>
                 <div className="grid gap-2 text-sm text-slate-700">
-                  <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">工作区：{item.workspaceId}</div>
+                  <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">交付编号：{item.workspaceId}</div>
                   <div className="rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">访问码：{item.accessCode}</div>
                 </div>
               </div>

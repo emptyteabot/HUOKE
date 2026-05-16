@@ -284,7 +284,7 @@ function paymentStartUrl(record: PaymentRecord) {
     params.set('email', String(record.email).trim());
   }
 
-  return `/start?${params.toString()}`;
+  return `/product?${params.toString()}`;
 }
 
 function buildPaymentDrafts(record: PaymentRecord) {

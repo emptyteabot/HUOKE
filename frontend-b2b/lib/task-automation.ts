@@ -202,7 +202,7 @@ const PLAYBOOKS: Record<FollowUpTask['sourceKind'], TaskPlaybook> = {
         label: 'Onboarding',
         defaultStage: '已确认收款',
         title: '发放 credits 并安排 onboarding',
-        detail: '完成 credits 发放、权限开通、导出代码、部署与首次操作培训。',
+        detail: '完成积分发放、权限开通、线索交付与首次操作培训。',
         dueHours: 24,
         priority: 'high',
         patch: {

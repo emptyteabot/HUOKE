@@ -49,6 +49,99 @@ const capabilities = [
   },
 ];
 
+const dashboardLeads = [
+  {
+    source: 'Reddit / r/shopify',
+    company: '深圳 DTC 家居品牌',
+    signal: '在讨论区询问 Shopify Plus 替代方案，重点提到库存同步和海外客服效率。',
+    analysis: '已有跨境站点和明确替换痛点，适合先发同类品牌案例，再约 20 分钟诊断。',
+    score: 93,
+    stage: '替换评估',
+    owner: '外贸 SaaS 销售',
+  },
+  {
+    source: '小红书评论',
+    company: '杭州户外用品独立站',
+    signal: '留言问“有没有懂 TikTok Shop 和独立站一起投放的服务商，预算可以谈”。',
+    analysis: '主动找服务商且预算开放，先给投放诊断样本，避免直接硬推报价。',
+    score: 91,
+    stage: '服务商比较',
+    owner: '出海代运营',
+  },
+  {
+    source: '知乎问答',
+    company: '广州 B2B 工厂官网',
+    signal: '提到询盘质量低，正在比较海外 SEO、LinkedIn 私信和展会获客。',
+    analysis: '问题已经从流量变成线索质量，适合切入获客系统和线索筛选。',
+    score: 88,
+    stage: '渠道重选',
+    owner: 'B2B 增长顾问',
+  },
+  {
+    source: '行业论坛',
+    company: '宁波汽配出口商',
+    signal: '询问“有没有能持续找到海外经销商线索的工具，别只给海关数据”。',
+    analysis: '明确排斥泛名单，正在找意图线索，适合展示公开讨论提取样本。',
+    score: 90,
+    stage: '工具采购',
+    owner: '外贸获客',
+  },
+  {
+    source: 'LinkedIn 评论区',
+    company: '苏州工业软件团队',
+    signal: '评论竞品帖子时提到“我们也在找欧美代理渠道，缺靠谱线索源”。',
+    analysis: '需求场景清晰但还在早期，先发渠道拓展清单和样本更容易接住。',
+    score: 84,
+    stage: '渠道探索',
+    owner: '渠道销售',
+  },
+  {
+    source: 'Facebook Group',
+    company: '跨境母婴品牌',
+    signal: '发帖寻找“能帮忙筛 KOL 和批发买家的 agency”，要求先看样本。',
+    analysis: '已提出 agency 和样本要求，符合先样本后试单路径。',
+    score: 89,
+    stage: '样本确认',
+    owner: '品牌增长',
+  },
+  {
+    source: 'V2EX 讨论',
+    company: '上海开发者工具 SaaS',
+    signal: '创始人抱怨 Product Hunt 后续线索断层，想找长期出海获客方式。',
+    analysis: '有产品和冷启动痛点，适合先定位开发者社区与购买信号。',
+    score: 86,
+    stage: '增长瓶颈',
+    owner: 'SaaS 销售',
+  },
+  {
+    source: '公众号留言',
+    company: '青岛机械出口团队',
+    signal: '问“海外询盘能不能自动分辨真假客户，销售跟太多垃圾询盘”。',
+    analysis: '预算未明但痛点强烈，先引导上传历史询盘做免费样本。',
+    score: 82,
+    stage: '痛点确认',
+    owner: '线索运营',
+  },
+  {
+    source: 'Reddit / r/Entrepreneur',
+    company: '北美华人电商品牌',
+    signal: '寻找中文团队帮他们做中国供应链和英文站增长，要求可远程沟通。',
+    analysis: '跨境协作场景明确，可用中英双语案例切入。',
+    score: 87,
+    stage: '供应链增长',
+    owner: '服务销售',
+  },
+  {
+    source: '知识星球',
+    company: '深圳 3C 配件卖家',
+    signal: '询问“有没有能监控同行评论区，找到正在问价格的人”的方案。',
+    analysis: '需求高度贴合 LeadPulse，适合直接给评论区线索截图样本。',
+    score: 92,
+    stage: '强匹配',
+    owner: '客户成功',
+  },
+];
+
 export default function ProductPage() {
   return (
     <MarketingPageShell
@@ -62,8 +155,8 @@ export default function ProductPage() {
       }
       description="LeadPulse 持续扫描帖子、评论区、论坛和公开社区，把问价格、求推荐、找替代方案、寻找服务商等购买信号，整理成销售团队可以直接判断和跟进的线索。"
       typeLine="不把关键词链接扔给销售，而是把能推进的人送到销售面前。"
-      primaryCta={{ href: '/book', label: '免费查看线索样本' }}
-      secondaryCta={{ href: '/demo', label: '预约工作流演示' }}
+      primaryCta={{ href: '/book', label: '申请免费样本' }}
+      secondaryCta={{ href: '/demo', label: '查看只读演示' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="lead-glass rounded-[24px] border border-white/80 p-6 shadow-xl shadow-slate-200/20 md:p-8">
@@ -145,6 +238,67 @@ export default function ProductPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="lead-glass overflow-hidden rounded-lg border border-white/80 shadow-xl shadow-slate-200/20">
+          <div className="flex flex-col gap-4 border-b border-slate-200/80 bg-white/65 px-5 py-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="lead-pill w-fit">只读工作台截图</div>
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950 md:text-3xl">10 条出海行业脱敏线索样本</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
+                这里展示客户付费后实际看到的线索结构：来源、脱敏公司、原始需求、AI 判断、阶段、评分和负责人。
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-3 text-center text-sm">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="text-2xl font-extrabold text-slate-950">10</div>
+                <div className="text-xs text-slate-500">脱敏样本</div>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="text-2xl font-extrabold text-slate-950">88</div>
+                <div className="text-xs text-slate-500">平均评分</div>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="text-2xl font-extrabold text-slate-950">7</div>
+                <div className="text-xs text-slate-500">可直接触达</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto bg-slate-50/55 p-4">
+            <table className="min-w-[1080px] border-separate border-spacing-y-3 text-left text-sm">
+              <thead>
+                <tr className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                  <th className="px-4">来源</th>
+                  <th className="px-4">脱敏对象</th>
+                  <th className="px-4">购买信号</th>
+                  <th className="px-4">AI 判断</th>
+                  <th className="px-4">阶段</th>
+                  <th className="px-4">评分</th>
+                  <th className="px-4">负责人</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dashboardLeads.map((lead) => (
+                  <tr key={`${lead.source}-${lead.company}`} className="align-top">
+                    <td className="rounded-l-lg border-y border-l border-slate-200 bg-white px-4 py-4 font-semibold text-slate-700">{lead.source}</td>
+                    <td className="border-y border-slate-200 bg-white px-4 py-4 font-bold text-slate-950">{lead.company}</td>
+                    <td className="max-w-[270px] border-y border-slate-200 bg-white px-4 py-4 leading-7 text-slate-700">{lead.signal}</td>
+                    <td className="max-w-[300px] border-y border-slate-200 bg-white px-4 py-4 leading-7 text-slate-600">{lead.analysis}</td>
+                    <td className="border-y border-slate-200 bg-white px-4 py-4">
+                      <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{lead.stage}</span>
+                    </td>
+                    <td className="border-y border-slate-200 bg-white px-4 py-4">
+                      <span className="rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700">{lead.score}</span>
+                    </td>
+                    <td className="rounded-r-lg border-y border-r border-slate-200 bg-white px-4 py-4 font-semibold text-slate-700">{lead.owner}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-6 md:grid-cols-2">
           {capabilities.map((item) => {
@@ -161,10 +315,10 @@ export default function ProductPage() {
 
         <div className="mt-14 flex flex-col justify-center gap-4 text-center sm:flex-row">
           <Link href="/book" className="lead-button lead-button-primary">
-            免费查看线索样本
+            申请免费样本
           </Link>
           <Link href="/demo" className="lead-button lead-button-secondary">
-            预约工作流演示
+            查看只读演示
           </Link>
         </div>
       </section>

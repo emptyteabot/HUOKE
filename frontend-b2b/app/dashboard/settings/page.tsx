@@ -96,7 +96,7 @@ export default function SettingsPage() {
     hasValue(process.env.LEADPULSE_SMTP_PASS) &&
     hasValue(process.env.LEADPULSE_EMAIL_FROM);
   const notificationTargets = [
-    { label: "Generic webhook", enabled: hasValue(process.env.LEADPULSE_INTAKE_WEBHOOK_URL) },
+    { label: "通用通知接口", enabled: hasValue(process.env.LEADPULSE_INTAKE_WEBHOOK_URL) },
     { label: "Slack", enabled: hasValue(process.env.LEADPULSE_SLACK_WEBHOOK_URL) },
     { label: "Feishu", enabled: hasValue(process.env.LEADPULSE_FEISHU_WEBHOOK_URL) },
     { label: "GAS", enabled: hasValue(process.env.LEADPULSE_GOOGLE_APPS_SCRIPT_URL) },
@@ -184,7 +184,7 @@ export default function SettingsPage() {
               <div>登录：/internal-login</div>
               <div>Billing：/dashboard/billing</div>
               <div>Settings：/dashboard/settings</div>
-              <div>开通：/pay、/redeem、/start</div>
+              <div>开通：/pay、/redeem、/product</div>
             </div>
           </div>
         </div>
@@ -290,7 +290,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div style={{ color: "var(--lp-muted)", fontSize: 13, lineHeight: 1.8 }}>
-            目前 workspace 关键项都已接上，下一步更像是继续做标准 SaaS 级别的账务、团队权限和审计轨迹。
+            目前关键交付项都已接上，下一步更像是继续做标准 SaaS 级别的账务、团队权限和审计轨迹。
           </div>
         )}
       </section>

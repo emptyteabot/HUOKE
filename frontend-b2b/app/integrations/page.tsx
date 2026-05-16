@@ -1,20 +1,20 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, BellRing, CreditCard, Mail, Send, ShieldCheck, Webhook, Workflow } from 'lucide-react';
+import { ArrowRight, BellRing, CreditCard, Mail, Network, Send, ShieldCheck, Workflow } from 'lucide-react';
 
 import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
   title: '集成',
-  description: 'LeadPulse 集成页：把高意向线索推送到飞书、企业微信、Webhook、CRM 和销售工作流。',
+  description: 'LeadPulse 集成页：把高意向线索推送到飞书、企业微信、CRM 和销售工作流。',
 };
 
 const nativeGroups = [
   {
-    title: 'Webhook 与通知',
-    description: '高意向线索生成后，可以推送到飞书、企业微信或你的内部接口。',
+    title: '通知推送',
+    description: '高意向线索生成后，可以推送到飞书、企业微信或你的内部系统。',
     points: ['原文链接', 'AI 分析', '评分与下一步动作'],
-    icon: Webhook,
+    icon: Network,
   },
   {
     title: '充值与余额',
@@ -41,7 +41,7 @@ const workflowCards = [
   },
   {
     title: '成交层',
-    detail: '预约、充值、交付和复盘继续挂在同一条线索路径上。',
+    detail: '预约、充值、交付和复盘持续挂在同一条线索路径上。',
   },
   {
     title: '人工层',
@@ -56,7 +56,7 @@ export default function IntegrationsPage() {
       title="集成的目的不是堆 Logo，而是把线索推向成交。"
       description="LeadPulse 的集成逻辑很简单：发现商机后，立刻把结构化结果、原文链接和下一步动作送到你的团队或系统。"
       typeLine="能自动推送的自动推送，需要人工判断的明确交给人。"
-      primaryCta={{ href: '/book', label: '预约集成诊断' }}
+      primaryCta={{ href: '/book', label: '预约集成评估' }}
       secondaryCta={{ href: '/pricing', label: '查看充值包' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -107,7 +107,7 @@ export default function IntegrationsPage() {
 
           <section className="lead-card p-6">
             <div className="lead-pill">边界</div>
-            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">清楚边界，比假装全自动更重要。</h2>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">清晰边界，比假装全自动更重要。</h2>
             <div className="mt-6 grid gap-3 md:grid-cols-3">
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">
                 <BellRing className="mb-3 h-5 w-5 text-slate-800" />
@@ -119,13 +119,13 @@ export default function IntegrationsPage() {
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">
                 <ShieldCheck className="mb-3 h-5 w-5 text-slate-800" />
-                充值、扣费和退款可追踪。
+                充值、扣费和退款可追溯。
               </div>
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href="/book" className="lead-button lead-button-primary">
-                预约集成诊断
+                预约集成评估
               </Link>
               <Link href="/pay?package=standard" className="lead-button lead-button-secondary">
                 直接充值试跑

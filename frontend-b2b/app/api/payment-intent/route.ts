@@ -15,10 +15,16 @@ type PaymentPayload = {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function normalizeUserId(input: string | undefined) {
   const raw = String(input || 'guest_demo').trim().toLowerCase();
   const safe = raw.replace(/[^a-z0-9_-]/g, '_').slice(0, 80);
   return safe || 'guest_demo';
+}
+
+function normalizeEmail(input: string | undefined) {
+  return String(input || '').trim().toLowerCase();
 }
 
 async function createBackendOrder(payload: PaymentPayload) {
@@ -26,6 +32,10 @@ async function createBackendOrder(payload: PaymentPayload) {
   const selected = getCreditPackageById(packageId);
   if (!selected.requiresPayment) {
     throw new Error('free_trial_does_not_require_payment');
+  }
+  const contactEmail = normalizeEmail(payload.email);
+  if (!EMAIL_RE.test(contactEmail)) {
+    throw new Error('valid_contact_email_required');
   }
 
   const response = await fetch(`${m2mBackendUrl()}/api/v2/billing/orders`, {
@@ -37,7 +47,7 @@ async function createBackendOrder(payload: PaymentPayload) {
     body: JSON.stringify({
       user_id: normalizeUserId(payload.user_id || payload.userId || payload.email),
       package_id: selected.packageId,
-      contact_email: String(payload.email || '').trim().toLowerCase(),
+      contact_email: contactEmail,
       contact_company: String(payload.company || '').trim(),
       note: String(payload.note || 'LP Coin recharge from LeadPulse checkout').trim(),
     }),
@@ -66,7 +76,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'payment_intent_failed';
-    const status = message.includes('not_require_payment') ? 400 : 500;
+    const status = message.includes('not_require_payment') || message.includes('contact_email') ? 400 : 500;
     return Response.json({ ok: false, error: message }, { status });
   }
 }

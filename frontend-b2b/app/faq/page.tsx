@@ -49,7 +49,7 @@ export default function FaqPage() {
       }
       description="这里解释 LeadPulse 是什么、适合谁、免费试用能看到什么，以及方案之间的区别。"
       typeLine="先看样本，再决定要不要继续。"
-      primaryCta={{ href: '/book', label: '免费查看线索样本' }}
+      primaryCta={{ href: '/book', label: '申请免费样本' }}
       secondaryCta={{ href: '/demo', label: '预约 15 分钟演示' }}
     >
       <section className="mx-auto max-w-3xl px-4 py-4 pb-20 sm:px-6 lg:px-8">
@@ -76,7 +76,7 @@ export default function FaqPage() {
           <p className="mt-2 text-sm text-slate-500">我们随时准备为您解答关于获客工作流的任何问题。</p>
           <div className="mt-6 flex flex-col justify-center gap-4 sm:flex-row">
             <Link href="/book" className="lead-button lead-button-primary text-sm">
-              免费查看线索样本
+              申请免费样本
             </Link>
             <Link href="/demo" className="lead-button lead-button-secondary text-sm">
               预约 15 分钟演示
