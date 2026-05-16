@@ -511,6 +511,39 @@ def test_public_source_batch_ranks_high_budget_above_noise():
     assert payload["results"][1]["charge_event"] == "noise"
 
 
+def test_scope_budget_mismatch_blocks_broad_low_budget_lead():
+    response = client.post(
+        "/api/v2/scoring",
+        json={
+            "min_budget_usd": 3000,
+            "lead": {
+                "contact": {
+                    "name": "Jaden",
+                    "email": "jaden@example.com",
+                    "company": "Guangzhou Media Project",
+                    "source": "xiaohongshu",
+                },
+                "context": (
+                    "寻找一家新媒体代运营企业。工作量包含公众号、视频号、抖音、小红书、"
+                    "活动海报物料设计、IP设计、产品包装和视觉设计。合同半年，5月敲定供应商。"
+                ),
+                "declared_budget": "费用预算有限，但月预算人民币30000左右，请先附大概报价，价格合适再沟通。",
+                "desired_outcome": "找全渠道代运营和全套设计服务商",
+                "urgency": "5月即可敲定合作供应商",
+                "decision_role": "我负责供应商筛选",
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["budget"]["qualified"] is False
+    assert payload["qualified"] is False
+    assert payload["score"] < 60
+    assert payload["next_action"] == "reject_or_nurture"
+    assert any("Scope-budget mismatch" in reason for reason in payload["reasons"])
+
+
 def test_scrapling_fetch_endpoint_degrades_when_optional_dependency_missing():
     response = client.post(
         "/api/v2/sources/scrapling/fetch",

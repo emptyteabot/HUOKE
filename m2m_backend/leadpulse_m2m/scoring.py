@@ -132,6 +132,63 @@ NEGATIVE_TERMS = (
     "没预算",
 )
 
+SCOPE_EXPANSION_TERMS = (
+    "omnichannel",
+    "full service",
+    "all channels",
+    "content",
+    "video",
+    "design",
+    "branding",
+    "packaging",
+    "social media",
+    "wechat",
+    "tiktok",
+    "instagram",
+    "全渠道",
+    "多平台",
+    "公众号",
+    "视频号",
+    "抖音",
+    "小红书",
+    "代运营",
+    "拍摄",
+    "剪辑",
+    "文案",
+    "图片",
+    "海报",
+    "物料",
+    "平面设计",
+    "活动设计",
+    "ip设计",
+    "ip 设计",
+    "包装",
+    "视觉",
+    "设计工作",
+)
+
+SCOPE_CONTRACTION_TERMS = (
+    "limited budget",
+    "tight budget",
+    "low budget",
+    "cheap",
+    "cost effective",
+    "affordable",
+    "性价比",
+    "预算有限",
+    "费用预算有限",
+    "预算不多",
+    "价格合适",
+    "报价合适",
+    "几百块",
+    "500块",
+    "500 块",
+    "1000元",
+    "1000 元",
+    "低价",
+    "便宜",
+)
+
 
 def _all_text(lead: LeadProfile) -> str:
     parts = [
@@ -153,6 +210,23 @@ def _all_text(lead: LeadProfile) -> str:
 def _contains_any(text: str, terms: Iterable[str]) -> list[str]:
     low = text.lower()
     return [term for term in terms if term.lower() in low]
+
+
+def _scope_budget_mismatch(text: str) -> tuple[bool, list[str], list[str]]:
+    scope_hits = _contains_any(text, SCOPE_EXPANSION_TERMS)
+    contraction_hits = _contains_any(text, SCOPE_CONTRACTION_TERMS)
+    scope_categories = 0
+    low = text.lower()
+    category_terms = (
+        ("content", ("文案", "内容", "content", "笔记")),
+        ("video", ("视频", "拍摄", "剪辑", "video", "tiktok", "抖音", "视频号")),
+        ("design", ("设计", "海报", "物料", "包装", "视觉", "ip设计", "ip 设计", "design", "branding", "packaging")),
+        ("channel", ("公众号", "小红书", "抖音", "视频号", "wechat", "instagram", "social media")),
+    )
+    for _, terms in category_terms:
+        if any(term in low for term in terms):
+            scope_categories += 1
+    return bool(contraction_hits and (len(scope_hits) >= 4 or scope_categories >= 3)), scope_hits, contraction_hits
 
 
 def _currency_from_text(text: str) -> Currency:
@@ -294,6 +368,7 @@ def score_lead(request: ScoringRequest) -> ScoringResult:
     authority_hits = _contains_any(text, AUTHORITY_TERMS)
     urgency_hits = _contains_any(text, URGENCY_TERMS)
     negative_hits = _contains_any(text, NEGATIVE_TERMS)
+    scope_mismatch, scope_hits, contraction_hits = _scope_budget_mismatch(text)
 
     budget_score = 40 if budget.qualified else 0
     if not budget.qualified and budget.evidence.normalized_usd is not None:
@@ -315,6 +390,20 @@ def score_lead(request: ScoringRequest) -> ScoringResult:
         friction=friction,
     )
     score = max(0, min(100, breakdown.total))
+    if scope_mismatch:
+        score = max(0, score - 40)
+        budget = BudgetDecision(
+            threshold_usd=budget.threshold_usd,
+            qualified=False,
+            evidence=BudgetEvidence(
+                raw_text=", ".join([*contraction_hits[:2], *scope_hits[:3]])[:500],
+                amount=budget.evidence.amount,
+                currency=budget.evidence.currency,
+                normalized_usd=budget.evidence.normalized_usd,
+                confidence=max(budget.evidence.confidence, 0.9),
+            ),
+            reason="Scope and budget are misaligned: broad cross-functional service scope appears with budget-constrained language.",
+        )
 
     missing_fields: list[str] = []
     if not budget.qualified and budget.evidence.confidence < 0.9:
@@ -328,8 +417,10 @@ def score_lead(request: ScoringRequest) -> ScoringResult:
     if not request.lead.contact.email and not request.lead.contact.phone:
         missing_fields.append("contact")
 
-    qualified = budget.qualified and score >= 60 and "contact" not in missing_fields
-    if budget.qualified and score >= 55 and missing_fields == ["contact"]:
+    qualified = budget.qualified and score >= 60 and "contact" not in missing_fields and not scope_mismatch
+    if scope_mismatch:
+        next_action = "reject_or_nurture"
+    elif budget.qualified and score >= 55 and missing_fields == ["contact"]:
         next_action = "ask_next_question"
     elif qualified:
         next_action = "show_availability"
@@ -359,6 +450,10 @@ def score_lead(request: ScoringRequest) -> ScoringResult:
         reasons.append(f"Urgency signals: {', '.join(urgency_hits[:3])}.")
     if negative_hits:
         reasons.append(f"Friction signals: {', '.join(negative_hits[:3])}.")
+    if scope_mismatch:
+        reasons.append(
+            "Scope-budget mismatch: broad delivery scope plus budget-constrained language; score reduced by 40 and blocked."
+        )
     if missing_fields:
         reasons.append(f"Missing fields: {', '.join(missing_fields)}.")
 
