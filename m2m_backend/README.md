@@ -37,5 +37,18 @@ uvicorn leadpulse_m2m.main:app --host 127.0.0.1 --port 8008
 - `GET|POST /api/v2/availability`
 - `POST /api/v2/booking`
 - `POST /api/v2/qualify-and-book`
+- `GET /api/v2/sources/providers`
+- `POST /api/v2/sources/feedgrab/ingest`
+- `POST /api/v2/sources/score`
+- `POST /api/v2/sources/scrapling/fetch`
 
 If `LEADPULSE_M2M_API_KEY` is set, POST/REST tool APIs require `Authorization: Bearer <key>`. If it is unset, the gateway is open for external agent routing.
+
+## Public Source Ingestion
+
+Feedgrab and Scrapling are connected as adapters, not vendored into the web service.
+
+- Feedgrab should run as a source worker and POST its Markdown output to `/api/v2/sources/feedgrab/ingest`.
+- Scrapling is optional on worker nodes. Install it with `pip install "scrapling[all]" && scrapling install`, then use `/api/v2/sources/scrapling/fetch` for non-standard pages.
+
+See `../docs/DATA_SOURCE_INGESTION.md` for the exact runbook.

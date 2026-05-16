@@ -380,3 +380,97 @@ def test_xunhupay_callback_redirects_to_pay_return():
     response = client.get("/api/v1/xunhupay/callback", follow_redirects=False)
     assert response.status_code == 302
     assert response.headers["location"] == "https://leadpulseagi.com/pay?payment=return"
+
+
+def test_source_providers_expose_feedgrab_and_scrapling():
+    response = client.get("/api/v2/sources/providers")
+    assert response.status_code == 200
+    providers = response.json()["providers"]
+    assert providers["feedgrab"]["status"] == "ready"
+    assert providers["feedgrab"]["ingest_endpoint"] == "/api/v2/sources/feedgrab/ingest"
+    assert providers["scrapling"]["fetch_endpoint"] == "/api/v2/sources/scrapling/fetch"
+
+
+def test_feedgrab_markdown_ingest_scores_qualified_meeting_signal():
+    markdown = """---
+title: Looking for a SaaS lead generation agency
+source: reddit
+url: https://reddit.example.test/r/SaaS/comments/lead-001
+author: founder_ops
+created_at: 2026-05-16T09:30:00Z
+company: RemoteOps AI
+---
+
+# Looking for a SaaS lead generation agency
+
+I am the founder and decision maker at RemoteOps AI. We need a partner this week
+to build a predictable B2B lead generation pipeline for our outbound team.
+Monthly budget is USD 8500 if the agency can deliver qualified meetings.
+Email me at founder@example.com.
+"""
+
+    response = client.post(
+        "/api/v2/sources/feedgrab/ingest",
+        json={"documents": [{"markdown": markdown}], "min_budget_usd": 3000, "max_results": 5},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["provider"] == "feedgrab"
+    assert payload["received"] == 1
+    assert payload["qualified_signal_count"] == 1
+    assert payload["meeting_ready_count"] == 1
+    result = payload["qualified_meetings"][0]
+    assert result["charge_event"] == "high_value"
+    assert result["scoring"]["qualified"] is True
+    assert result["lead"]["contact"]["email"] == "founder@example.com"
+    assert result["lead"]["contact"]["company"] == "RemoteOps AI"
+
+
+def test_public_source_batch_ranks_high_budget_above_noise():
+    response = client.post(
+        "/api/v2/sources/score",
+        json={
+            "min_budget_usd": 3000,
+            "max_results": 3,
+            "items": [
+                {
+                    "source": "hackernews",
+                    "url": "https://news.example.test/item/1",
+                    "title": "Need enterprise analytics vendor",
+                    "body": (
+                        "Founder here. We need to buy a B2B analytics SaaS this week. "
+                        "Budget USD 12000 and I approve the spend. Email ceo@example.com."
+                    ),
+                },
+                {
+                    "source": "reddit",
+                    "title": "Free tools for student project",
+                    "body": "Student research only, no budget, maybe later.",
+                },
+                {
+                    "source": "twitter",
+                    "title": "Looking for cheap scraper",
+                    "body": "Looking for a free or cheap tool, no budget.",
+                },
+            ],
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["received"] == 3
+    assert payload["qualified_signal_count"] == 1
+    assert payload["results"][0]["item"]["source"] == "hackernews"
+    assert payload["results"][0]["charge_event"] == "high_value"
+    assert payload["results"][1]["charge_event"] == "noise"
+
+
+def test_scrapling_fetch_endpoint_degrades_when_optional_dependency_missing():
+    response = client.post(
+        "/api/v2/sources/scrapling/fetch",
+        json={"url": "https://example.com/thread", "mode": "fetcher", "min_budget_usd": 3000},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["provider"] == "scrapling"
+    assert payload["results"][0]["charge_event"] == "noise"
+    assert "Install with" in payload["results"][0]["item"]["body"]

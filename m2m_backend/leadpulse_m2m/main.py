@@ -31,6 +31,16 @@ from .schemas import (
     ScoringResult,
 )
 from .scoring import score_lead
+from .sources import (
+    FeedgrabIngestRequest,
+    PublicSourceIngestResult,
+    PublicSourceScoreRequest,
+    ScraplingFetchRequest,
+    fetch_with_scrapling,
+    ingest_feedgrab_markdown,
+    provider_status,
+    score_public_source_items,
+)
 from .tools import TOOL_DEFINITIONS, execute_tool
 
 
@@ -85,6 +95,10 @@ def discovery_document() -> dict[str, Any]:
             "billingPackages": _public_url("/api/v2/billing/packages"),
             "billingWallet": _public_url("/api/v2/billing/wallet"),
             "billingOrders": _public_url("/api/v2/billing/orders"),
+            "sourceProviders": _public_url("/api/v2/sources/providers"),
+            "feedgrabIngest": _public_url("/api/v2/sources/feedgrab/ingest"),
+            "publicSourceScoring": _public_url("/api/v2/sources/score"),
+            "scraplingFetch": _public_url("/api/v2/sources/scrapling/fetch"),
             "xunhupayNotify": _public_url("/api/v1/xunhupay/notify"),
             "xunhupayCallback": _public_url("/api/v1/xunhupay/callback"),
         },
@@ -140,6 +154,35 @@ def booking(request: BookingRequest, _: None = Depends(_require_api_key)) -> Boo
 @app.post("/api/v2/qualify-and-book")
 def qualify_and_book(request: QualifyAndBookRequest, _: None = Depends(_require_api_key)) -> dict[str, Any]:
     return execute_tool("leadpulse.qualify_and_book", request.model_dump(mode="json", by_alias=True))
+
+
+@app.get("/api/v2/sources/providers")
+def source_providers(_: None = Depends(_require_api_key)) -> dict[str, Any]:
+    return provider_status().model_dump(mode="json", by_alias=True)
+
+
+@app.post("/api/v2/sources/feedgrab/ingest", response_model=PublicSourceIngestResult)
+def source_feedgrab_ingest(
+    request: FeedgrabIngestRequest,
+    _: None = Depends(_require_api_key),
+) -> PublicSourceIngestResult:
+    return ingest_feedgrab_markdown(request)
+
+
+@app.post("/api/v2/sources/score", response_model=PublicSourceIngestResult)
+def source_score(
+    request: PublicSourceScoreRequest,
+    _: None = Depends(_require_api_key),
+) -> PublicSourceIngestResult:
+    return score_public_source_items(request)
+
+
+@app.post("/api/v2/sources/scrapling/fetch", response_model=PublicSourceIngestResult)
+def source_scrapling_fetch(
+    request: ScraplingFetchRequest,
+    _: None = Depends(_require_api_key),
+) -> PublicSourceIngestResult:
+    return fetch_with_scrapling(request)
 
 
 @app.get("/api/v2/billing/packages")
