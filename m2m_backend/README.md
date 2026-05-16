@@ -57,13 +57,13 @@ Feedgrab and Scrapling are connected as adapters, not vendored into the web serv
 ## Scheduler
 
 - `ops/public_sources/public-source-cron.github-actions.yml` is the GitHub Actions workflow template. Copy it to `.github/workflows/public-source-cron.yml` with a GitHub token that has `workflow` scope.
-- Default jobs track Reddit `SaaS` and `Entrepreneur`.
+- Default jobs track Hacker News RSS search feeds because they are stable without login. X, Reddit, and Xiaohongshu can be added once the worker has usable sessions/cookies.
 - Override jobs with the GitHub secret `LEADPULSE_PUBLIC_SOURCE_JOBS` containing JSON, for example:
 
 ```json
 [
-  {"name": "reddit_saas", "args": ["reddit-sub", "SaaS", "--sort", "new", "--limit", "25"]},
-  {"name": "reddit_entrepreneur", "args": ["reddit-sub", "Entrepreneur", "--sort", "new", "--limit", "25"]}
+  {"name": "hn_lead_generation", "args": ["https://hnrss.org/newest?q=lead%20generation"]},
+  {"name": "hn_sales_ops", "args": ["https://hnrss.org/newest?q=sales%20automation"]}
 ]
 ```
 

@@ -13,12 +13,12 @@ import requests
 
 DEFAULT_JOBS = [
     {
-        "name": "reddit_saas",
-        "args": ["reddit-sub", "SaaS", "--sort", "new", "--limit", "25"],
+        "name": "hn_lead_generation",
+        "args": ["https://hnrss.org/newest?q=lead%20generation"],
     },
     {
-        "name": "reddit_entrepreneur",
-        "args": ["reddit-sub", "Entrepreneur", "--sort", "new", "--limit", "25"],
+        "name": "hn_sales_ops",
+        "args": ["https://hnrss.org/newest?q=sales%20automation"],
     },
 ]
 
@@ -82,6 +82,8 @@ def run_job(
             }
 
         documents = collect_markdown(output_dir)
+        if not documents and completed.stdout.strip():
+            documents = [{"source": "feedgrab", "markdown": completed.stdout.strip()}]
         if not documents:
             return {
                 "name": job["name"],
