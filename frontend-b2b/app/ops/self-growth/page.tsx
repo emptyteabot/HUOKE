@@ -65,7 +65,7 @@ export default async function SelfGrowthPage() {
             LeadPulse 自己给自己找客户
           </h1>
           <p className="mt-4 text-base leading-8 text-[#86868b]">
-            这里不是概念页，而是 LeadPulse 当前真实在跑的目标池、外联队列、内容 backlog 和战报。
+            这里不是概念页，而是 LeadPulse 当前真实在跑的目标池、LLM 风险闸门、外联队列、内容 backlog 和战报。
           </p>
         </div>
 

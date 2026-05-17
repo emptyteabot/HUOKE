@@ -211,7 +211,7 @@ const valueCards = [
     icon: Send,
     title: '按样本交付，不做群发',
     detail:
-      '每条线索保留来源、痛点摘要、意向评分和建议话术。平台触达由真人低频完成，避免粗暴自动化。',
+      '每条线索保留来源、痛点摘要、意向评分和建议话术。每次触达先过 LLM 风险闸门，再由真人低频完成。',
   },
 ];
 
@@ -344,7 +344,11 @@ export default function HomePage() {
             AI 驱动的线索供应商
           </h1>
 
-          <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">
+          <p className="mx-auto mt-5 max-w-3xl text-2xl font-extrabold leading-9 text-slate-950 sm:text-3xl">
+            只交付能跟进的高意向客户。
+          </p>
+
+          <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">
             只盯小红书、抖音、推特和 Reddit。
             <br className="hidden md:block" />
             目标客户：雅思机构、留学中介、跨境电商代运营、出海 B2B、AI 初创、独立开发者和自动化服务团队。

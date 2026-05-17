@@ -107,13 +107,13 @@ export default async function SelfOutreachPage({ searchParams }: { searchParams?
           <div>
             <h1 style={{ margin: 0, fontSize: 30, letterSpacing: 0 }}>LeadPulse Self-Outreach Workbench</h1>
             <p style={{ margin: "10px 0 0", color: "var(--lp-muted)", lineHeight: 1.7 }}>
-              This is not a bulk-sending tool. LeadPulse has done discovery, scoring, evidence capture, and
-              sample-first message drafting.
+              This is not a bulk-sending tool. LeadPulse should find its own customers first, then use live LLM
+              approval before any manual outreach.
               {isCustomers
-                ? " The default queue is LeadPulse selling itself: real operators across multiple industries with visible acquisition, lead quality, appointment, or conversion pain. Open each public source, verify, then manually send."
+                ? " The default queue is LeadPulse selling itself: real operators across multiple industries with visible acquisition, lead quality, appointment, or conversion pain. Open each public source, verify, pass the live copy gate, then manually send."
                 : isDomestic
-                  ? " Domestic platform queue: open the Xiaohongshu, Weibo, or Zhihu source, verify manually, then send inside the platform."
-                  : " Global strict queue: open the original source, verify manually, then send the drafted message yourself."}
+                  ? " Domestic platform queue: open the Xiaohongshu, Weibo, or Zhihu source, verify manually, pass the live copy gate, then send inside the platform."
+                  : " Global strict queue: open the original source, verify manually, pass the live copy gate, then send the drafted message yourself."}
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
               <a className={isCustomers ? "lp-btn" : "lp-btn lp-btn-secondary"} href="/dashboard/self-outreach">
