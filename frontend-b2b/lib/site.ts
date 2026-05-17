@@ -1,7 +1,7 @@
 export const SITE_NAME = 'LeadPulse';
 
 export const SITE_DESCRIPTION =
-  'LeadPulse 是 AI 驱动的线索供应商，优先从小红书和抖音里筛出最新、最痛、能手动跟进的高意向客户。';
+  'LeadPulse 通过 AI 语义网络筛选公开讨论里的高意向商机，只把准备买的人送到销售面前。';
 
 export const SITE_URL = String(process.env.NEXT_PUBLIC_SITE_URL || 'https://leadpulseagi.com').replace(/\/$/, '');
 

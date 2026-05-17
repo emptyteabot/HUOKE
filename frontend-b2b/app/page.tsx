@@ -341,8 +341,12 @@ export default function HomePage() {
 
       <section className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 pb-16 pt-28 text-center sm:px-6 lg:px-8 lg:pb-20 lg:pt-32">
         <div className="lead-fade-up max-w-5xl">
-          <h1 className="text-[3.4rem] font-extrabold leading-[1.04] text-slate-950 sm:text-7xl lg:text-[5.5rem]">
-            我是 AI 驱动的线索供应商，只交付能跟进的高意向客户。
+          <h1 className="text-[2.5rem] font-extrabold leading-[1.06] text-slate-950 sm:text-5xl lg:text-[4rem]">
+            我是
+            <span className="block text-[3.8rem] leading-[0.96] sm:text-7xl lg:text-[6rem]">
+              AI 驱动的线索供应商
+            </span>
+            只交付能跟进的高意向客户。
           </h1>
 
           <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">
