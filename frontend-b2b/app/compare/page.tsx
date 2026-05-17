@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const topCards = [
   {
     title: 'LeadPulse',
-    points: ['只看购买意图', '按结果扣费', '推进到预约和线索池'],
+    points: ['只看购买意图', '按结果扣费', '推进到沟通和线索池'],
     icon: Sparkles,
     badge: '更接近成交',
   },
@@ -44,7 +44,7 @@ const rows = [
   },
   {
     label: '商业闭环',
-    leadpulse: '预算达标后进入预约、充值和线索池。',
+    leadpulse: '预算达标后进入沟通、充值和线索池。',
     manual: '后续动作散落在不同工具里。',
     service: '只承接主动提交的人。',
   },

@@ -1,84 +1,82 @@
 import Link from 'next/link';
-import { MapPin, MessagesSquare, User } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight, CheckCircle2, MessageCircle, ScanLine } from 'lucide-react';
 
-import { BookingRequestForm } from '../../components/booking-request-form';
+import { CopyTextButton } from '../../components/copy-text-button';
 import { SiteFooter } from '../../components/site-footer';
 import { SiteHeader } from '../../components/site-header';
 
-const agenda = ['你的业务是否适合公开平台线索', '优先看哪些平台、关键词和人群', '应该从免费样本、标准包还是代跑服务开始'];
-const prepItems = ['一句话说明你卖什么产品或服务', '最近最想找哪类客户破冰', '现在主要靠什么方式找客户'];
-const outcomes = ['要不要继续使用 LeadPulse', '适合哪种方案对你最划算', '如果开始，第一轮应该从哪里切入'];
+const wechatId = 'chen13398500812';
+
+const sampleScopes = ['雅思机构找学生', '留学中介找申请咨询', '跨境/出海 B2B 找买家', 'AI 初创和独立开发者找早期用户'];
 
 export default function BookPage() {
   return (
     <main className="lead-surface relative min-h-screen overflow-hidden text-slate-950">
       <div className="lead-grid-bg pointer-events-none absolute inset-0" />
-      <SiteHeader ctaHref="/pricing" ctaLabel="查看方案" />
+      <SiteHeader ctaHref="/book" ctaLabel="联系方式" />
 
       <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <div className="max-w-3xl lead-fade-up">
-          <h1 className="text-[2.5rem] font-extrabold leading-[1.1] tracking-tight text-slate-950 md:text-[3.5rem]">
-            先聊 15 分钟，
-            <br />
-            判断<span className="text-gradient">适不适合开始。</span>
-          </h1>
-          <p className="mt-5 text-lg font-light leading-8 text-slate-600">
-            我们会看你的业务、目标客户和当前获客方式，再判断你适合先看样本、充值试跑，还是先做一轮代跑。不浪费彼此时间。
-          </p>
-        </div>
+        <div className="grid items-start gap-10 lg:grid-cols-[1fr_420px]">
+          <div className="lead-fade-up max-w-3xl">
+            <p className="lead-pill">联系方式</p>
+            <h1 className="mt-5 text-[2.7rem] font-extrabold leading-[1.05] tracking-tight text-slate-950 md:text-[4.2rem]">
+              加微信，
+              <br />
+              直接看真实线索样本。
+            </h1>
+            <p className="mt-6 text-lg leading-8 text-slate-600">
+              不用排队，不用填长表单。你发一句自己卖什么、想找哪类客户，我先给你看能不能跑出高意向样本。
+            </p>
 
-        <div className="mt-12 grid items-start gap-12 lg:grid-cols-[1fr_400px]">
-          <BookingRequestForm />
-
-          <div className="flex flex-col gap-5">
-            <div className="lead-glass rounded-[24px] p-6">
-              <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-950">
-                <MessagesSquare className="h-4 w-4 text-slate-500" />
-                这 15 分钟会聊什么
-              </h2>
-              <ul className="space-y-3">
-                {agenda.map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-sm font-light leading-7 text-slate-600">
-                    <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-slate-400" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              {sampleScopes.map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white/75 px-4 py-3 text-sm font-semibold text-slate-700">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                  {item}
+                </div>
+              ))}
             </div>
 
-            <div className="lead-glass rounded-[24px] p-6">
-              <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-950">
-                <User className="h-4 w-4 text-slate-500" />
-                你可以提前想一下
-              </h2>
-              <ul className="space-y-3">
-                {prepItems.map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-sm font-light leading-7 text-slate-600">
-                    <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-slate-400" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="lead-glass rounded-[24px] p-6">
-              <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-950">
-                <MapPin className="h-4 w-4 text-slate-500" />
-                聊完你会更清楚什么
-              </h2>
-              <ul className="space-y-3">
-                {outcomes.map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-sm font-light leading-7 text-slate-600">
-                    <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-slate-400" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/pay?package=standard" className="lead-button lead-button-secondary mt-6 text-sm">
-                直接充值试跑
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <CopyTextButton value={wechatId} label="复制微信号" />
+              <Link href="/pricing" className="lead-button lead-button-secondary text-sm">
+                看方案价格
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
+
+          <aside className="lead-glass rounded-[24px] p-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-950 text-white">
+                <MessageCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-slate-500">微信号</div>
+                <div className="text-2xl font-extrabold tracking-tight text-slate-950">{wechatId}</div>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-950">
+                <ScanLine className="h-4 w-4 text-slate-500" />
+                扫码或复制微信号
+              </div>
+              <Image
+                src="/wechat-contact-chen13398500812.png"
+                alt="微信号 chen13398500812 二维码"
+                width={224}
+                height={224}
+                className="mx-auto mt-4 h-56 w-56 rounded-lg border border-slate-100 bg-white p-2"
+              />
+              <p className="mt-3 text-center text-xs leading-6 text-slate-500">二维码内容是微信号，微信里搜索同样可以添加。</p>
+            </div>
+
+            <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-7 text-amber-900">
+              建议开场直接发：你的行业 + 想找的客户 + 目前最大获客痛点。我会先按小红书、抖音、推特、Reddit 判断样本质量。
+            </div>
+          </aside>
         </div>
       </section>
 

@@ -13,9 +13,9 @@ type Params = Promise<{
 
 const sprintSteps = [
   'Day 1-2：明确 ICP、痛点和价格钩子',
-  'Day 3-5：搭好预约页、支付页和跟进节奏',
+  'Day 3-5：搭好联系方式页、支付页和跟进节奏',
   'Day 6-10：开始跑搜索词、内容和手动触达',
-  'Day 11-14：复盘线索质量、预约转化和付款意向',
+  'Day 11-14：复盘线索质量、回复转化和付款意向',
 ];
 
 export async function generateStaticParams() {
@@ -50,7 +50,7 @@ export default async function ExperimentDetailPage({
       eyebrow="Vertical Test"
       title={experiment.title}
       description={experiment.summary}
-      primaryCta={{ href: '/book', label: '预约诊断' }}
+      primaryCta={{ href: '/book', label: '联系方式' }}
       secondaryCta={{ href: primaryPlan.paymentUrl, label: `开通 ${primaryPlan.name}` }}
     >
       <section className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
@@ -126,13 +126,13 @@ export default async function ExperimentDetailPage({
               <h2 className="text-2xl font-semibold text-slate-950">现在最适合怎么开始</h2>
               <div className="mt-5 space-y-3 text-sm leading-7 text-slate-700">
                 <div className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">
-                  先约 15 分钟，确认你卡在定位、触达、信任还是收款。
+                  先加微信看真实样本，确认你卡在定位、触达、信任还是收款。
                 </div>
                 <div className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">
                   如果你已经能卖，只差系统化，直接开通 {primaryPlan.name} 更快。
                 </div>
                 <div className="interactive-panel rounded-2xl border border-black/5 bg-[#f8f8f4] px-4 py-3">
-                  目标不是做更多功能，而是更快拿到预约、付款意向和回款。
+                  目标不是做更多功能，而是更快拿到回复、付款意向和回款。
                 </div>
               </div>
 
@@ -141,7 +141,7 @@ export default async function ExperimentDetailPage({
                   href="/book"
                   className="interactive-button inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 font-semibold text-slate-900 shadow-sm hover:border-black/15 hover:bg-[#fbfbfb]"
                 >
-                  预约诊断
+                  联系方式
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link

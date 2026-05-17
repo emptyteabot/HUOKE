@@ -72,7 +72,7 @@ export function DesignPartnerForm({ variant = 'embedded' }: Props) {
         throw new Error(payload.error || '提交失败，请稍后再试。');
       }
 
-      setSuccessMessage('已收到。下一步建议先预约 15 分钟诊断；如果你已经确定，也可以直接充值 LP Coin 开始试跑。');
+      setSuccessMessage('已收到。下一步建议先加微信看真实样本；如果你已经确定，也可以直接充值 LP Coin 开始试跑。');
       setSuccessPayload(payload);
       setFormState(initialState);
     } catch (submissionError) {
@@ -165,7 +165,7 @@ export function DesignPartnerForm({ variant = 'embedded' }: Props) {
             className="lead-input lead-textarea"
             value={formState.bottleneck}
             onChange={(event) => updateField('bottleneck', event.target.value)}
-            placeholder="例如：线索主要靠转介绍；销售每天被垃圾链接淹没；内容有流量但没有预约。"
+            placeholder="例如：线索主要靠转介绍；销售每天被垃圾链接淹没；内容有流量但没有回复。"
             required
           />
         </label>
@@ -177,7 +177,7 @@ export function DesignPartnerForm({ variant = 'embedded' }: Props) {
             <p>{successMessage}</p>
             <div className="mt-4 flex flex-wrap gap-3">
               <a className="rounded-full border border-black/10 bg-white px-4 py-2 font-bold text-slate-900" href={bookingUrl}>
-                预约诊断电话
+                联系方式
               </a>
               {paymentUrl ? (
                 <a className="rounded-full border border-black/10 bg-white px-4 py-2 font-bold text-slate-900" href={paymentUrl}>

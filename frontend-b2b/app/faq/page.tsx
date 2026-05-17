@@ -49,8 +49,8 @@ export default function FaqPage() {
       }
       description=""
       typeLine="先看样本，再决定要不要继续。"
-      primaryCta={{ href: '/book', label: '申请免费样本' }}
-      secondaryCta={{ href: '/demo', label: '预约 15 分钟演示' }}
+      primaryCta={{ href: '/book', label: '加微信看样本' }}
+      secondaryCta={{ href: '/demo', label: '看工作流演示' }}
     >
       <section className="mx-auto max-w-3xl px-4 py-4 pb-20 sm:px-6 lg:px-8">
         <div className="space-y-4">
@@ -76,10 +76,10 @@ export default function FaqPage() {
           <p className="mt-2 text-sm text-slate-500">我们随时准备为您解答关于获客工作流的任何问题。</p>
           <div className="mt-6 flex flex-col justify-center gap-4 sm:flex-row">
             <Link href="/book" className="lead-button lead-button-primary text-sm">
-              申请免费样本
+              加微信看样本
             </Link>
             <Link href="/demo" className="lead-button lead-button-secondary text-sm">
-              预约 15 分钟演示
+              看工作流演示
             </Link>
           </div>
         </div>

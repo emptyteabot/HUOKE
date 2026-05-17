@@ -6,7 +6,7 @@ export default function PrivacyPage() {
   return (
     <main className="lead-surface relative min-h-screen overflow-hidden text-slate-950">
       <div className="lead-grid-bg pointer-events-none absolute inset-0" />
-      <SiteHeader ctaHref="/book" ctaLabel="预约诊断" />
+      <SiteHeader ctaHref="/book" ctaLabel="联系方式" />
 
       <section className="relative z-10 mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="max-w-3xl">

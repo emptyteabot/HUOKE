@@ -12,7 +12,7 @@ const navItems = [
   { href: '/faq', label: '常见问题' },
 ];
 
-export function SiteHeader({ ctaHref = '/book', ctaLabel = '预约评估' }: Props) {
+export function SiteHeader({ ctaHref = '/book', ctaLabel = '联系方式' }: Props) {
   return (
     <header className="sticky top-0 z-40 border-b border-white/50 bg-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.03)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -33,7 +33,7 @@ export function SiteHeader({ ctaHref = '/book', ctaLabel = '预约评估' }: Pro
 
         <Link href={ctaHref} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
           <span className="hidden sm:inline">{ctaLabel}</span>
-          <span className="sm:hidden">预约</span>
+          <span className="sm:hidden">联系</span>
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Filter,
   MessageSquareText,
-  Play,
   Send,
   Target,
   X,
@@ -30,27 +29,27 @@ const leadSignals: LeadSignal[] = [
   {
     source: '小红书笔记',
     time: '刚刚',
-    quote: '雅思还差 0.5 分，con offer 卡语言成绩，有没有靠谱一对一老师推荐？最好这周能试听。',
-    analysis: '考试节点、分数缺口和试听时间都明确，适合雅思机构立刻用短期提分方案接球。',
-    stage: '急需报班',
+    quote: '做留学小红书半年，只涨同行粉，资料党每天 99+，但一个试听都成交不了。',
+    analysis: '留学/雅思机构负责人在抱怨线索质量和转化，适合先给近期学生需求样本。',
+    stage: '线索质量痛点',
     score: 94,
-    action: '发提分样本，确认考试日期',
-    tags: ['雅思提分', '本周试听', 'con offer'],
+    action: '发 4 条学生需求样本',
+    tags: ['雅思招生', '资料党', '无成交'],
   },
   {
     source: '抖音评论',
     time: '3 分钟前',
-    quote: '27fall 想申英港，完全不知道怎么选中介，怕被坑，求真实做过的人推荐。',
-    analysis: '典型留学中介早鸟盘，已经从信息浏览进入服务商比较，信任和案例是关键。',
-    stage: '中介比较',
+    quote: '我们雅思工作室最近投流来的学生质量太差，都是问完价格就没下文。',
+    analysis: '明确是机构侧获客痛点，不是普通学生求助，适合 LeadPulse 试单。',
+    stage: '投流浪费',
     score: 91,
-    action: '发相近背景案例和避坑清单',
-    tags: ['27fall', '英港申请', '求推荐'],
+    action: '给问价/试听线索样本',
+    tags: ['雅思机构', '投流无效', '价格党'],
   },
   {
     source: '小红书评论',
     time: '7 分钟前',
-    quote: '我们做工业设备出口，展会回来一堆名片没转化，LinkedIn 也没效果，海外客户到底去哪找？',
+    quote: '我们做工业设备出口，展会回来一堆名片没转化，LinkedIn 也没效果。',
     analysis: '高客单制造业出海痛点清晰，问题已经落到询盘质量和渠道有效性。',
     stage: '海外获客瓶颈',
     score: 88,
@@ -60,32 +59,32 @@ const leadSignals: LeadSignal[] = [
   {
     source: '抖音视频评论',
     time: '12 分钟前',
-    quote: '独立站投了两个月广告没单，想找懂 TikTok Shop 和红人营销的代运营，预算可以谈。',
-    analysis: '明确找服务商，且预算开放，适合跨境代运营先给案例和诊断样本。',
-    stage: '找代运营',
+    quote: '跨境代运营客户越来越难找，客户总问有没有海外品牌主线索，自己找太慢。',
+    analysis: '出海服务商的线索供给痛点明确，适合展示 Reddit / X 高意向样本。',
+    stage: '交付压力',
     score: 85,
-    action: '发投放诊断和案例',
-    tags: ['跨境电商', '预算可谈', '代运营'],
+    action: '发海外买家 JSON 样本',
+    tags: ['跨境代运营', '品牌主线索', '交付压力'],
   },
   {
-    source: '小红书评论',
+    source: '推特帖子',
     time: '1 分钟前',
-    quote: '我们雅思工作室最近投流来的学生质量太差，都是问完价格就没下文，有没有更精准的招生方式？',
-    analysis: '不是泛泛谈增长，而是在抱怨线索质量和价格党，正好匹配线索供应服务。',
-    stage: '结果导向',
+    quote: 'AI agent 做出来了，但 Product Hunt 和内容都没起量，前 50 个真实用户到底去哪找？',
+    analysis: 'AI 初创/独立开发者典型冷启动痛点，需要能立刻私信的高意向早期用户。',
+    stage: '冷启动',
     score: 90,
-    action: '先给样本，再讲结果',
-    tags: ['雅思招生', '线索质量差', '投流无效'],
+    action: '发相近场景用户样本',
+    tags: ['AI 初创', '早期用户', '冷启动'],
   },
   {
-    source: '抖音评论',
+    source: 'Reddit 帖子',
     time: '5 分钟前',
-    quote: '做留学顾问今年小红书咨询量明显少了，有没有能找到正在问中介的学生的方法？',
-    analysis: '供给方直接表达获客痛点，是 LeadPulse 自用触达的目标客户。',
-    stage: '试单',
+    quote: 'I built a micro SaaS, but every lead from cold email is either a founder or a tire kicker.',
+    analysis: '独立开发者正在抱怨线索质量，明确需要更准的购买意图过滤。',
+    stage: '无效线索',
     score: 87,
-    action: '发 3 条近期学生需求样本',
-    tags: ['留学顾问', '找学生', '咨询量少'],
+    action: '发 Reddit buyer intent 样本',
+    tags: ['独立开发者', 'micro SaaS', 'tire kicker'],
   },
   {
     source: '小红书笔记',
@@ -100,52 +99,52 @@ const leadSignals: LeadSignal[] = [
   {
     source: '小红书评论',
     time: '14 分钟前',
-    quote: '跨境代运营有没有靠谱团队？想先看案例，别上来就让交年费。',
-    analysis: '已经进入服务商比较，且明确要案例，适合先用样本而不是硬报价。',
-    stage: '询价',
+    quote: '今年小红书咨询量明显少了，想知道怎么找到正在问中介的学生。',
+    analysis: '留学顾问直接表达获客下滑，适合先发近期英港申请需求样本。',
+    stage: '获客下滑',
     score: 86,
-    action: '先给起步方案和样本',
-    tags: ['跨境代运营', '要案例', '服务商比较'],
+    action: '发 3 条公开需求帖',
+    tags: ['留学顾问', '找学生', '小红书咨询少'],
   },
   {
-    source: '抖音评论',
+    source: '推特帖子',
     time: '2 分钟前',
-    quote: '雅思口语 5.5 卡了三次，想找老师带练，预算 1w 内，有推荐吗？',
-    analysis: '先看样本再决定，说明只差确认质量，推进速度会很快。',
-    stage: '预算明确',
+    quote: 'Our AI workflow tool has traffic, but we cannot tell which visitors are actually ready to buy.',
+    analysis: 'AI 工具团队有线索筛选和销售优先级痛点，适合切入意图评分。',
+    stage: '转化判断',
     score: 89,
-    action: '确认目标分和考试日期',
-    tags: ['雅思口语', '预算明确', '求推荐'],
+    action: '发意图评分样本',
+    tags: ['AI 工具', '转化差', '意图评分'],
   },
   {
-    source: '小红书留言',
+    source: 'Reddit 评论',
     time: '6 分钟前',
-    quote: '我们做欧美红人营销，客户总问有没有高意向品牌主线索，自己找太慢了。',
-    analysis: '这是线索供应商的直接买家，痛点不是获客理论，而是高意向品牌主供给。',
-    stage: '结果确认',
+    quote: 'Looking for founders who need a no-code automation agency, but LinkedIn scraping lists are garbage.',
+    analysis: '自动化服务商在抱怨名单质量，适合用公开需求语义过滤替代泛名单。',
+    stage: '名单失效',
     score: 92,
-    action: '给结果样本和交付边界',
-    tags: ['出海服务商', '品牌主线索', '交付压力'],
+    action: '发高意向帖子样本',
+    tags: ['自动化服务商', 'LinkedIn 名单差', 'founder lead'],
   },
   {
     source: '抖音评论',
     time: '10 分钟前',
     quote: '有没有能监控同行评论区的方案？主要想找正在问雅思班价格、问推荐的人。',
-    analysis: '问题非常聚焦，目标就是抓正在比较的人，属于清晰的工具采购需求。',
+    analysis: '问题非常聚焦，目标就是抓正在比较的人，属于清晰工具采购需求。',
     stage: '工具采购',
     score: 83,
     action: '讲监控范围和样本质量',
     tags: ['评论区', '雅思招生', '问推荐'],
   },
   {
-    source: '小红书评论',
+    source: '推特帖子',
     time: '16 分钟前',
-    quote: '老板让这个月开始做出海获客，想先拿一批海外采购需求样本看质量，有做过的吗？',
-    analysis: '先样本后判断，标准试单心态，后续很容易推进到正式合作。',
-    stage: '试单前',
+    quote: 'We need 20 qualified design partners for our AI devtool, not newsletter subscribers.',
+    analysis: 'AI 开发工具团队明确要设计伙伴，排斥泛订阅用户，意图强。',
+    stage: '设计伙伴',
     score: 84,
-    action: '先给一批真实样本',
-    tags: ['出海获客', '看质量', '试单前'],
+    action: '发高意向开发者样本',
+    tags: ['AI devtool', 'design partner', '独立开发者'],
   },
 ];
 
@@ -158,7 +157,7 @@ const signalColumns = [
 const workflow = [
   {
     title: '扫最新内容',
-    detail: '优先扫描小红书和抖音，按时间排序抓最近还在疼的需求。',
+    detail: '只盯小红书、抖音、推特和 Reddit，按时间排序抓最近还在疼的需求。',
   },
   {
     title: '过滤噪音',
@@ -166,7 +165,7 @@ const workflow = [
   },
   {
     title: '标记赛道',
-    detail: '区分雅思招生、留学中介、跨境代运营、外贸制造出海等高客单方向。',
+    detail: '区分雅思招生、留学中介、跨境代运营、外贸制造出海、AI 初创和独立开发者。',
   },
   {
     title: '交付线索',
@@ -185,7 +184,7 @@ const painCards = [
     icon: BellRing,
     label: '困境 2',
     title: '昂贵的沟通成本',
-    detail: '雅思、留学、跨境和外贸团队都在为无效沟通买单，真正愿意付费的人被埋在评论区里。',
+    detail: '雅思、留学、跨境、外贸、AI 初创和独立开发者都在为无效沟通买单。',
   },
   {
     icon: X,
@@ -333,7 +332,7 @@ export default function HomePage() {
             href="/book"
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
           >
-            预约评估
+            联系方式
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -341,18 +340,14 @@ export default function HomePage() {
 
       <section className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 pb-16 pt-28 text-center sm:px-6 lg:px-8 lg:pb-20 lg:pt-32">
         <div className="lead-fade-up max-w-5xl">
-          <h1 className="text-[2.5rem] font-extrabold leading-[1.06] text-slate-950 sm:text-5xl lg:text-[4rem]">
-            我是
-            <span className="block text-[3.8rem] leading-[0.96] sm:text-7xl lg:text-[6rem]">
-              AI 驱动的线索供应商
-            </span>
-            只交付能跟进的高意向客户。
+          <h1 className="text-[3.9rem] font-extrabold leading-[0.94] text-slate-950 sm:text-7xl lg:text-[6.6rem]">
+            AI 驱动的线索供应商
           </h1>
 
           <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">
-            现在只盯小红书和抖音。
+            只盯小红书、抖音、推特和 Reddit。
             <br className="hidden md:block" />
-            LeadPulse 优先帮雅思机构、留学中介、跨境电商代运营和高端出海 B2B 团队，筛出最新、最痛、最值得人工私信的客户。
+            目标客户：雅思机构、留学中介、跨境电商代运营、出海 B2B、AI 初创、独立开发者和自动化服务团队。
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -360,23 +355,22 @@ export default function HomePage() {
               href="/book"
               className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-7 text-base font-semibold text-white shadow-[0_16px_40px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
             >
-              申请免费样本
+              加微信看样本
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/demo"
+              href="/product"
               className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/78 px-6 text-base font-semibold text-slate-800 shadow-sm transition hover:bg-white sm:w-auto"
             >
-              <Play className="h-4 w-4" />
-              查看工作流演示
+              看工作流
             </Link>
           </div>
         </div>
 
         <div className="lead-fade-up mt-12 w-full max-w-6xl text-left">
           <div className="mb-5 text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.24em] text-rose-500">China Social Intent</div>
-            <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">小红书和抖音里的三类现金痛点</h2>
+            <div className="text-xs font-bold uppercase tracking-[0.24em] text-rose-500">Social Buyer Intent</div>
+            <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">四个平台里的三类现金痛点</h2>
           </div>
           <div className="grid gap-4 lg:grid-cols-3">
             {painCards.map((card) => {
@@ -402,7 +396,7 @@ export default function HomePage() {
             <div className="flex flex-col gap-3 border-b border-slate-200/80 bg-white/55 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
               <div>
                 <div className="text-sm font-semibold text-slate-950">最新高意向内容流</div>
-                <div className="mt-1 text-xs text-slate-500">只看小红书和抖音里近期还在疼的公开需求</div>
+                <div className="mt-1 text-xs text-slate-500">只看小红书、抖音、推特和 Reddit 里近期还在疼的公开需求</div>
               </div>
               <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />

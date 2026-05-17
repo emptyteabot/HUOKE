@@ -15,14 +15,15 @@ import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
   title: '产品工作流',
-  description: 'LeadPulse 从小红书和抖音识别最新高痛点需求，并整理成销售能手动跟进的线索。',
+  description: 'LeadPulse 从小红书、抖音、推特和 Reddit 识别最新高痛点需求，并整理成销售能手动跟进的线索。',
 };
 
 const sources = [
   { icon: MessageSquare, name: '小红书笔记' },
   { icon: MessagesSquare, name: '小红书评论区' },
   { icon: Rss, name: '抖音短视频评论' },
-  { icon: Globe, name: '抖音企业号主页' },
+  { icon: Globe, name: '推特实时搜索' },
+  { icon: Rss, name: 'Reddit 讨论区' },
 ];
 
 const capabilities = [
@@ -152,9 +153,9 @@ export default function ProductPage() {
           <span className="text-gradient">最新还在喊痛</span>的客户。
         </>
       }
-      description="LeadPulse 持续扫描小红书和抖音，把问价格、求推荐、找老师、找中介、找代运营、抱怨线索质量等购买信号，整理成销售团队可以直接判断和跟进的线索。"
-      typeLine="优先服务雅思招生、留学中介、跨境代运营和高端出海 B2B 团队。"
-      primaryCta={{ href: '/book', label: '申请免费样本' }}
+      description="LeadPulse 持续扫描小红书、抖音、推特和 Reddit，把问价格、求推荐、找服务商、抱怨线索质量等购买信号，整理成销售团队可以直接判断和跟进的线索。"
+      typeLine="优先服务雅思机构、留学中介、跨境代运营、出海 B2B、AI 初创和独立开发者。"
+      primaryCta={{ href: '/book', label: '加微信看样本' }}
       secondaryCta={{ href: '/demo', label: '查看只读演示' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -314,7 +315,7 @@ export default function ProductPage() {
 
         <div className="mt-14 flex flex-col justify-center gap-4 text-center sm:flex-row">
           <Link href="/book" className="lead-button lead-button-primary">
-            申请免费样本
+            加微信看样本
           </Link>
           <Link href="/demo" className="lead-button lead-button-secondary">
             查看只读演示

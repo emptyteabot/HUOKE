@@ -16,7 +16,7 @@
 ## 页面结构
 
 - `/`：设计伙伴销售页
-- `/book`：预约页
+- `/book`：联系方式页
 - `/pay`：付款页
 - `/experiments`：实验页列表
 - `/experiments/[slug]`：垂直测试页

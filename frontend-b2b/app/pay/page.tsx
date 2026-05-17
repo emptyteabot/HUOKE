@@ -26,7 +26,7 @@ export default async function PayPage({ searchParams }: { searchParams: SearchPa
   return (
     <main className="lead-surface relative min-h-screen overflow-hidden text-slate-950">
       <div className="lead-grid-bg pointer-events-none absolute inset-0" />
-      <SiteHeader ctaHref="/book" ctaLabel="先预约判断" />
+      <SiteHeader ctaHref="/book" ctaLabel="联系方式" />
 
       <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-4xl text-center lead-fade-up">

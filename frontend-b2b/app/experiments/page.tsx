@@ -14,7 +14,7 @@ export default async function ExperimentsPage() {
       eyebrow="实验页"
       title="实验页只服务一件事：验证真实需求。"
       description={`关键词池里已经整理了 ${keywordUniverse.total_keywords} 个候选词。先看公开讨论里的需求密度，再决定是否投入充值包放量。`}
-      primaryCta={{ href: '/book', label: '预约诊断' }}
+      primaryCta={{ href: '/book', label: '联系方式' }}
       secondaryCta={{ href: '/pricing', label: '查看充值包' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">

@@ -24,7 +24,7 @@ export function MarketingPageShell({
   title,
   description,
   typeLine = '先看样本，再决定要不要继续。',
-  primaryCta = { href: '/book', label: '申请免费样本' },
+  primaryCta = { href: '/book', label: '加微信看样本' },
   secondaryCta = { href: '/demo', label: '查看工作流演示' },
   children,
 }: Props) {

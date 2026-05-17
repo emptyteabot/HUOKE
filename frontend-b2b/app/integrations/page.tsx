@@ -41,7 +41,7 @@ const workflowCards = [
   },
   {
     title: '成交层',
-    detail: '预约、充值、交付和复盘持续挂在同一条线索路径上。',
+    detail: '沟通、充值、交付和复盘持续挂在同一条线索路径上。',
   },
   {
     title: '人工层',
@@ -56,7 +56,7 @@ export default function IntegrationsPage() {
       title="集成的目的不是堆 Logo，而是把线索推向成交。"
       description="LeadPulse 的集成逻辑很简单：发现商机后，立刻把结构化结果、原文链接和下一步动作送到你的团队或系统。"
       typeLine="能自动推送的自动推送，需要人工判断的明确交给人。"
-      primaryCta={{ href: '/book', label: '预约集成评估' }}
+      primaryCta={{ href: '/book', label: '联系方式' }}
       secondaryCta={{ href: '/pricing', label: '查看充值包' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -125,7 +125,7 @@ export default function IntegrationsPage() {
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href="/book" className="lead-button lead-button-primary">
-                预约集成评估
+                联系方式
               </Link>
               <Link href="/pay?package=standard" className="lead-button lead-button-secondary">
                 直接充值试跑
