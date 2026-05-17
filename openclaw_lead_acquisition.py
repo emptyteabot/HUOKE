@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/env python3
 """
-OpenClaw-first lead acquisition for study-abroad vertical.
+OpenClaw-first lead acquisition for China social lead supply.
 
 Hybrid strategy:
 - Script layer: keyword scheduling, scoring, dedup, storage
@@ -30,11 +30,23 @@ from urllib.parse import quote, urljoin
 ANSI_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 DEFAULT_KEYWORDS = [
-    "留学中介推荐",
-    "英国留学申请",
-    "美国研究生申请",
-    "留学文书求助",
-    "留学预算费用",
+    "雅思培训 求推荐",
+    "雅思班 哪家好",
+    "雅思 一对一",
+    "留学中介 推荐",
+    "英国留学 申请",
+    "留学文书 求助",
+    "26fall 补录",
+    "27fall 留学规划",
+    "跨境电商 代运营",
+    "TikTok Shop 代运营",
+    "独立站 代运营",
+    "海外红人营销",
+    "出海获客",
+    "海外客户 开发",
+    "外贸询盘 质量差",
+    "B2B出海 获客",
+    "制造业 出海 获客",
 ]
 
 STUDY_HINTS = (
@@ -60,6 +72,18 @@ STUDY_HINTS = (
     "硕士",
     "本科",
     "offer",
+    "雅思培训",
+    "语言班",
+    "招生",
+    "获客",
+    "线索",
+    "出海",
+    "跨境",
+    "外贸",
+    "制造业",
+    "询盘",
+    "代运营",
+    "海外客户",
 )
 
 INTENT_HINTS = (
@@ -95,15 +119,20 @@ BUYER_HINTS = (
     "被拒",
     "转学",
     "申诉",
+    "找客户",
+    "找学生",
+    "找服务商",
+    "线索质量差",
+    "询盘质量差",
+    "预算可以谈",
+    "要案例",
 )
 
 AGENCY_HINTS = (
     "机构",
-    "官方",
     "顾问",
     "咨询",
     "工作室",
-    "团队",
     "教育",
     "老师",
     "学长",
@@ -448,7 +477,7 @@ def has_buyer_signal(content: str) -> bool:
     study_hits = sum(1 for h in STUDY_HINTS if h in t or h in t_low)
     buyer_hits = sum(1 for h in BUYER_HINTS if h in t)
     question_like = any(x in t for x in ("?", "？", "请问", "有没有", "怎么", "如何"))
-    first_person = any(x in t for x in ("我", "本人", "孩子", "女儿", "儿子"))
+    first_person = any(x in t for x in ("我", "我们", "本人", "孩子", "女儿", "儿子", "公司", "团队"))
 
     if study_hits >= 1 and (buyer_hits >= 1 or question_like):
         return True
@@ -1201,7 +1230,7 @@ def dedupe_leads(leads: Iterable[Lead]) -> List[Lead]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="OpenClaw-first social lead acquisition")
-    parser.add_argument("--platforms", default="xhs", help="Comma list: xhs,weibo,zhihu")
+    parser.add_argument("--platforms", default="xhs,douyin", help="Comma list: xhs,douyin,weibo,zhihu")
     parser.add_argument("--keywords", default=",".join(DEFAULT_KEYWORDS), help="Comma-separated keywords")
     parser.add_argument("--xhs-sort-mode", default="both", help="XHS sort: latest|hot|both")
     parser.add_argument("--max-posts-per-keyword", type=int, default=6)

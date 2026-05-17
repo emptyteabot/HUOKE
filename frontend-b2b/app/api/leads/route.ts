@@ -70,6 +70,7 @@ type LeadsPayload = {
     only_target: boolean;
     exclude_competitors: boolean;
     llm_max_rows: number;
+    channels: string[];
   };
   summary: {
     total_rows: number;
@@ -98,7 +99,8 @@ type SupabaseLoadResult =
   | { status: "not_configured"; reason: string }
   | { status: "failed"; reason: string };
 
-const DEFAULT_VERTICAL = "study_abroad";
+const DEFAULT_VERTICAL = "china_social_b2b";
+const DEFAULT_CHANNELS = ["xhs", "douyin"];
 const LEAD_ROWS_CACHE_TTL_MS = 30_000;
 const leadRowsCache = new Map<string, { loaded_at: number; result: LeadRowsLoadResult }>();
 
@@ -121,6 +123,28 @@ function clamp(n: number, min: number, max: number): number {
 function normalizeVertical(vertical: string): string {
   const key = String(vertical || "").trim().toLowerCase();
   return key || DEFAULT_VERTICAL;
+}
+
+function parsePlatformList(raw: string | null | undefined, fallback = DEFAULT_CHANNELS): string[] {
+  const aliases: Record<string, string> = {
+    "小红书": "xhs",
+    xiaohongshu: "xhs",
+    "抖音": "douyin",
+  };
+  const values = String(raw || "")
+    .split(",")
+    .map((item) => aliases[item.trim().toLowerCase()] || item.trim().toLowerCase())
+    .filter(Boolean);
+  const uniq = Array.from(new Set(values));
+  return uniq.length ? uniq : fallback;
+}
+
+function isFreshEnough(collectedAt: string): boolean {
+  const raw = String(collectedAt || "").trim();
+  if (!raw) return true;
+  const ts = Date.parse(raw);
+  if (!Number.isFinite(ts)) return true;
+  return Date.now() - ts <= 45 * 24 * 60 * 60 * 1000;
 }
 
 function md5_16(text: string): string {
@@ -202,6 +226,10 @@ function dedupeRows(rows: RawLeadCandidate[]): RawLeadCandidate[] {
   }
 
   return out;
+}
+
+function sortCandidates(rows: RawLeadCandidate[]): RawLeadCandidate[] {
+  return [...rows].sort((a, b) => String(b.collected_at || "").localeCompare(String(a.collected_at || "")));
 }
 
 function parseNoteMeta(notes: string): Record<string, string> {
@@ -506,10 +534,15 @@ export async function buildPayload(
     excludeCompetitors: boolean;
     vertical: string;
     llmMaxRows?: number;
+    channels?: string[];
   },
 ): Promise<LeadsPayload> {
   const llmMaxRows = clamp(params.llmMaxRows || params.limit, 1, 500);
-  const candidateRows = rows.slice(0, llmMaxRows);
+  const channels = params.channels?.length ? params.channels : DEFAULT_CHANNELS;
+  const scopedRows = sortCandidates(
+    rows.filter((row) => channels.includes(String(row.platform || "").toLowerCase()) && isFreshEnough(row.collected_at)),
+  );
+  const candidateRows = scopedRows.slice(0, llmMaxRows);
   const scored = (await scoreLeadIntentBatchWithLlm(
     candidateRows.map((row) => ({
       ...row,
@@ -528,7 +561,7 @@ export async function buildPayload(
     return String(b.collected_at || "").localeCompare(String(a.collected_at || ""));
   }).slice(0, Math.max(1, params.limit));
 
-  const summary = summarize(scored, rows.length);
+  const summary = summarize(scored, scopedRows.length);
   summary.filtered_rows = filtered.length;
 
   return {
@@ -540,6 +573,7 @@ export async function buildPayload(
       only_target: params.onlyTarget,
       exclude_competitors: params.excludeCompetitors,
       llm_max_rows: llmMaxRows,
+      channels,
     },
     summary,
     llm_provider: llmProviderSummary(),
@@ -629,6 +663,7 @@ export async function GET(req: NextRequest) {
   const excludeCompetitors = parseBool(url.searchParams.get("excludeCompetitors"), true);
   const llmMaxRows = clamp(parseIntSafe(url.searchParams.get("llmMaxRows"), limit), limit, 500);
   const vertical = normalizeVertical((url.searchParams.get("vertical") || DEFAULT_VERTICAL).trim());
+  const channels = parsePlatformList(url.searchParams.get("channels") || url.searchParams.get("platforms"), DEFAULT_CHANNELS);
 
   const userId = url.searchParams.get("userId") || undefined;
   const localWallet = getWalletFromRequest(req, userId);
@@ -668,6 +703,7 @@ export async function GET(req: NextRequest) {
     excludeCompetitors,
     vertical,
     llmMaxRows,
+    channels,
   });
 
   const rows = payload.rows.map((row) => {
@@ -732,6 +768,7 @@ export async function POST(req: Request) {
       excludeCompetitors: false,
       vertical: DEFAULT_VERTICAL,
       llmMaxRows: rows.length,
+      channels: DEFAULT_CHANNELS,
     });
 
     return NextResponse.json({

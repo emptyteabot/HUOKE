@@ -2,7 +2,7 @@
 import hashlib
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, List
 
@@ -31,6 +31,19 @@ def _contains_any(text: str, terms: List[str]) -> bool:
     return any(str(term).lower() in text for term in terms)
 
 
+def _is_fresh_enough(value: str, max_days: int = 45) -> bool:
+    raw = str(value or "").strip()
+    if not raw:
+        return True
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except Exception:
+        return True
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - dt.astimezone(timezone.utc) <= timedelta(days=max_days)
+
+
 def _score_intent(text: str, intent_terms: List[str]) -> Dict:
     t = str(text or "").lower()
     hit = sum(1 for x in intent_terms if str(x).lower() in t)
@@ -49,7 +62,7 @@ def _score_intent(text: str, intent_terms: List[str]) -> Dict:
     return {"level": "low", "bonus": 0, "hit": hit, "urgent": urgent, "question": question}
 
 
-def _is_competitor(author: str, text: str, competitor_terms: List[str]) -> bool:
+def _is_competitor(author: str, text: str, competitor_terms: List[str], allow_provider_authors: bool = False) -> bool:
     author_l = str(author or "").strip().lower()
     text_l = str(text or "").lower()
 
@@ -58,7 +71,7 @@ def _is_competitor(author: str, text: str, competitor_terms: List[str]) -> bool:
         return True
 
     institutional_author_hints = ["中介", "机构", "顾问", "工作室", "教育", "老师", "官方", "播报", "留学服务", "留学咨询", "留学攻略", "留学干货"]
-    if _contains_any(author_l, institutional_author_hints):
+    if not allow_provider_authors and _contains_any(author_l, institutional_author_hints):
         return True
 
     demand_terms = ["求推荐", "求助", "请问", "有没有", "哪家", "想找", "怎么选", "预算", "费用", "急", "避雷"]
@@ -70,7 +83,9 @@ def _is_competitor(author: str, text: str, competitor_terms: List[str]) -> bool:
     self_promo_like = _contains_any(text_l, self_promo_terms)
     sales_hits = sum(1 for x in direct_sell_terms if x in text_l)
 
-    if self_promo_like or sales_hits >= 2:
+    if not allow_provider_authors and (self_promo_like or sales_hits >= 2):
+        return True
+    if allow_provider_authors and self_promo_like and not _contains_any(text_l, ["获客", "招生", "线索", "询盘", "转化", "投放", "客户", "咨询量"]):
         return True
 
     if sales_hits >= 1 and not demand_like:
@@ -113,6 +128,8 @@ def build_payload(project_root: Path, limit: int, min_score: int, only_target: b
 
     vk = normalize_vertical_key(vertical)
     pb = get_vertical_playbook(vk)
+    default_platforms = [str(x).strip().lower() for x in pb.get("default_platforms", ["xhs", "douyin"]) if str(x).strip()]
+    allow_provider_authors = bool(pb.get("allow_provider_authors", False))
 
     rows = _normalize_source_rows(project_root)
 
@@ -131,15 +148,14 @@ def build_payload(project_root: Path, limit: int, min_score: int, only_target: b
         source_file = str(row.get("source_file", "") or "").strip()
         if len(content) < 8:
             continue
+        if default_platforms and platform not in default_platforms:
+            continue
+        if not _is_fresh_enough(collected_at):
+            continue
 
         text_blob = f"{author} {keyword} {content}"
         competitor_terms = [str(x).strip() for x in pb.get("competitor_keywords", []) if str(x).strip()]
-        competitor = _is_competitor(author, text_blob, competitor_terms)
-        if vk == "study_abroad" and platform != "xhs":
-            demand_like = _contains_any(text_blob, ["求推荐", "求助", "请问", "有没有", "哪家", "预算", "费用", "避雷", "怎么选"])
-            first_person = _contains_any(text_blob, ["我", "本人", "孩子", "女儿", "儿子", "同学"])
-            if not (demand_like and first_person):
-                competitor = True
+        competitor = _is_competitor(author, text_blob, competitor_terms, allow_provider_authors=allow_provider_authors)
 
         intent_terms = [str(x).strip() for x in (pb.get("intent_keywords", []) + pb.get("reach_keywords", [])) if str(x).strip()]
         intent_sig = _score_intent(text_blob, intent_terms)
@@ -149,15 +165,14 @@ def build_payload(project_root: Path, limit: int, min_score: int, only_target: b
 
         dm_ready = False
         author_url_l = author_url.lower()
-        if author_url and ("/user/profile/" in author_url_l or "xiaohongshu.com/user" in author_url_l):
+        if author_url and ("/user/profile/" in author_url_l or "xiaohongshu.com/user" in author_url_l or "douyin.com/user" in author_url_l):
             dm_ready = True
-        if vk == "study_abroad" and platform != "xhs" and not dm_ready:
-            competitor = True
 
         base = _to_int(row.get("score"), 0)
         calibrated_base = min(85, max(35, 30 + int(base * 2.2)))
         demand_bonus = 14 if _contains_any(text_blob, ["求推荐", "求助", "请问", "有没有", "哪家", "想找", "怎么选", "预算", "费用", "急", "避雷"]) else (6 if intent_sig["question"] else 0)
-        score = calibrated_base + int(intent_sig["bonus"]) + demand_bonus + (8 if dm_ready else 0) - (18 if competitor else 0)
+        freshness_bonus = 8 if collected_at and _is_fresh_enough(collected_at, max_days=3) else 0
+        score = calibrated_base + int(intent_sig["bonus"]) + demand_bonus + freshness_bonus + (8 if dm_ready else 0) - (18 if competitor else 0)
         score = max(0, min(100, int(score)))
 
         canonical_post_url = post_url.split("#", 1)[0].split("?", 1)[0]
@@ -240,7 +255,7 @@ def main():
     parser.add_argument("--min-score", type=int, default=0)
     parser.add_argument("--only-target", type=int, default=0)
     parser.add_argument("--exclude-competitors", type=int, default=1)
-    parser.add_argument("--vertical", default="study_abroad")
+    parser.add_argument("--vertical", default="china_social_b2b")
     args = parser.parse_args()
 
     payload = build_payload(
@@ -249,7 +264,7 @@ def main():
         min_score=max(0, int(args.min_score)),
         only_target=bool(int(args.only_target)),
         exclude_competitors=bool(int(args.exclude_competitors)),
-        vertical=str(args.vertical or "study_abroad"),
+        vertical=str(args.vertical or "china_social_b2b"),
     )
 
     out_path = Path(args.output).resolve()

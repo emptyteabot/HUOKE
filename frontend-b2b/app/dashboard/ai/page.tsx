@@ -33,8 +33,8 @@ export default function AIPage() {
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [loadingLeads, setLoadingLeads] = useState(true);
   const [selectedId, setSelectedId] = useState("");
-  const [angle, setAngle] = useState("时间线风险");
-  const [cta, setCta] = useState("回复“评估”，我给你10分钟判断方案");
+  const [angle, setAngle] = useState("线索质量");
+  const [cta, setCta] = useState("回复“样本”，我先发 3 条近期高意向线索");
   const [draft, setDraft] = useState<DraftPayload | null>(null);
   const [genLoading, setGenLoading] = useState(false);
 
@@ -53,6 +53,8 @@ export default function AIPage() {
           minScore: "60",
           onlyTarget: "1",
           excludeCompetitors: "1",
+          vertical: "china_social_b2b",
+          channels: "xhs,douyin",
           userId,
         });
         const res = await fetch(`/api/leads?${qs.toString()}`, { cache: "no-store" });
@@ -132,11 +134,11 @@ export default function AIPage() {
         <label style={{ display: "block", marginBottom: 10 }}>
           <div style={{ fontSize: 12, color: "var(--lp-muted)", marginBottom: 6 }}>痛点角度</div>
           <select className="lp-select" value={angle} onChange={(e) => setAngle(e.target.value)}>
-            <option>时间线风险</option>
+            <option>线索质量</option>
             <option>预算匹配</option>
-            <option>选校决策</option>
-            <option>文书质量</option>
-            <option>签证不确定性</option>
+            <option>时间线紧迫</option>
+            <option>服务商比较</option>
+            <option>转化成本</option>
           </select>
         </label>
 

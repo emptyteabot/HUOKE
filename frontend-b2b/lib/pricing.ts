@@ -44,7 +44,7 @@ export const PRICING_CEILING_NOTE =
   '国内 B 端不爱为软件订阅付费，但愿意为确定性线索充值。LeadPulse 只卖 LP Coin，不卖月费幻觉。';
 
 export const TARGET_AUDIENCE_ONE_LINER =
-  '适合已经有明确客单价、需要从公开讨论里筛出采购意向，并希望先小额验证再放量的服务团队、销售团队和工作室。';
+  '适合雅思机构、留学中介、跨境电商代运营、高端出海 B2B 团队这类有明确客单价、愿意为高意向线索付费的服务商。';
 
 export const CREDITS_POLICY_CARDS: PolicyCard[] = [
   {
@@ -114,8 +114,8 @@ const CREDIT_PACKAGES: CreditPackage[] = [
     credits: 550,
     bonusCredits: 51,
     requiresPayment: true,
-    description: '适合持续筛线索，把高意向结果推给销售或飞书。',
-    bestFor: '微型团队、外包工作室、每周稳定跑一批线索。',
+    description: '适合持续筛小红书/抖音线索，把高意向结果交给销售或创始人手动跟进。',
+    bestFor: '雅思机构、留学中介、跨境代运营，每周稳定跑一批最新线索。',
     ctaLabel: '充值 550 LP Coin',
     paymentUrl: '/pay?package=standard',
     highlight: true,
@@ -128,8 +128,8 @@ const CREDIT_PACKAGES: CreditPackage[] = [
     credits: 2500,
     bonusCredits: 501,
     requiresPayment: true,
-    description: '高频调用和多渠道筛选使用，适合把线索池作为销售前置系统。',
-    bestFor: '外包团队、B2B 销售团队、需要每天稳定回收线索的业务。',
+    description: '高频调用和双平台筛选使用，适合把线索池作为销售前置系统。',
+    bestFor: '出海 B2B 团队、重销售服务商、需要每天稳定回收最新痛点线索的业务。',
     ctaLabel: '充值 2500 LP Coin',
     paymentUrl: '/pay?package=enterprise',
   },

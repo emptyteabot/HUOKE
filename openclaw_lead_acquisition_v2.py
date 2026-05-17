@@ -503,6 +503,8 @@ def leads_from_post(
                 funnel_stage = str(fr.stage or funnel_stage)
                 funnel_reason = str(fr.reason or "")
                 suggested_reply = str(fr.suggested_reply or "")
+                if getattr(fr, "route", ""):
+                    funnel_reason = f"{funnel_reason}|route={fr.route}"
             except Exception:
                 pass
 
@@ -829,11 +831,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="OpenClaw social acquisition v2")
     parser.add_argument(
         "--platforms",
-        default="xhs,douyin,kuaishou,channels,tiktok,bilibili,weibo,zhihu,tieba",
+        default="xhs,douyin",
         help="Comma list: xhs,douyin,kuaishou,channels,tiktok,bilibili,weibo,zhihu,tieba,reddit,x,linkedin",
     )
     parser.add_argument("--keywords", default=",".join(DEFAULT_KEYWORDS), help="Comma-separated keywords")
-    parser.add_argument("--xhs-sort-mode", default="both", help="XHS sort: latest|hot|both")
+    parser.add_argument("--xhs-sort-mode", default="latest", help="XHS sort: latest|hot|both")
     parser.add_argument("--max-posts-per-keyword", type=int, default=6)
     parser.add_argument("--max-comments-per-post", type=int, default=24)
     parser.add_argument("--profile-checks-per-post", type=int, default=1)
@@ -886,7 +888,7 @@ def main() -> int:
 
     funnel_engine = None
     if args.enable_funnel_agent and LeadFunnelEngine is not None:
-        funnel_engine = LeadFunnelEngine(vertical="study_abroad", knowledge_dir=args.knowledge_dir)
+        funnel_engine = LeadFunnelEngine(vertical="china_social_b2b", knowledge_dir=args.knowledge_dir)
 
     try:
         browser.start()

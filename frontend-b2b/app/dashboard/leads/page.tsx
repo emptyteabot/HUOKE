@@ -62,6 +62,8 @@ type SavedView = {
 
 const SAVED_VIEWS_KEY = "leadpulse_saved_views_v1";
 const FILTER_STATE_KEY = "leadpulse_filter_state_v1";
+const DEFAULT_VERTICAL = "china_social_b2b";
+const DEFAULT_CHANNELS = "xhs,douyin";
 
 const quickPresets: Array<Omit<SavedView, "id"> & { description: string }> = [
   {
@@ -143,6 +145,8 @@ export default function LeadsPage() {
     q.set("excludeCompetitors", excludeCompetitors ? "1" : "0");
     q.set("limit", String(limit));
     q.set("userId", userId);
+    q.set("vertical", DEFAULT_VERTICAL);
+    q.set("channels", DEFAULT_CHANNELS);
     if (walletToken) q.set("walletToken", walletToken);
     return q.toString();
   }, [excludeCompetitors, limit, minScore, onlyTarget, userId, walletToken]);
@@ -211,7 +215,8 @@ export default function LeadsPage() {
           limit,
           onlyTarget,
           excludeCompetitors,
-          vertical: "study_abroad",
+          vertical: DEFAULT_VERTICAL,
+          channels: DEFAULT_CHANNELS,
           walletToken,
         }),
       });

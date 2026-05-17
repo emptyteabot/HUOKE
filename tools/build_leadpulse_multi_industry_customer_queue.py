@@ -637,11 +637,45 @@ def days_old(row: dict[str, str]) -> int | None:
     return (datetime.now(timezone.utc) - date.astimezone(timezone.utc)).days
 
 
+FRESHNESS_HARD_LIMIT_DAYS = 45
+FRESHNESS_RESCUE_LIMIT_DAYS = 14
+TODAY_CONTACT_LIMIT = 30
+
+
+def freshness_score(row: dict[str, str]) -> int:
+    age = days_old(row)
+    if age is None:
+        return 0
+    if age <= 3:
+        return 40
+    if age <= 7:
+        return 34
+    if age <= 14:
+        return 28
+    if age <= 21:
+        return 20
+    if age <= 30:
+        return 12
+    if age <= 45:
+        return 4
+    return -24
+
+
 def row_text(row: dict[str, str]) -> str:
     return " ".join(
         clean_display(row.get(key, ""))
         for key in ("title", "evidence")
     )
+
+
+def pain_score(row: dict[str, str]) -> int:
+    text = row_text(row).lower()
+    score = hit_count(STRONG_PATTERNS, text) * 12 + hit_count(INTENT_PATTERNS, text) * 8
+    if re.search(r"\b(struggling|stuck|hard time|desperate|urgent|need help|not converting|zero replies|no replies)\b", text):
+        score += 18
+    if re.search(r"\b(how do i|get more|need more|looking for|trying to find)\b", text):
+        score += 10
+    return min(score, 100)
 
 
 def normalize_industry(row: dict[str, str]) -> str:
@@ -702,21 +736,18 @@ def score_row(row: dict[str, str]) -> int:
     text = row_text(row)
     score = int(float(row.get("quality_score") or 0))
     if match:
-        score += 30
+        score += 8
     score += min(24, hit_count(STRONG_PATTERNS, text) * 6)
     score += min(12, hit_count(OPERATOR_PATTERNS, text) * 4)
     if row.get("quality_tier") == "A":
         score += 8
     if row.get("source", "").startswith("existing_"):
         score += 8
+    score += freshness_score(row)
+    score += min(30, pain_score(row) // 3)
     age = days_old(row)
-    if age is not None:
-        if age <= 60:
-            score += 8
-        elif age <= 180:
-            score += 4
-        elif age > 395 and not row.get("source", "").startswith("existing_"):
-            score -= 18
+    if age is not None and age > 395 and not row.get("source", "").startswith("existing_"):
+        score -= 18
     if has_any(EXCLUDE_PATTERNS, text):
         score -= 24
     if hit_count(INTENT_PATTERNS, text) < 1:
@@ -744,7 +775,7 @@ def age_bucket_score(row: dict[str, str]) -> int:
 def rank_key(row: dict[str, str]) -> tuple[int, int, int]:
     match = reviewed_match(row)
     review_rank = -(match[0] if match else 9999)
-    return (age_bucket_score(row), score_row(row), review_rank)
+    return (freshness_score(row), pain_score(row), score_row(row), review_rank)
 
 
 def is_candidate(row: dict[str, str]) -> bool:
@@ -754,10 +785,7 @@ def is_candidate(row: dict[str, str]) -> bool:
         return False
     if row.get("source") == "github_repo":
         return False
-    match = reviewed_match(row)
     text = row_text(row)
-    if match:
-        return True
     if int(float(row.get("quality_score") or 0)) < 85:
         return False
     if has_any(EXCLUDE_PATTERNS, text):
@@ -771,7 +799,9 @@ def is_candidate(row: dict[str, str]) -> bool:
     if not is_buyer_context(row):
         return False
     age = days_old(row)
-    if age is not None and age > 395 and row.get("source") != "existing_live_targets":
+    if age is None or age > FRESHNESS_HARD_LIMIT_DAYS:
+        return False
+    if pain_score(row) < 20:
         return False
     return True
 
@@ -795,7 +825,9 @@ def is_rescue_candidate(row: dict[str, str]) -> bool:
     if not is_buyer_context(row):
         return False
     age = days_old(row)
-    if age is not None and age > 550 and row.get("source") != "existing_live_targets":
+    if age is None or age > FRESHNESS_RESCUE_LIMIT_DAYS:
+        return False
+    if pain_score(row) < 40:
         return False
     return True
 
@@ -818,7 +850,7 @@ def load_rows() -> list[dict[str, str]]:
 
 
 def select_rows(rows: list[dict[str, str]], limit: int = 120) -> list[dict[str, str]]:
-    candidates = [row for row in rows if reviewed_match(row) is not None]
+    candidates = [row for row in rows if is_candidate(row) or is_rescue_candidate(row)]
     candidates.sort(key=rank_key, reverse=True)
 
     selected: list[dict[str, str]] = []
@@ -946,19 +978,19 @@ def main() -> int:
     if not INPUT.exists():
         raise SystemExit(f"missing input: {INPUT}")
     source_rows = load_rows()
-    candidate_rows = [row for row in source_rows if reviewed_match(row) is not None]
+    candidate_rows = [row for row in source_rows if is_candidate(row) or is_rescue_candidate(row)]
     selected = select_rows(source_rows)
     output = render_rows(selected)
 
     write_csv(OUT_CSV, output)
-    write_csv(TODAY_CSV, output[:30])
+    write_csv(TODAY_CSV, output[:TODAY_CONTACT_LIMIT])
     write_md(OUT_MD, output, len(source_rows), len(candidate_rows))
     write_frontend_json(FRONTEND_JSON, output, len(source_rows), len(candidate_rows))
 
     print(f"source_rows={len(source_rows)}")
     print(f"candidate_rows={len(candidate_rows)}")
     print(f"queue_rows={len(output)}")
-    print(f"today_rows={min(30, len(output))}")
+    print(f"today_rows={min(TODAY_CONTACT_LIMIT, len(output))}")
     print(f"wrote={OUT_CSV.relative_to(PROJECT_ROOT)}")
     print(f"wrote={TODAY_CSV.relative_to(PROJECT_ROOT)}")
     print(f"wrote={OUT_MD.relative_to(PROJECT_ROOT)}")

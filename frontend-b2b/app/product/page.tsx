@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import {
-  CheckCircle2,
+  ArrowRight,
   Cpu,
   Filter,
   Globe,
@@ -8,164 +9,135 @@ import {
   MessageSquare,
   MessagesSquare,
   Rss,
-  Send,
-  Target,
-  Twitter,
 } from 'lucide-react';
 
 import { MarketingPageShell } from '../../components/marketing-page-shell';
 
 export const metadata: Metadata = {
-  title: '产品',
-  description: 'LeadPulse 把公开讨论里的采购信号先筛出来，再把能直接跟进的样本交给销售。',
+  title: '产品工作流',
+  description: 'LeadPulse 从小红书和抖音识别最新高痛点需求，并整理成销售能手动跟进的线索。',
 };
 
-type LeadRow = {
-  source: string;
-  company: string;
-  signal: string;
-  analysis: string;
-  score: number;
-  stage: string;
-  owner: string;
-};
-
-const sourcePills = [
-  { icon: Twitter, name: 'X / Twitter' },
-  { icon: MessagesSquare, name: 'Reddit 讨论区' },
-  { icon: Rss, name: '行业论坛' },
-  { icon: MessageSquare, name: '小红书 / 评论区' },
+const sources = [
+  { icon: MessageSquare, name: '小红书笔记' },
+  { icon: MessagesSquare, name: '小红书评论区' },
+  { icon: Rss, name: '抖音短视频评论' },
+  { icon: Globe, name: '抖音企业号主页' },
 ];
 
-const flowCards = [
+const capabilities = [
   {
-    icon: Rss,
-    step: '1',
-    title: '原始讨论流',
-    detail: '先看公开讨论里谁在问报价、找方案、找代运营，再决定要不要继续看下去。',
+    icon: Cpu,
+    title: 'Manifest 意图路由引擎',
+    detail: '抛弃古典关键词计分法。系统先判断内容复杂度和场景具体度，再决定走快速、均衡或深度判定，避免把雅思报班、留学中介、出海询盘和代运营需求混成一类。',
   },
   {
     icon: Filter,
-    step: '2',
-    title: 'AI 动态打分',
-    detail: '抛弃关键词硬匹配，改成长上下文理解。预算、权限、紧迫度都要一起看。',
+    title: '长上下文预算解析',
+    detail: '抛弃脆弱的关键词匹配，强制使用长上下文大模型（如 DeepSeek）深度解析客户输入，识别“只问问”和“准备采购”的差别。',
   },
   {
-    icon: CheckCircle2,
-    step: '3',
-    title: '合格会议',
-    detail: '通过预算和意图校验后，才进入可约时间和发现电话，不浪费销售时间。',
+    icon: Globe,
+    title: '高净值线索防火墙',
+    detail: '低预算、泛收藏、纯攻略和同行软广先被拦截，只有近期还在问推荐、问价格、找服务商的人进入销售视野。',
+  },
+  {
+    icon: LayoutDashboard,
+    title: '结构化交付工作台',
+    detail: '每条通过防火墙的线索都保留来源、上下文、预算判断、阶段和安全私信草稿，销售不用再从一堆链接里猜。',
   },
 ];
 
-const leadRows: LeadRow[] = [
+const dashboardLeads = [
   {
-    source: 'Reddit / r/SaaS',
-    company: 'RemoteOps AI',
-    signal: 'We need a partner that can qualify intent before any sales call.',
-    analysis: '对方明确在找“先筛选意图”的合作方，属于典型采购前信号。',
-    score: 96,
-    stage: '预算核对',
-    owner: 'B2B SaaS',
+    source: '小红书笔记',
+    company: '雅思 6.0 卡分学生',
+    signal: '提到 con offer 卡语言成绩，雅思还差 0.5 分，想找一对一老师本周试听。',
+    analysis: '时间线紧、目标分明确、已有试听动作，适合雅思机构立刻承接。',
+    score: 94,
+    stage: '急需报班',
+    owner: '雅思招生',
   },
   {
     source: '小红书评论',
-    company: '杭州独立站品牌',
-    signal: '有没有能先看样本，再决定要不要约时间的人？',
-    analysis: '先看样本、再决定，说明已经到了评估工具和服务的阶段。',
-    score: 93,
-    stage: '样本评估',
-    owner: '跨境电商',
-  },
-  {
-    source: '知乎问答',
-    company: '广州工厂官网',
-    signal: '我们现在最缺的是能快速判断预算和意图的办法。',
-    analysis: '预算和意图同时出现，说明问题已经从“有没有线索”变成“筛选质量”。',
+    company: '27Fall 英港申请学生',
+    signal: '询问“留学中介怎么选，怕被坑，求真实做过的人推荐”。',
+    analysis: '早鸟阶段开始比较机构，信任和相近背景案例能直接推进。',
     score: 91,
-    stage: '方案比较',
-    owner: '工厂外贸',
+    stage: '中介比较',
+    owner: '留学中介',
   },
   {
-    source: '行业论坛',
-    company: '宁波汽配出口',
-    signal: '想找一个能直接看出客户是不是准备买的人。',
-    analysis: '对关键词方案已经不满意，正在找更接近成交的判断方式。',
-    score: 94,
-    stage: '替换方案',
-    owner: '外贸团队',
+    source: '抖音评论',
+    company: '口语 5.5 三战学生',
+    signal: '公开说“口语卡了三次，预算 1w 内，求老师带练”。',
+    analysis: '预算、科目和痛点同时出现，属于高意向招生线索。',
+    score: 88,
+    stage: '预算明确',
+    owner: '雅思顾问',
   },
   {
-    source: 'X / Twitter',
-    company: 'Brooklyn Agency',
-    signal: 'Looking for a lead gen partner that can deliver qualified meetings.',
-    analysis: '要的是合格会议，不是名单堆积，属于高质量服务需求。',
-    score: 95,
-    stage: '会议质量',
-    owner: 'Agency',
-  },
-  {
-    source: '微信群留言',
-    company: '上海增长团队',
-    signal: '老板要的是能直接推进成交的线索，不是再来一堆表格。',
-    analysis: '团队已经在用成交结果反推工具需求，采购链路在变短。',
+    source: '小红书笔记',
+    company: '宁波工业设备出口商',
+    signal: '抱怨“展会名片没转化，LinkedIn 没效果，海外客户到底去哪找”。',
+    analysis: '高客单制造业出海痛点清晰，适合交付海外买家意图样本。',
     score: 90,
-    stage: '结果导向',
-    owner: '增长团队',
+    stage: '海外获客瓶颈',
+    owner: '出海 B2B',
   },
   {
-    source: 'Reddit / r/Entrepreneur',
-    company: 'Austin Startup',
-    signal: 'We have budget. We just need real buyers.',
-    analysis: '预算存在，问题变成找真实买家，适合直接推进样本和报价。',
-    score: 92,
-    stage: '真实买家',
-    owner: 'Startup',
+    source: '抖音短视频评论',
+    company: '深圳跨境卖家',
+    signal: '说独立站投广告两个月没单，想找 TikTok Shop 和红人营销代运营。',
+    analysis: '主动找服务商且预算开放，先给投放诊断样本，避免硬报价。',
+    score: 84,
+    stage: '服务商比较',
+    owner: '跨境代运营',
   },
   {
-    source: 'Facebook Group',
-    company: 'Miami Ecommerce',
-    signal: 'Anyone know a team that can qualify leads instead of dumping names?',
-    analysis: '对“名单”本身不感兴趣，说明已经在看筛选结果。',
+    source: '小红书评论',
+    company: '雅思工作室负责人',
+    signal: '抱怨投流来的学生质量差，都是问完价格就没下文，想找更精准的招生方式。',
+    analysis: '这是 LeadPulse 的直接买家，痛点在客资质量和投放浪费。',
     score: 89,
-    stage: '筛选',
-    owner: 'DTC',
+    stage: '线索质量痛点',
+    owner: 'LeadPulse 自用',
   },
   {
-    source: '公众号留言',
-    company: '深圳教育机构',
-    signal: '可以先给我看两条能直接跟进的样本吗？',
-    analysis: '对样本有明确要求，已经进入评估阶段，不是泛泛咨询。',
+    source: '抖音评论',
+    company: '留学顾问个人号',
+    signal: '提到今年小红书咨询量明显少了，想知道怎么找到正在问中介的学生。',
+    analysis: '明确需要学生线索，适合先发 3 条近期留学需求样本。',
+    score: 86,
+    stage: '获客下滑',
+    owner: 'LeadPulse 自用',
+  },
+  {
+    source: '小红书笔记',
+    company: '青岛机械出口团队',
+    signal: '问“海外询盘能不能自动分辨真假客户，销售跟太多垃圾询盘”。',
+    analysis: '预算未明但痛点强烈，先用公开样本证明意图识别能力。',
+    score: 82,
+    stage: '痛点确认',
+    owner: '外贸获客',
+  },
+  {
+    source: '抖音评论',
+    company: '跨境红人营销服务商',
+    signal: '说客户总问有没有高意向品牌主线索，自己找太慢了。',
+    analysis: '这是出海服务商的线索供给痛点，适合展示英文平台买家 JSON 样本。',
     score: 87,
-    stage: '样本确认',
-    owner: '教育团队',
+    stage: '交付压力',
+    owner: 'LeadPulse 自用',
   },
   {
-    source: '行业社群',
-    company: '青岛机械出口',
-    signal: '我们想要能写进日历的客户，不想再看噪音。',
-    analysis: '目标说得很直白，已经在寻找能直接落地的高意向线索。',
-    score: 95,
-    stage: '结果交付',
-    owner: '外贸销售',
-  },
-];
-
-const capabilityCards = [
-  {
-    icon: Filter,
-    title: '剔除噪音',
-    detail: '把水军、软文、闲聊和低预算内容先挡掉，只留和采购有关的内容。',
-  },
-  {
-    icon: Target,
-    title: '看懂意图',
-    detail: '自动判断求推荐、找代运营、寻报价这些真实交易信号，并标记阶段。',
-  },
-  {
-    icon: Send,
-    title: '推给销售',
-    detail: '结果可以直接进企业微信、飞书或 CRM，原文和判断一起送到销售面前。',
+    source: '小红书评论',
+    company: '深圳 3C 配件卖家',
+    signal: '询问“有没有能监控同行评论区，找到正在问价格的人”的方案。',
+    analysis: '需求高度贴合 LeadPulse，适合直接给评论区线索截图样本。',
+    score: 92,
+    stage: '强匹配',
+    owner: '客户成功',
   },
 ];
 
@@ -173,11 +145,17 @@ export default function ProductPage() {
   return (
     <MarketingPageShell
       eyebrow="工作流"
-      title="把公开讨论里正在表态的客户，筛成销售能直接跟进的线索。"
-      description="LeadPulse 持续看留言区、评论区、论坛和社群，把谁在找方案、找报价、找代运营先分出来。"
-      typeLine="我们不爬数据，我们提取真相。"
+      title={
+        <>
+          小红书和抖音里，藏着
+          <br />
+          <span className="text-gradient">最新还在喊痛</span>的客户。
+        </>
+      }
+      description="LeadPulse 持续扫描小红书和抖音，把问价格、求推荐、找老师、找中介、找代运营、抱怨线索质量等购买信号，整理成销售团队可以直接判断和跟进的线索。"
+      typeLine="优先服务雅思招生、留学中介、跨境代运营和高端出海 B2B 团队。"
       primaryCta={{ href: '/book', label: '申请免费样本' }}
-      secondaryCta={{ href: '/demo', label: '查看工作流演示' }}
+      secondaryCta={{ href: '/demo', label: '查看只读演示' }}
     >
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="lead-glass rounded-[24px] border border-white/80 p-6 shadow-xl shadow-slate-200/20 md:p-8">
@@ -188,7 +166,7 @@ export default function ProductPage() {
                 原始讨论流
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {sourcePills.map((item) => {
+                {sources.map((item) => {
                   const Icon = item.icon;
                   return (
                     <div key={item.name} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white/65 p-3 shadow-sm">
@@ -200,44 +178,41 @@ export default function ProductPage() {
               </div>
             </div>
 
-            <div className="hidden h-8 w-8 shrink-0 rounded-full border border-slate-200 bg-white text-center leading-8 text-slate-300 lg:block">
-              →
-            </div>
+            <ArrowRight className="hidden h-8 w-8 shrink-0 text-slate-300 lg:block" />
 
             <div className="group relative flex-1">
               <div className="absolute inset-0 -m-4 rounded-[24px] bg-blue-500/5 opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
               <div className="relative mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-blue-500">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs text-blue-700">2</span>
-                AI 动态打分
+                Manifest 意图路由引擎
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3">
-                    <span className="flex items-center gap-2 text-xs text-slate-600">
-                      <Cpu className="h-3.5 w-3.5 text-blue-500" />
-                      长上下文理解
+              <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+                <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-blue-500/20 blur-2xl" />
+                <div className="relative z-10 space-y-4">
+                  <div className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                    <span className="flex items-center gap-2 text-xs text-slate-300">
+                      <Cpu className="h-3.5 w-3.5 text-blue-400" />
+                      复杂度路由
                     </span>
-                    <span className="font-mono text-xs text-slate-500">预算 / 意图 / 权限</span>
+                    <span className="font-mono text-xs text-green-400">fast / balanced / deep</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3">
-                    <span className="flex items-center gap-2 text-xs text-slate-600">
-                      <Globe className="h-3.5 w-3.5 text-emerald-500" />
-                      噪音过滤
+                  <div className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                    <span className="flex items-center gap-2 text-xs text-slate-300">
+                      <Filter className="h-3.5 w-3.5 text-purple-400" />
+                      具体度判定
                     </span>
-                    <span className="font-mono text-xs text-slate-500">只留高意向内容</span>
+                    <span className="font-mono text-xs text-red-400">低痛点拦截</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="hidden h-8 w-8 shrink-0 rounded-full border border-slate-200 bg-white text-center leading-8 text-slate-300 lg:block">
-              →
-            </div>
+            <ArrowRight className="hidden h-8 w-8 shrink-0 text-slate-300 lg:block" />
 
             <div className="flex-1">
               <div className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-400">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-600">3</span>
-                合格会议
+                人工跟进
               </div>
               <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
                 <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
@@ -245,7 +220,7 @@ export default function ProductPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex h-10 items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="h-2 w-2 rounded-full bg-green-500" />
                     <span className="h-2 w-24 rounded bg-slate-200" />
                   </div>
                   <div className="flex h-10 items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3">
@@ -254,7 +229,7 @@ export default function ProductPage() {
                   </div>
                 </div>
                 <div className="mt-3 flex justify-end">
-                  <span className="rounded-md bg-slate-950 px-3 py-1.5 text-[10px] font-medium text-white">写入日历</span>
+                  <span className="rounded-md bg-slate-950 px-3 py-1.5 text-[10px] font-medium text-white">交付样本</span>
                 </div>
               </div>
             </div>
@@ -266,10 +241,10 @@ export default function ProductPage() {
         <div className="lead-glass overflow-hidden rounded-lg border border-white/80 shadow-xl shadow-slate-200/20">
           <div className="flex flex-col gap-4 border-b border-slate-200/80 bg-white/65 px-5 py-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="lead-pill w-fit">只读样本</div>
-              <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950 md:text-3xl">10 条脱敏样本</h2>
+              <div className="lead-pill w-fit">只读工作台截图</div>
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950 md:text-3xl">10 条中国社媒高意向线索样本</h2>
               <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
-                每一条都保留来源、信号、AI 判断、阶段和负责人，方便销售直接看见要不要跟。
+                这里展示客户付费后实际看到的线索结构：来源、脱敏对象、原始需求、AI 判断、阶段、评分和负责人。
               </p>
             </div>
             <div className="grid grid-cols-3 gap-3 text-center text-sm">
@@ -278,82 +253,43 @@ export default function ProductPage() {
                 <div className="text-xs text-slate-500">脱敏样本</div>
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="text-2xl font-extrabold text-slate-950">91</div>
-                <div className="text-xs text-slate-500">平均分</div>
+                <div className="text-2xl font-extrabold text-slate-950">88</div>
+                <div className="text-xs text-slate-500">平均评分</div>
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="text-2xl font-extrabold text-slate-950">6</div>
-                <div className="text-xs text-slate-500">可直约</div>
+                <div className="text-2xl font-extrabold text-slate-950">7</div>
+                <div className="text-xs text-slate-500">可手动触达</div>
               </div>
             </div>
           </div>
 
-          <div className="border-b border-slate-200/70 bg-slate-50/55 p-4 md:hidden">
-            <div className="grid gap-3">
-              {leadRows.map((lead) => (
-                <article key={`${lead.source}-${lead.company}`} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-xs font-semibold text-slate-500">{lead.source}</div>
-                      <div className="mt-1 text-base font-bold text-slate-950">{lead.company}</div>
-                    </div>
-                    <span className="rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700">
-                      {lead.score}
-                    </span>
-                  </div>
-
-                  <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-3">
-                    <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400">购买信号</div>
-                    <p className="mt-2 text-sm leading-7 text-slate-700">{lead.signal}</p>
-                  </div>
-
-                  <div className="mt-3 rounded-md border border-slate-200 bg-white px-3 py-3">
-                    <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400">AI 分析</div>
-                    <p className="mt-2 text-sm leading-7 text-slate-700">{lead.analysis}</p>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-semibold text-slate-700">
-                      {lead.stage}
-                    </span>
-                    <span>{lead.owner}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <div className="hidden overflow-x-auto bg-slate-50/55 p-4 md:block">
-            <table className="lp-table min-w-[1080px]">
+          <div className="overflow-x-auto bg-slate-50/55 p-4">
+            <table className="min-w-[1080px] border-separate border-spacing-y-3 text-left text-sm">
               <thead>
-                <tr>
-                  <th>来源</th>
-                  <th>对象</th>
-                  <th>购买信号</th>
-                  <th>AI 判断</th>
-                  <th>阶段</th>
-                  <th>评分</th>
-                  <th>负责人</th>
+                <tr className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                  <th className="px-4">来源</th>
+                  <th className="px-4">脱敏对象</th>
+                  <th className="px-4">购买信号</th>
+                  <th className="px-4">AI 判断</th>
+                  <th className="px-4">阶段</th>
+                  <th className="px-4">评分</th>
+                  <th className="px-4">负责人</th>
                 </tr>
               </thead>
               <tbody>
-                {leadRows.map((lead) => (
+                {dashboardLeads.map((lead) => (
                   <tr key={`${lead.source}-${lead.company}`} className="align-top">
-                    <td className="font-semibold text-slate-700">{lead.source}</td>
-                    <td className="font-bold text-slate-950">{lead.company}</td>
-                    <td className="max-w-[270px] leading-7 text-slate-700">{lead.signal}</td>
-                    <td className="max-w-[300px] leading-7 text-slate-600">{lead.analysis}</td>
-                    <td>
-                      <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                        {lead.stage}
-                      </span>
+                    <td className="rounded-l-lg border-y border-l border-slate-200 bg-white px-4 py-4 font-semibold text-slate-700">{lead.source}</td>
+                    <td className="border-y border-slate-200 bg-white px-4 py-4 font-bold text-slate-950">{lead.company}</td>
+                    <td className="max-w-[270px] border-y border-slate-200 bg-white px-4 py-4 leading-7 text-slate-700">{lead.signal}</td>
+                    <td className="max-w-[300px] border-y border-slate-200 bg-white px-4 py-4 leading-7 text-slate-600">{lead.analysis}</td>
+                    <td className="border-y border-slate-200 bg-white px-4 py-4">
+                      <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{lead.stage}</span>
                     </td>
-                    <td>
-                      <span className="rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700">
-                        {lead.score}
-                      </span>
+                    <td className="border-y border-slate-200 bg-white px-4 py-4">
+                      <span className="rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700">{lead.score}</span>
                     </td>
-                    <td className="font-semibold text-slate-700">{lead.owner}</td>
+                    <td className="rounded-r-lg border-y border-r border-slate-200 bg-white px-4 py-4 font-semibold text-slate-700">{lead.owner}</td>
                   </tr>
                 ))}
               </tbody>
@@ -363,8 +299,8 @@ export default function ProductPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-6 md:grid-cols-3">
-          {capabilityCards.map((item) => {
+        <div className="grid gap-6 md:grid-cols-2">
+          {capabilities.map((item) => {
             const Icon = item.icon;
             return (
               <article key={item.title} className="lead-glass rounded-[24px] p-8">
@@ -374,6 +310,15 @@ export default function ProductPage() {
               </article>
             );
           })}
+        </div>
+
+        <div className="mt-14 flex flex-col justify-center gap-4 text-center sm:flex-row">
+          <Link href="/book" className="lead-button lead-button-primary">
+            申请免费样本
+          </Link>
+          <Link href="/demo" className="lead-button lead-button-secondary">
+            查看只读演示
+          </Link>
         </div>
       </section>
     </MarketingPageShell>

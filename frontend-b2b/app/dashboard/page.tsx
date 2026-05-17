@@ -58,6 +58,8 @@ export default function DashboardPage() {
           minScore: "65",
           onlyTarget: "1",
           excludeCompetitors: "1",
+          vertical: "china_social_b2b",
+          channels: "xhs,douyin",
           userId,
         });
         const res = await fetch(`/api/leads?${qs.toString()}`, {

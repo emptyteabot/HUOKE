@@ -4,7 +4,7 @@ Run OpenClaw acquisition every 12h (default), then generate reports and sync.
 
 Usage:
   python tools/openclaw_halfday_scheduler.py --loop
-  python tools/openclaw_halfday_scheduler.py --once --platforms xhs --xhs-sort-mode both
+  python tools/openclaw_halfday_scheduler.py --once --platforms xhs,douyin --xhs-sort-mode latest
 """
 
 from __future__ import annotations
@@ -23,28 +23,28 @@ from typing import Dict, List, Optional
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_HEARTBEAT_PATH = PROJECT_ROOT / "data" / "openclaw" / "openclaw_scheduler_heartbeat.json"
 
-DEFAULT_PLATFORMS = "xhs"
+DEFAULT_PLATFORMS = "xhs,douyin"
 DEFAULT_KEYWORDS = [
-    "求职",
-    "简历优化",
-    "面试准备",
-    "内推",
-    "找工作",
-    "招聘信息",
-    "实习投递",
-    "跳槽机会",
-    "秋招",
-    "春招",
-    "社招",
-    "转行求职",
-    "产品经理求职",
-    "前端求职",
-    "数据分析求职",
-    "运营求职",
-    "远程工作",
-    "海外远程工作",
-    "实习内推",
-    "校招内推",
+    "雅思培训 求推荐",
+    "雅思班 哪家好",
+    "雅思 一对一",
+    "雅思 口语 提分",
+    "雅思 写作 救命",
+    "留学中介 推荐",
+    "英国留学 申请",
+    "留学文书 求助",
+    "26fall 补录",
+    "27fall 留学规划",
+    "语言班 申请",
+    "跨境电商 代运营",
+    "TikTok Shop 代运营",
+    "独立站 代运营",
+    "海外红人营销",
+    "出海获客",
+    "海外客户 开发",
+    "外贸询盘 质量差",
+    "B2B出海 获客",
+    "制造业 出海 获客",
 ]
 
 
@@ -270,7 +270,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="OpenClaw half-day scheduler")
     parser.add_argument("--platforms", default=DEFAULT_PLATFORMS)
     parser.add_argument("--keywords", default="")
-    parser.add_argument("--xhs-sort-mode", default="both", choices=["latest", "hot", "both"])
+    parser.add_argument("--xhs-sort-mode", default="latest", choices=["latest", "hot", "both"])
     parser.add_argument("--max-posts-per-keyword", type=int, default=6)
     parser.add_argument("--max-comments-per-post", type=int, default=30)
     parser.add_argument("--profile-checks-per-post", type=int, default=1)
@@ -317,7 +317,7 @@ def parse_args():
     parser.add_argument("--report-timeout-sec", type=int, default=180)
     parser.add_argument("--sync-timeout-sec", type=int, default=300)
 
-    parser.add_argument("--interval-hours", type=float, default=12.0)
+    parser.add_argument("--interval-hours", type=float, default=4.0)
     parser.add_argument("--heartbeat-path", default=str(DEFAULT_HEARTBEAT_PATH))
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--once", action="store_true")

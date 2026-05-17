@@ -26,6 +26,7 @@ type ExportRequest = {
   onlyTarget?: boolean;
   excludeCompetitors?: boolean;
   vertical?: string;
+  channels?: string;
 };
 
 function toInt(value: unknown, fallback: number): number {
@@ -128,7 +129,8 @@ export async function POST(req: NextRequest) {
   const limit = Math.max(1, Math.min(2000, toInt(body.limit, 500)));
   const onlyTarget = toBool(body.onlyTarget, true);
   const excludeCompetitors = toBool(body.excludeCompetitors, true);
-  const vertical = String(body.vertical || "study_abroad").trim() || "study_abroad";
+  const vertical = String(body.vertical || "china_social_b2b").trim() || "china_social_b2b";
+  const channels = String(body.channels || "").trim();
 
   const loaded = await loadLeadRows(Math.max(1000, limit * 6), vertical);
   if (!loaded.rows.length && loaded.source === "unavailable") {
@@ -155,6 +157,10 @@ export async function POST(req: NextRequest) {
     excludeCompetitors,
     vertical,
     llmMaxRows: limit,
+    channels: channels
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean),
   });
 
   if (!payload.rows.length) {
