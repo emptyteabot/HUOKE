@@ -30,6 +30,21 @@ if (-not (Test-Path $scriptPath)) {
     throw "Missing gate script: $scriptPath"
 }
 
+if ($PasteToMuMu) {
+    $contextChars = ($ProfileContext + $ChatContext + $LeadEvidence + $UserIntent).Trim().Length
+    foreach ($file in $ContextFile) {
+        if (Test-Path $file) {
+            $contextChars += ((Get-Content -Path $file -Raw -Encoding UTF8).Trim().Length)
+        }
+    }
+    if ($contextChars -lt 80) {
+        throw "Refusing to paste: not enough real context. Add profile/post/comment/chat context and matched lead evidence before calling the LLM gate."
+    }
+    if ([string]::IsNullOrWhiteSpace($LeadEvidence) -and ($Stage -in @("opener", "first_touch", "sample_permission", "sample_delivery"))) {
+        throw "Refusing to paste: first-touch/sample stages require matched public lead evidence, not just a generic pitch."
+    }
+}
+
 $pyArgs = @(
     $scriptPath,
     "--platform", $Platform,
@@ -64,6 +79,12 @@ if ($pythonExitCode -ne 0 -and $pythonExitCode -ne 2 -and $pythonExitCode -ne 3)
 if (-not $decision.should_send) {
     Write-Host ""
     Write-Host "BLOCKED: $($decision.do_not_send_reason)"
+    if ($decision.context_understanding) {
+        Write-Host "CONTEXT: $($decision.context_understanding)"
+    }
+    if ($decision.missing_context) {
+        Write-Host "MISSING_CONTEXT: $($decision.missing_context -join '; ')"
+    }
     exit 2
 }
 
@@ -72,6 +93,16 @@ if ($decision.risk_level -eq "high") {
     Write-Host "BLOCKED: risk_level=high"
     exit 3
 }
+
+if (-not $decision.context_understanding) {
+    throw "Approved decision missing context_understanding; refusing to continue."
+}
+
+Write-Host ""
+Write-Host "CONTEXT_UNDERSTANDING: $($decision.context_understanding)"
+Write-Host "PROSPECT_TYPE: $($decision.prospect_type)"
+Write-Host "EVIDENCE_STRENGTH: $($decision.evidence_strength)"
+Write-Host "SAMPLE_FIT: $($decision.sample_fit)"
 
 if (-not $PasteToMuMu) {
     Write-Host ""

@@ -9,7 +9,7 @@
 - 当前只盯四个平台：小红书、抖音、推特和 Reddit。
 - 当前目标客户：雅思机构、留学中介、跨境电商代运营、出海 B2B、AI 初创、独立开发者和自动化服务团队。
 - 吃自己狗粮原则：LeadPulse 必须先给自己找客户；目标从本地快照和已清洗队列里自动筛，不靠人工临时手喂。
-- 私信安全原则：任何首触达、回复、跟进、样本交付都必须先通过 `sales/llm_copy_gate.py` 的实时 LLM JSON 审核，再由真人低频发送。
+- 私信安全原则：任何首触达、回复、跟进、样本交付都必须先把主页/帖子/评论/聊天/样本证据喂给 `sales/llm_copy_gate.py`，由实时 LLM API 先理解 context 并输出 JSON 审核；没有 context 理解、证据强度和样本匹配度，一律不粘贴、不发送。
 - 详细执行记录见 [`docs/LEADPULSE_EYODF_OUTREACH_PROTOCOL_2026-05-17.md`](./docs/LEADPULSE_EYODF_OUTREACH_PROTOCOL_2026-05-17.md)。
 
 ## 🎯 核心功能

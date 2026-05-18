@@ -27,6 +27,15 @@ This is the current operating record for LeadPulse selling LeadPulse.
 
 ## LLM Copy Gate
 
+This is context-first. Do not generate or paste a message from a target name alone.
+
+Before calling the gate, collect enough context for the LLM API to understand the prospect:
+
+- Profile context: role, business, recent post title/body, dates, concrete numbers, and whether they look like a decision-maker.
+- Comment context: comments that prove buyer identity, budget, pain, or that they are a peer/competitor.
+- Chat context: the latest prospect reply and what has already been sent.
+- Lead evidence: 1-2 matched public samples with account IDs/post URLs and why they match this prospect's business.
+
 Before any copy is pasted into MuMu or any social platform, run:
 
 ```powershell
@@ -37,12 +46,18 @@ Allowed output:
 
 - `should_send=true`
 - `risk_level=low` or `risk_level=medium`
+- non-empty `context_understanding`
+- `prospect_type=buyer` or `prospect_type=service_provider`
+- `evidence_strength=medium|strong`
+- first-touch/sample stages require `sample_fit=medium|strong`
 - non-empty `message_text`
 
 Blocked output:
 
 - `should_send=false`
 - `risk_level=high`
+- `prospect_type=unknown|consumer|peer_competitor`
+- weak/missing context or weak/missing sample fit
 - empty `message_text`
 
 MuMu paste wrapper:
@@ -51,18 +66,20 @@ MuMu paste wrapper:
 powershell -ExecutionPolicy Bypass -File sales/social_gate_fill.ps1 -PasteToMuMu ...
 ```
 
-The wrapper only pastes approved text and does not click send.
+The wrapper refuses to paste if context is too thin. It only pastes approved text and does not click send.
 
 ## Current Rule
 
 LeadPulse must find its own customers first. The operator should not manually invent targets. The operating loop is:
 
 1. Read local/public snapshots and existing LeadPulse queues.
-2. Exclude already-contacted accounts and obvious competitors.
-3. Score the remaining target with the LLM copy gate.
-4. Paste only approved short copy into MuMu.
-5. Human reviews and clicks send.
-6. Record reply, rejection reason, or wait state in `sales/leadpulse_50_outreach_week_2026-05-17.md`.
+2. Open the candidate with the small account and collect post/profile/comment context.
+3. Exclude already-contacted accounts and obvious competitors.
+4. Match 1-2 real public samples to the prospect's exact business.
+5. Score the remaining target with the LLM copy gate.
+6. Paste only approved short copy into MuMu.
+7. Human reviews and clicks send.
+8. Record reply, rejection reason, or wait state in `sales/leadpulse_50_outreach_week_2026-05-17.md`.
 
 ## 2026-05-17 State
 
