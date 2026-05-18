@@ -44,11 +44,11 @@ Rules:
 | # | Date | Platform | Industry | Account | Source / Note | Message Angle | Sent | Reply | Rejection Tag | Next Step |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 8 | 2026-05-18 | 小红书 | 雅思独立老师 / IELTS招生 | 会rap更会教雅思的Tcai | 小号核验：04-19 主帖说独立招生累、卷营销号；评论区作者回复自己带学生累/机构更稳定；主页为雅思老师教育博主，有商品和小助理 | 雅思求课公开需求 -> 3条脱敏样本 | yes | pending |  | stop education vertical for now; switch industries |
-| 7 | 2026-05-18 | 小红书 | 外贸B2B / Google Ads / 询盘质量 | A姐成长记录 | 小号核验：05-10 谷歌B2B广告4月花不到4000、询盘不到10个；评论区作者确认“是啊，b端的”；主页为外贸4人小团队负责人 | B端公开采购需求 -> 3条脱敏样本 | yes | pending |  | wait 24h; monitor for sample request |
+| 7 | 2026-05-18 | 小红书 | 外贸B2B / Google Ads / 询盘质量 | A姐成长记录 | 小号核验：05-10 谷歌B2B广告4月花不到4000、询盘不到10个；评论区作者确认“是啊，b端的”；主页为外贸4人小团队负责人 | B端公开采购需求 -> 3条脱敏样本 | yes | 对方问“你们是做服务的吗？”；已用 API context gate 发送人话澄清：不是代运营/投放/软件，只找公开找供应商需求帖 | wants_samples | wait for permission/fit signal, then send 2 matched sample IDs only |
 | 6 | 2026-05-18 | 小红书 | AI初创 / 数字虚拟人 / GEO | Jin.N_AI Lab | LeadPulse XHS 自筛：昨天发帖，AI数字人/GEO项目已开始跑市场和客户，缺销售和小B客户资源 | 小B企业公开需求 -> 3条脱敏样本 | yes | pending |  | wait 24h; no second text before reply/follow |
 | 5 | 2026-05-18 | 小红书 | 外贸工厂 / 厂二代 | 小满 | LeadPulse XHS 自筛：家里有工厂、有产品，想一个人做外贸，不知道怎么入手 | 海外找供应商公开需求 -> 3条脱敏样本 | yes | pending |  | wait 24h; no second text before reply/follow |
 | 4 | 2026-05-17 | 小红书 | 出海营销 / 外贸独立站 | 商派跨境出海记 | 本地存量候选：外贸独立站 / 精准获客 | 外贸获客源头线索 -> 3条真实样本 | yes | pending |  | wait 24h; no further send without gate |
-| 1 | 2026-05-17 | 小红书 | 留学机构 | UKEC英国教育中心英国区 | 英国留学中介费笔记 | 中介费/26fall评论需求 -> 3条样本 | yes | pending |  | wait |
+| 1 | 2026-05-17 | 小红书 | 留学机构 | UKEC英国教育中心英国区 | 英国留学中介费笔记 | 中介费/26fall评论需求 -> 3条样本 | yes | 对方问“您好 没太明白您的意思 您是中介吗”；已用 API context gate 发送澄清：不是中介/不接学生，只请求贴2个英本/G5定位和文书选校帖子号 | sample_permission_pending | wait for explicit yes before sending sample IDs |
 | 2 | 2026-05-17 | 小红书 | 留学机构 | 厦门启德留学 | 文书好评合集 | 文书/选校/26-27fall求助帖 -> 3条样本 | yes | 不太明白后面两句话 | unclear_offer | 已发送简化解释，等是否要样本 |
 | 3 | 2026-05-17 | 小红书 | 出海 SaaS / 私域工具 | SaleSmartly全渠道私域聊单工具 | 小红书主页：企业出海全渠道私域沟通工具 | WhatsApp/海外私域/出海获客需求帖 -> 5条样本 | yes | pending |  | wait |
  
