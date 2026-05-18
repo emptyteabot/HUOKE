@@ -1,0 +1,366 @@
+# LeadPulse LLM-verified fresh prospects
+
+- Generated at: 2026-05-18T14:25:38+00:00
+- Reviewed by LLM: 751
+- Contact-today threshold: 85
+- Verified contact-today rows: 46
+
+## 1. 92 | mid-stage B2B SaaS operator / marketing buyer | /u/Particular_Ebb_4872
+- Industry: Marketing agencies
+- Published: 2026-05-13T20:07:28+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1tcb8mq/anyone_used_a_b2b_growth_marketing_agency_that/
+- Title: Anyone used a b2b growth marketing agency that actually cares about pipeline quality vs just volume?
+- Pain: 付费投放成本上升，但产生的 MQL 质量变差，销售不愿跟进；已试过代理商但对方只看 CPL，不解决管道质量。
+- Sample angle: 可围绕其 ICP，交付近期公开表达需求的公司/决策人线索、来源链接、痛点摘要和低打扰触达角度，帮助销售少浪费时间在错误 MQL 上。
+- First touch: 看到你说 paid spend 涨了但 sales 基本不接那些 MQL，这个问题挺具体的；我可以先按你们 ICP 整理几条近期能跟进的需求帖给你看看。
+
+## 2. 92 | small web infrastructure company operator | 1stgen_runner
+- Industry: Marketing agencies
+- Published: 2026-04-20T02:58:05+00:00
+- URL: https://www.reddit.com/r/smallbusiness/comments/1rwgkrj/anyone_else_struggle_with_high_client_acquisition/
+- Title: 1stgen_runner
+- Pain: 服务型公司获客成本高，正在为 client acquisition costs 发愁。
+- Sample angle: 可围绕其 web infrastructure 服务，提供近期正在找建站、托管、性能、安全、迁移、维护支持的业务主线索，并附来源和痛点摘要，帮助减少无效触达。
+- First touch: Saw your post about acquisition costs — for a web infra shop, are you mainly stuck on finding the right companies to talk to, or on getting replies after outreach?
+
+## 3. 92 | 早期 B2B SaaS 创始团队 | /u/varnajohn
+- Industry: B2B SaaS and startups
+- Published: 2026-04-23T14:09:07+00:00
+- URL: https://www.reddit.com/r/startups/comments/1stjuil/is_it_even_safe_to_use_social_media_automation/
+- Title: Is it even safe to use social media automation tools at the moment? (I will not promote)
+- Pain: 三人创始团队已有少量付费客户，但增长依赖口碑和熟人介绍；现在需要建立可预测的销售管道，同时销售负责人还要兼顾客服、QA 和日常事务，缺少稳定获客能力和执行容量。
+- Sample angle: 围绕 automated background check / HR compliance / hiring ops 场景，交付近期有相关采购、替换工具、合规审核、员工筛查需求的帖子和来源链接，减少创始人自己翻帖和筛人的时间。
+- First touch: 看你们三个人还要兼顾支持和 QA，销售管道这块确实容易卡住。我这边刚好在整理 background check / HR 风控相关的近期求助和采购线索，可以先丢几条你看看方向。
+
+## 4. 92 | B2B SaaS / startup operator | /u/janpaulo
+- Industry: B2B SaaS and startups
+- Published: 2026-03-27T01:42:12+00:00
+- URL: https://www.reddit.com/r/startups/comments/1s4qoph/struggling_to_get_b2b_leads_and_need_some_insight/
+- Title: Struggling to get B2B leads and need some insight - I will not promote
+- Pain: Small software startup says B2B lead generation has been rough; ads, social posts, cold emails, calls, and Apollo lists have not produced leads or revenue, and they are asking what channel actually brings B2B leads.
+- Sample angle: Offer a small set of recent B2B software demand posts with source links, context, and a safe reply angle so they can compare against ads, Apollo lists, and cold outreach.
+- First touch: Saw your post about ads, Apollo lists, cold emails, and calls not really bringing revenue. I’ve been tracking recent posts where companies are already asking for software help — could send a few examples if useful.
+
+## 5. 91 | new solo/small PI law firm owner | /u/kinglucktsui
+- Industry: Legal and accounting
+- Published: 2026-04-24T15:04:06+00:00
+- URL: https://www.reddit.com/r/Lawyertalk/comments/1suiaxv/pi_attorneys_how_are_you_actually_getting_cases/
+- Title: PI attorneys — how are you actually getting cases?
+- Pain: 刚开加州 PI 律所，正在找真实案件来源，对 SEO、LSA、代理、intake service 等获客投入是否有效有强烈疑问。
+- Sample angle: 可提供公开平台上加州事故、保险理赔、伤害索赔相关求助帖的来源链接、帖子号、痛点摘要和适合律师安全切入的回复角度。
+- First touch: Saw your post about getting PI cases as a new shop — I’ve been tracking a few public threads where CA injury questions pop up. Could send a couple examples if helpful.
+
+## 6. 91 | technical B2B SaaS founder/operator | /u/Cod_277killsshipment
+- Industry: B2B SaaS and startups
+- Published: 2026-04-13T02:26:47+00:00
+- URL: https://www.reddit.com/r/startups/comments/1sjy1eg/we_built_the_tool_now_what_the_hell_are_we/
+- Title: We built the tool. Now what the hell are we supposed to do to get people to use it? I will not promote
+- Pain: 产品已做出来但完全卡在分发和获取早期用户，不确定 SEO、冷外联、广告、合作、社区发帖哪条路有效。
+- Sample angle: 针对技术型 SaaS 寻找第一批试用用户，交付相关讨论帖、具体来源、用户痛点摘要和自然私信切入点。
+- First touch: 看到你说工具做完但卡在让人试用这一步，这个阶段确实最磨人。我手上有几类技术 SaaS 找第一批用户时能用的帖子和切入角度，要不要先发你几条看看？
+
+## 7. 91 | B2B marketing / revenue operator | /u/Specialist_Oil5643
+- Industry: Marketing agencies
+- Published: 2026-04-08T12:37:19+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1sfrm9h/anonymous_traffic_hitting_our_site_but_zero/
+- Title: Anonymous traffic hitting our site but zero qualified leads, whats working for AI SDRs right now?
+- Pain: 网站和广告带来大量匿名访问，但表单提交少，且销售认为线索质量差；正在找 AI SDR、即时互动和资格判断方案。
+- Sample angle: 可以切入“别只等表单提交”，给对方按其目标客群整理近期正在求助/抱怨的公开需求帖，附来源、痛点和可跟进角度，帮助销售少追无效人。
+- First touch: 看到你们 50k sessions 但 sales 觉得线索不行那段，挺典型的。你们现在主要卡在访客识别，还是卡在 sales 不知道先追谁？
+
+## 8. 91 | 本地服务公司老板/经营者 | /u/ponderingpixi17
+- Industry: Local services
+- Published: 2026-02-01T14:48:54+00:00
+- URL: https://www.reddit.com/r/sweatystartup/comments/1qt0db4/scaling_past_referrals_has_anyone_successfully/
+- Title: Scaling past referrals: Has anyone successfully used a "performance-based" marketing vendor?
+- Pain: 外墙清洗业务进入第 3 年，想加第二辆车，但转介绍不够，需要稳定线索；对固定月费代理商不信任，担心投入后电话不响。
+- Sample angle: 可围绕本地房主清洗需求、社区求推荐帖、季节性外墙/屋顶/车道清洗需求，交付可跟进来源和安全开场角度。
+- First touch: 你说想从转介绍往外走这点很真实，我最近也在看外墙清洗这类本地需求，发现有些帖子其实挺适合直接跟进。
+
+## 9. 90 | B2B data analytics / Power BI consultancy founder or builder | /u/Sajid_therock
+- Industry: Restaurants and hospitality
+- Published: 2026-05-17T05:59:48+00:00
+- URL: https://www.reddit.com/r/smallbusiness/comments/1tfgwm6/what_marketing_strategy_would_you_focus_on_first/
+- Title: What marketing strategy would you focus on first for a new Power BI consultancy?
+- Pain: New consultancy has no clients yet, small budget, and is overwhelmed by too many acquisition channels such as LinkedIn outreach, Upwork, cold email, partnerships, webinars, content, niche positioning, networking, and free pilots.
+- Sample angle: Early-stage B2B service team trying to get first clients and choose where to focus outreach; likely receptive to concrete prospects, source links, pain summaries, and low-risk outreach angles.
+- First touch: Saw your post about starting the Power BI consultancy from zero. If useful, I can share a few examples of US businesses already asking for dashboard/reporting help, with the original threads and what angle I’d use to reply.
+
+## 10. 90 | Website building service owner | External-Patience-55
+- Industry: Marketing agencies
+- Published: 2026-04-20T02:58:05+00:00
+- URL: https://www.reddit.com/r/smallbusiness/comments/1rsngqu/how_to_grow_businessincrease_exposure/
+- Title: External-Patience-55
+- Pain: Owns a small website building business, explicitly struggling to get clients, and says multiple approaches have not worked.
+- Sample angle: Small business owners publicly asking for website redesign, landing page, Shopify/Webflow/WordPress help, or someone to build their first site.
+- First touch: Saw your post about trying a bunch of ways to get clients for the web build business. I’ve been tracking people asking for site help—want me to send a couple examples?
+
+## 11. 90 | B2B SaaS/startup operator | /u/Apurv_Bansal_Zenskar
+- Industry: B2B SaaS and startups
+- Published: 2026-03-31T13:23:42+00:00
+- URL: https://www.reddit.com/r/Entrepreneur/comments/1s8nbw3/building_feels_easy_now_distribution_is_the_real/
+- Title: Building feels easy now, distribution is the real wall. What actually worked for you?
+- Pain: 产品构建不再是瓶颈，真正卡在稳定、可重复的客户获取；正在寻找第一个可预测渠道，以及 outbound、内容、合作、社区等具体打法。
+- Sample angle: 可围绕“帮早期 SaaS 找到正在讨论同类痛点/替代方案/采购问题的人，并附来源和跟进角度”切入。
+- First touch: Saw your post about distribution being the real wall — the outbound-to-meetings part especially. Curious, are you mostly trying to find better-fit accounts right now, or figure out what message gets replies?
+
+## 12. 89 | freelance digital marketing operator seeking overseas clients | /u/rage_frog
+- Industry: Marketing agencies
+- Published: 2026-05-17T15:10:32+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1tfs713/sourcing_overseas_clients/
+- Title: Sourcing overseas clients
+- Pain: 想做自己的 freelance 业务，目标拿到 USA/UK/Europe 客户，但卡在不知道怎么找到合适公司和建立连接。
+- Sample angle: 可从正在抱怨网站、newsletter、社媒薄弱的欧美小公司切入，整理公司名、帖子/页面来源、具体缺口和适合的轻量服务切入点。
+- First touch: 看到你说卡在找欧美客户这一步，我这边刚好在整理一些网站和社媒明显有缺口的小公司线索，感觉你这种 side freelance 可能用得上。
+
+## 13. 89 | 新成立的网站建设服务商 / 小企业服务商 | External-Patience-55
+- Industry: Marketing agencies
+- Published: 2026-04-20T02:58:05+00:00
+- URL: https://www.reddit.com/r/smallbusiness/comments/1rr7rvn/making_more_sales/
+- Title: External-Patience-55
+- Pain: 刚开始做给小公司建网站的业务，三个月没有销售，即使用低门槛方式也没拿到订单。
+- Sample angle: 可围绕小企业建站、旧站改版、落地页、预约/表单系统等公开需求，交付来源链接、帖子号、痛点摘要和适合的首句切入。
+- First touch: 看到你说做小公司网站三个月还没出单，这种最容易耗在乱找人上。你现在主要想找餐饮/本地服务这类商家，还是偏线上小公司？
+
+## 14. 89 | bookkeeping / accounting / tax firm operator | /u/ProfitMatters2025
+- Industry: Legal and accounting
+- Published: 2025-12-17T16:44:10+00:00
+- URL: https://www.reddit.com/r/Accounting/comments/1pp1co9/accounting_firm_looking_for_expos_to_attend/
+- Title: Accounting firm looking for expos to attend!
+- Pain: They are actively looking for DFW expos, trade shows, and business events that can bring quality leads and new small-business clients, and want to avoid wasting time on poor channels.
+- Sample angle: Find recent SMB/startup/operator posts in DFW or nearby markets where people are asking about bookkeeping, tax help, payroll cleanup, entity setup, QuickBooks issues, or accountant recommendations, then package source links and safe outreach angles.
+- First touch: Saw your DFW expo post — I’ve been tracking places where local SMB owners are already asking about bookkeeping/tax help. Can send a few examples if that’s useful.
+
+## 15. 88 | SEO/GEO service operator or agency owner | /u/Acceptable_Math6854
+- Industry: Marketing agencies
+- Published: 2026-05-18T08:38:13+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1tgggz2/what_marketing_strategy_will_you_suggest_to/
+- Title: What marketing strategy will you suggest to attract more leads?
+- Pain: Cold outreach、LinkedIn 发帖和 Reddit 发帖还没带来足够客户，正在找新的获客方式来获得更多 SEO/GEO 服务客户。
+- Sample angle: 可以围绕正在找 SEO/GEO 服务、抱怨流量/询盘问题的企业主帖子，给他整理可直接跟进的需求来源和开场角度。
+- First touch: 看到你在找 SEO/GEO 服务的新客户来源。你现在主要靠冷邮件和 LinkedIn，我这边刚好在整理一些正在抱怨 SEO、AI 搜索曝光和询盘问题的公司帖子，感觉可能能帮你少试几条弯路。
+
+## 16. 88 | SaaS founder / early-stage operator | /u/curious-chinchilla-
+- Industry: Marketing agencies
+- Published: 2026-05-17T06:50:35+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1tfhuz3/feeling_hopeless_need_advice_to_a_beginner/
+- Title: feeling hopeless, need advice to a beginner
+- Pain: 创始人缺营销和销售经验，LinkedIn 私信 235 人只得到少量回复和注册，正在反复试不同话术但效果不理想，明显在找第一批用户和更有效的客户接触方式。
+- Sample angle: 可围绕其目标行业，提供近期有明确问题表达、适合早期 SaaS 验证的潜在用户帖子/讨论来源，减少盲目群发私信。
+- First touch: 看到你说 LinkedIn 私信 235 个才十来个注册，这种阶段最耗人。你们现在主要想找哪类早期用户？我这边可能能帮你少绕点路。
+
+## 17. 88 | early-stage SaaS founder | /u/No-Fudge7349
+- Industry: Restaurants and hospitality
+- Published: 2026-05-16T16:14:26+00:00
+- URL: https://www.reddit.com/r/smallbusiness/comments/1tey0bb/i_have_a_working_product_a_real_user_and_8_weeks/
+- Title: I have a working product, a real user, and 8 weeks before I run out of money. I don't know how to reach people anymore.
+- Pain: 产品已上线但找不到目标用户，冷私信、社群、Reddit、内容渠道都无效，且只剩 8 周资金。
+- Sample angle: 可以围绕其 SaaS 的目标用户画像，整理近期在 Reddit/X 等渠道主动提到相似问题、正在找替代方案或抱怨现有流程的人，并附上原帖和可切入的私信角度。
+- First touch: 看到你说只剩 8 周、几个渠道都卡住了，这种阶段最难受的是不知道该先找哪批人聊。我可以先按你的目标用户拆一小批最近在问相关问题的人，你看看有没有用。
+
+## 18. 88 | 本地家政/清洁服务创业者 | /u/welptheregoesreddit
+- Industry: Local services
+- Published: 2026-05-14T05:57:15+00:00
+- URL: https://www.reddit.com/r/EntrepreneurRideAlong/comments/1tcp5qm/looking_for_growth_operator_to_own_customer/
+- Title: Looking for Growth Operator to Own Customer Acquisition for Local Services Business
+- Pain: 正在搭建本地服务业务，需要有人负责完整 customer acquisition engine，包括广告、LSA、落地页、lead funnels、call tracking 和持续优化；其本人负责履约和把 leads 转成客户。
+- Sample angle: 可切入本地清洁/家政服务的近期需求发现：搬家清洁、定期保洁、深度清洁、Airbnb turnover、办公室清洁等场景，附来源链接和跟进角度。
+- First touch: Saw your post about building the home services acquisition engine — are you already testing non-ad demand sources, or mostly Google/LSA right now?
+
+## 19. 88 | local home services operator / founder | /u/welptheregoesreddit
+- Industry: Local services
+- Published: 2026-05-14T05:57:04+00:00
+- URL: https://www.reddit.com/r/EntrepreneurRideAlong/comments/1tcp5m9/looking_for_growth_operator_to_own_customer/
+- Title: Looking for Growth Operator to Own Customer Acquisition for Local Services Business
+- Pain: Building a local home services business and needs someone to own customer acquisition end-to-end, including lead funnels, ads, call tracking, offer testing, and scaling.
+- Sample angle: Local home-service demand signals from Reddit/X/TikTok where people are actively asking for cleaners or comparing providers, with source links and a short follow-up angle.
+- First touch: Saw your post about wanting someone to own acquisition for the home services build. I can pull a few recent local-service demand posts with links so you can see if any are worth your team following up on.
+
+## 20. 88 | Content service business operator | /u/StrangeAccountant431
+- Industry: Marketing agencies
+- Published: 2026-05-08T12:53:02+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1t7728a/is_targeting_business_coaches_with_podcasts_a/
+- Title: Is targeting "business coaches with podcasts" a good niche for a content service business?
+- Pain: Needs a better way to identify serious business coaches with podcasts for cold outreach, and wants to avoid hobby podcasters while building a useful lead list.
+- Sample angle: Business coaches who actively use podcasts for client acquisition, show signs of paid offers, post consistently, and have recent content but weak repurposing/distribution.
+- First touch: Saw your post about filtering out hobby podcasters. The hard part is spotting coaches who are actually using the podcast to sell something, not just recording for fun.
+
+## 21. 88 | B2B operator / marketing team | /u/Different-Layer-1338
+- Industry: Marketing agencies
+- Published: 2026-04-24T05:32:04+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1su6oud/anonymous_traffic_is_where_most_pipeline/
+- Title: Anonymous traffic is where most pipeline disappears, help me fix it please.
+- Pain: 网站流量和广告点击在增长，但大量访客不留表单，线索捕获少；SDR 花很多时间追已有联系人，管道流失严重。
+- Sample angle: 可切入他们现有站内捕获失效的问题，提供站外可跟进需求来源，帮助 SDR 少追冷对象，先补一批明确在找方案的公司/人。
+- First touch: Saw your post about traffic growing but forms missing most visitors. Are you trying to fix site capture first, or would outside prospects help the SDRs more right now?
+
+## 22. 88 | 内容营销/短视频服务商经营者 | /u/Sad_Hour1526
+- Industry: Creator and content services
+- Published: 2026-04-21T14:23:00+00:00
+- URL: https://www.reddit.com/r/content_marketing/comments/1srp5jd/inconsistent_lead_generation/
+- Title: Inconsistent Lead generation!!!
+- Pain: 内容营销服务已验证可卖，但客户主要靠手动 outreach，缺少稳定线索来源，增长被拖慢。
+- Sample angle: 找正在做短视频、但表达过内容策略/脚本/剪辑困惑的老板或小团队，附原帖和痛点摘要。
+- First touch: 看到你说现在客户主要靠手动 outreach，增长节奏被拖慢。你们想找的是已经在做短视频、但内容没想明白的老板对吧？我这边可以整理几条这类人最近发的需求给你先看看。
+
+## 23. 88 | B2B SaaS / startup operator | /u/DeliciousWin4649
+- Industry: B2B SaaS and startups
+- Published: 2026-04-21T05:54:41+00:00
+- URL: https://www.reddit.com/r/startups/comments/1srezd6/how_do_you_know_when_your_outbound_problem_is_the/
+- Title: How do you know when your outbound problem is the message vs the system? (I will not promote)
+- Pain: 出站开发效果差，怀疑不是邮件文案问题，而是线索质量差、跟进慢、缺少后续衡量。
+- Sample angle: 可以给他看同类 SaaS/初创团队近期在公开渠道里表达采购、试用、替换工具、找方案的帖子来源和痛点摘要。
+- First touch: 看到你说反复改邮件后，发现更像是名单质量和跟进节奏的问题。我这边刚好在整理一些 SaaS 团队能直接跟进的需求帖和来源，想发你几条看看有没有启发。
+
+## 24. 88 | B2B SaaS 创始人/软件产品经营者 | acehotdog
+- Industry: B2B SaaS and startups
+- Published: 2026-04-20T02:58:05+00:00
+- URL: https://www.reddit.com/r/SaaS/comments/1rwxmrg/trial_users_wont_convert_under_15_what_am_i_doing/
+- Title: acehotdog
+- Pain: SaaS 试用用户注册后成交很低，正在主动求助如何处理 lead conversion 问题，可能需要更匹配、可跟进的潜在客户来源。
+- Sample angle: 按其 SaaS 产品受众，整理正在抱怨同类问题或寻找工具的人群帖子、来源和私信切入点。
+- First touch: 看了你那个 trial users 的帖子，感觉不只是 onboarding 的问题，也可能是进来的人本身就偏了。你们现在用户主要从哪几个渠道来？
+
+## 25. 88 | web development / social media management service provider | Amazing-Preparation1
+- Industry: Marketing agencies
+- Published: 2026-04-20T02:58:05+00:00
+- URL: https://www.reddit.com/r/smallbusiness/comments/1rwyum5/struggling_to_land_my_first_few_web_devsocial/
+- Title: Amazing-Preparation1
+- Pain: 正在启动 web dev 和社媒管理服务，低成本切入仍拿不到前几个客户，明确缺第一批客户。
+- Sample angle: 可围绕本地小商家、初创团队、个人服务业老板近期发布的建站/社媒运营求助帖，给他整理可直接跟进的来源链接、帖子号、痛点摘要和私信切入角度。
+- First touch: 看到你说还没拿下前几个 web/social 客户，感觉卡点可能不是服务本身，是每天能聊到的老板太少。你现在主要在哪找人？
+
+## 26. 88 | business owner / operator running paid acquisition | golaet89
+- Industry: Marketing agencies
+- Published: 2026-04-20T02:58:05+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1rsjtxq/ppc_agency_spent_20000_budget_in_three_months_and/
+- Title: golaet89
+- Pain: PPC 花了 20000 美元三个月只带来 1 条 lead，明显对广告获客效果和线索数量不满。
+- Sample angle: 可以围绕“别再只看广告后台数据，先拿到可核验、能跟进的需求来源”切入，提供同类客户近期在 Reddit/X 等渠道出现的求助帖与需求摘要。
+- First touch: 看到你说 PPC 三个月花了 2 万只来了一条线索，这个确实挺离谱。你现在主要是想先换渠道试试，还是先搞清楚到底哪些人已经在找你这类服务？
+
+## 27. 88 | Early-stage B2B SaaS founder/operator | /u/Optimal_Setting6014
+- Industry: B2B SaaS and startups
+- Published: 2026-04-09T21:36:27+00:00
+- URL: https://www.reddit.com/r/startups/comments/1sh34s4/i_will_not_promote_how_many_first_customers_to/
+- Title: I will not promote: how many 'first customers' to focus on
+- Pain: Has 6 paying customers and 11 in sales cycle, is doing personalized cold outbound at night, and is unsure how much effort to keep putting into finding first customers versus servicing current ones.
+- Sample angle: B2B recruitment/referral tech founder looking for first customer focus; angle around finding more relevant companies already showing hiring/referral/recruiting workflow pain so they spend less evening time on manual outbound.
+- First touch: Saw your post about juggling the first 6 customers with nightly outbound — sounds like you’re right at the point where finding the next few accounts can eat the whole week.
+
+## 28. 88 | early-stage B2B SaaS founder/operator | /u/winston1802
+- Industry: B2B SaaS and startups
+- Published: 2026-04-09T23:53:16+00:00
+- URL: https://www.reddit.com/r/startups/comments/1sh6gt0/how_do_you_sell_when_your_customers_already_use_a/
+- Title: How do you sell when your customers already use a competitor? (B2B SaaS) I will not promote
+- Pain: Struggling to sell into accounts already using competitors; asking how to improve outbound, messaging, and closing in early-stage B2B.
+- Sample angle: Find recent posts where teams mention dissatisfaction with existing competitor tools, switching hesitation, or looking for alternatives in the same SaaS category; deliver source links and suggested low-pressure reply angles.
+- First touch: 看到你那个竞品替换的问题，我感觉你现在最难的不是话术，而是先找到那些已经对现有工具有点不爽的人。这个方向你试过从 Reddit/X 这类帖子里挖线索吗？
+
+## 29. 88 | Local service business operator / 高客单服务商 | /u/lazyEmperer
+- Industry: Local services
+- Published: 2026-03-31T16:31:01+00:00
+- URL: https://www.reddit.com/r/sweatystartup/comments/1s8sdvx/how_are_you_finding_new_clients_without_relying/
+- Title: how are you finding new clients without relying on thumbtack or paying for ads?
+- Pain: 长期依赖 Thumbtack/Angi 买共享线索，抱怨同一条需求被多人抢、客户已选择别人、付费线索质量差，正在主动寻找更早发现潜在客户的方法。
+- Sample angle: 可以从“避免平台共享线索、提前发现本地商机、减少无效跟进”切入，给他看几条本地服务类需求线索的结构：来源、帖子/页面、需求背景、跟进切入点。
+- First touch: 看到你说 Thumbtack/Angi 那种一条需求好几个人抢，太真实了。你现在是主要靠自己搜本地商家来找机会吗？
+
+## 30. 88 | Fractional CFO / high-ticket professional services operator | /u/Character_Werewolf28
+- Industry: Legal and accounting
+- Published: 2026-03-20T14:04:01+00:00
+- URL: https://www.reddit.com/r/Accounting/comments/1ryx46u/success_with_upwork/
+- Title: Success with upwork?
+- Pain: Looking for a couple new clients and asking whether Upwork works for client acquisition.
+- Sample angle: Fractional CFOs asking where to find new clients; angle can focus on surfacing business owners already discussing finance, cash flow, reporting, or CFO help needs.
+- First touch: Saw your Upwork question — for fractional CFO work, have you also tried finding owners already talking about cash flow or reporting problems outside marketplaces?
+
+## 31. 88 | small digital agency owner / service business operator | /u/bigBLCk69
+- Industry: Marketing agencies
+- Published: 2026-03-16T21:23:50+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1rvmqpj/need_scaling_strategy_advices/
+- Title: Need Scaling Strategy Advices
+- Pain: Agency has delivery capacity but almost no new clients; founder is doing outreach alone and needs a scalable way to find clinics/healthcare businesses to approach.
+- Sample angle: Clinics and healthcare businesses showing recent demand for website, design, content, or digital marketing help, with source links and a short note on the likely pain.
+- First touch: Saw your post about juggling outreach and ops for the agency. I’ve been mapping clinics that are already asking for web or marketing help — happy to send over a couple if useful.
+
+## 32. 87 | indie maker / AI web app operator | /u/Cultural-Principle11
+- Industry: Marketing agencies
+- Published: 2026-05-06T20:37:03+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1t5p3oj/i_feel_lost/
+- Title: I feel lost
+- Pain: 曾靠冷邮件卖 AI 网站拿到客户，但原业务过度竞争、消耗大；现在想做订阅型 web app，却卡在找付费用户和销售上。
+- Sample angle: 可以切入他正在找 50 个愿意付费的早期用户，给他看同类 SaaS/AI 工具在 Reddit、X 上出现的真实求助场景和可跟进帖子。
+- First touch: Saw your post about trying to get the first 50 paid users for a web app. I’ve been tracking Reddit/X posts where people are already asking for tools in specific niches — might be useful for picking a wedge before building more.
+
+## 33. 87 | new web design/service agency targeting local US businesses | /u/ehsaanshah303
+- Industry: Marketing agencies
+- Published: 2026-05-06T19:02:09+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1t5mfam/emails_vs_cold_dms_which_is_better_for_starting/
+- Title: Emails vs Cold DMs - which is better for starting agency?
+- Pain: Current cold calling and social DM outreach is slow; Meta account suspensions are restricting growth; they are unsure whether cold email is worth adding because personalization takes time.
+- Sample angle: Find recent Reddit/X posts from local business owners asking for website redesign, landing pages, SEO fixes, booking issues, or online presence help, with source links and a short outreach angle.
+- First touch: Saw your post about Meta suspensions slowing things down. Are you mainly going after restaurants, clinics, home services, or just any local business right now?
+
+## 34. 87 | 本地电工服务经营者/承包商 | /u/mannysteezu
+- Industry: Home services and contractors
+- Published: 2026-04-29T14:24:54+00:00
+- URL: https://www.reddit.com/r/electricians/comments/1sz0cxf/need_help/
+- Title: Need help
+- Pain: 在Florida刚拿到master资质并有保险，想找住宅或商业服务订单；试过Thumbtack、Angi等平台，买到的leads没人回复，感觉白花钱。
+- Sample angle: 可围绕“减少无回应平台名单，优先找近期有电工维修/商业服务需求的人和帖子来源”切入。
+- First touch: 看到你说 Thumbtack/Angi 花了钱没人回，这种最烦。你现在主要想接住宅维修还是商业项目？
+
+## 35. 87 | 本地高客单服务商/电工小老板 | /u/Life-Rub-7230
+- Industry: Home services and contractors
+- Published: 2026-02-09T21:03:20+00:00
+- URL: https://www.reddit.com/r/electricians/comments/1r0ghr5/any_small_business_owner_out_there_with_advice/
+- Title: Any small business owner out there with advice?
+- Pain: 已有执照、网站、Google Ads、Instagram 和大量好评，但客户流不稳定，有时一周有活、有时为零，担心无法从自雇发展成稳定业务。
+- Sample angle: 可围绕“本地业主/装修/维修相关需求帖监测”，给他更早发现附近真实用电工服务的人，而不是继续只靠广告波动。
+- First touch: 看你说有评价也投了广告，但活儿还是一阵一阵的，这种最折磨人。你们现在主要靠 Google 和熟人介绍，还是也会看本地群/论坛里的用电需求？
+
+## 36. 87 | chiropractic clinic owner/operator evaluating patient acquisition vendors | /u/Azrael_Manatheren
+- Industry: Clinics and wellness
+- Published: 2025-10-29T01:51:14+00:00
+- URL: https://www.reddit.com/r/Chiropractic/comments/1ois6wb/anyone_have_experience_with_deardoc/
+- Title: Anyone have experience with DearDoc?
+- Pain: 被 DearDoc 推销营销/获客/口碑管理服务，担心新患者数量、合同取消、交付透明度和 ROI，不信任强推式销售。
+- Sample angle: 可以切入“先看真实可跟进的新患者需求，再决定要不要投入营销服务”，强调透明来源和具体需求上下文。
+- First touch: Saw your DearDoc post — that kind of pushy pitch is frustrating. If you’re mainly trying to see real patient demand before committing to another vendor, I may have a useful angle.
+
+## 37. 86 | small business owner / custom bottled water manufacturer | /u/Ghost_sza
+- Industry: Restaurants and hospitality
+- Published: 2026-05-17T22:24:10+00:00
+- URL: https://www.reddit.com/r/smallbusiness/comments/1tg3txh/how_do_i_scale_my_small_business/
+- Title: How do I scale my small business?
+- Pain: 经营小型瓶装水厂，过去靠 Google Business、转介绍和网站自然来单；现在竞争加剧、市场饱和，需要主动找客户并扩展自有品牌。
+- Sample angle: 可围绕企业活动、酒店/餐饮、健身房、婚礼活动、礼品定制等正在找定制饮用水或品牌物料的需求，给到来源、需求摘要和跟进切入点。
+- First touch: 你这个 custom branding bottled water 其实挺适合从活动、酒店和企业礼品需求里挖客户，我最近看到不少类似采购/定制需求，可能能给你一些思路。
+
+## 38. 86 | 业务经营者/市场负责人，正在寻找能带来可衡量销售结果的获客方案 | /u/KindlyWestern5514
+- Industry: Marketing agencies
+- Published: 2026-05-15T06:35:26+00:00
+- URL: https://www.reddit.com/r/DigitalMarketing/comments/1tdo237/which_performance_marketing_agencies_specialize/
+- Title: Which performance marketing agencies specialize in driving measurable leads and revenue, not just traffic?
+- Pain: 不满只带来流量和漂亮报表的营销服务，明确关注 qualified leads、CAC/ROAS、收入归因、转化优化和可盈利扩量。
+- Sample angle: 可从“别只看点击和曝光，先看哪些需求能被销售实际跟进”切入，提供按行业筛出的真实需求帖和痛点摘要。
+- First touch: 看到你那帖里提到不想只看点击和曝光，这点挺真实。你们现在最卡的是线索质量，还是销售接上以后很难推进？
+
+## 39. 86 | B2B SaaS 独立技术创始人 | /u/EngineeringLifee
+- Industry: B2B SaaS and startups
+- Published: 2026-04-28T14:19:40+00:00
+- URL: https://www.reddit.com/r/startups/comments/1sy2swa/solo_technical_founder_should_i_find_a_salesman/
+- Title: Solo technical founder. Should I find a salesman or solo it? I will not promote.
+- Pain: 独立创始人在 DSD SMB 软件项目上缺销售执行能力，LATAM 销售尝试失败，回到 Miami 市场后需要找到客户和销售打法。
+- Sample angle: 可以围绕 Miami 本地 DSD/批发配送/小型零售供应链相关 SMB 的可跟进需求，给他减轻从零找客户和判断客户需求的压力。
+- First touch: 看到你说 LATAM 那段销售没跑通、现在想回 Miami，我感觉你现在最卡的可能不是再招一个 sales，而是先拿到一批真的在 DSD/配送管理上有痛点的本地 SMB 去验证。你现在主要想先约到店主/运营负责人聊，还是先确认哪个细分场景最愿意买？
+
+## 40. 86 | 小型营销 agency 创始人/经营者 | LegitimateSale994
+- Industry: Marketing agencies
+- Published: 2026-04-20T02:58:05+00:00
+- URL: https://www.reddit.com/r/marketingagency/comments/1rvl7z6/how_to_find_clients/
+- Title: LegitimateSale994
+- Pain: 自己开 full-service marketing agency 后缺新客户，正在主动求助如何找客户。
+- Sample angle: 可提供近期正在找营销、投放、品牌或增长支持的公司/老板帖子与来源，按行业和预算信号筛掉泛咨询。
+- First touch: 看到你说自己做 agency 后现在卡在找客户这块，我这边能整理一些最近在找营销帮助的公司原帖，你先挑几条看看有没有能跟的。
